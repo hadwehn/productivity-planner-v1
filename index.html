@@ -48,7 +48,7 @@ input:focus,textarea:focus{border-color:var(--ink)}
 .cd.today{border:1.5px solid var(--ink)}.cd.sel{background:var(--ink);color:#fff}
 .cd u{position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--acc)}
 .cd.sel u{background:#fff}
-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,400px);display:flex;background:var(--ink);border-radius:999px;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:5}
+nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,400px);max-width:calc(100vw - 16px);display:flex;background:var(--ink);border-radius:999px;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:5}
 nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0;border-radius:999px;color:#bdbab2;font-size:11px}
 nav button.on{background:#fff;color:var(--ink)}
 nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -81,7 +81,7 @@ let S;try{S=JSON.parse(localStorage.getItem('agenda1'))}catch(e){}
 S=Object.assign({h:[],hl:{},m:{},ev:{},w:{},d:{}},S&&typeof S==='object'?S:{});
 const save=()=>{try{localStorage.setItem('agenda1',JSON.stringify(S))}catch(e){alert('No se pudo guardar en este navegador.')}};
 const g=(p,d='')=>{const v=p.split('.').reduce((o,k)=>o==null?o:o[k],S);return v??d};
-function setP(p,v){const k=p.split('.');let o=S;for(let i=0;i<k.length-1;i++)o=o[k[i]]??=/^\d+$/.test(k[i+1])?[]:{};o[k[k.length-1]]=v;save()}
+function setP(p,v){const k=p.split('.');let o=S;for(let i=0;i<k.length-1;i++){const key=k[i];if(o[key]==null)o[key]=/^\d+$/.test(k[i+1])?[]:{};o=o[key]}o[k[k.length-1]]=v;save()}
 
 const U={tab:'d',hd:td(),hm:td().slice(0,7),cm:td().slice(0,7),cd:td(),wk:iso(mon(new Date())),wt:'p',dd:td(),dt:'p',co:false};
 
