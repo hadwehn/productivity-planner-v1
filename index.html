@@ -87,7 +87,7 @@ const U={tab:'d',hd:td(),hm:td().slice(0,7),cm:td().slice(0,7),cd:td(),wk:iso(mo
 
 const inp=(p,ph='')=>`<input data-p="${p}" value="${esc(g(p))}" placeholder="${esc(ph)}">`;
 const ta=(p,ph='',r=3)=>`<textarea data-p="${p}" rows="${r}" placeholder="${esc(ph)}">${esc(g(p))}</textarea>`;
-const top=(t,s='')=>`<div class="top"><div><h1>${t}</h1><div class="sub">${s}</div></div></div>`;
+const pageHeader=(t,s='')=>`<div class="top"><div><h1>${t}</h1><div class="sub">${s}</div></div></div>`;
 const mn=(k,s)=>`<div class="top" style="margin-top:0"><button class="ib" data-a="m" data-k="${k}" data-n="-1" aria-label="Mes anterior">‹</button><b style="text-transform:capitalize">${mt(s)}</b><button class="ib" data-a="m" data-k="${k}" data-n="1" aria-label="Mes siguiente">›</button></div>`;
 const chk=(p)=>{const c=g(p,false);return `<button class="chk${c?' on':''}" data-a="tog" data-p="${p}" aria-label="Completada">${c?'✓':''}</button>`};
 
@@ -100,7 +100,7 @@ function vH(){
   const v=(S.hl[U.hd]||{})[h.id]||0;let c=0;
   for(let i=1;i<=n;i++)if((S.hl[m+'-'+p2(i)]||{})[h.id]===1)c++;
   return `<div class="card"><div class="row"><button class="hb s${v}" data-a="hab" data-id="${h.id}" aria-label="Marcar">${['','✓','✕'][v]}</button><div style="flex:1"><b>${esc(h.name)}</b><div class="sub">${c} de ${n} días</div></div><button class="ib" data-a="hen" data-id="${h.id}" aria-label="Editar">✎</button></div><div class="bar"><i style="width:${c/n*100}%"></i></div></div>`}).join('');
- return top('Hábitos','Toca un día y marca: ✓ cumplido · ✕ no cumplido · vacío = sin anotar')+mn('hm',m)+`<div class="strip">${st}</div>`
+ return pageHeader('Hábitos','Toca un día y marca: ✓ cumplido · ✕ no cumplido · vacío = sin anotar')+mn('hm',m)+`<div class="strip">${st}</div>`
   +(L||'<p class="sub">Aún no tienes hábitos. Crea el primero.</p>')
   +(S.h.length<10?'<button class="btn" data-a="hadd">+ Nuevo hábito</button>':'<p class="sub">Llegaste al máximo de 10 hábitos.</p>');
 }
@@ -115,7 +115,7 @@ function vC(){
  const t=pd(U.cd);
  const ev=(S.ev[U.cd]||[]).map((x,i)=>`<div class="row"><input data-p="ev.${U.cd}.${i}" value="${esc(x||'')}" placeholder="Anotación"><button class="ib" data-a="evd" data-i="${i}" aria-label="Eliminar">✕</button></div>`).join('');
  const tri=k=>[0,1,2].map(i=>`<div class="row"><b>${i+1}.</b>${inp('m.'+m+'.'+k+'.'+i)}</div>`).join('');
- return top('Calendario')+mn('cm',m)+`<div class="card"><div class="cal">${gr}</div></div>`
+ return pageHeader('Calendario')+mn('cm',m)+`<div class="card"><div class="cal">${gr}</div></div>`
   +`<div class="card"><h2>${D[wd(t)]} ${t.getDate()} de ${M[t.getMonth()]}</h2>${ev||'<p class="sub" style="margin:0">Sin anotaciones.</p>'}<button class="btn ghost" data-a="eva">+ Anotación</button></div>`
   +`<div class="card"><h2>3 prioridades del mes</h2>${tri('p')}</div><div class="card"><h2>3 highlights del mes</h2>${tri('h')}</div>`;
 }
@@ -194,3 +194,4 @@ $('#imp').onchange=e=>{
 };
 R(true);
 </script></body></html>
+
