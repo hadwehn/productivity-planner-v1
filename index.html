@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#faf8f4"><title>Agenda</title>
+<meta name="theme-color" content="#f6f1e7"><title>Agenda</title>
 <style>
-:root{--bg:#faf8f4;--ink:#1f1f1d;--mid:#77746d;--line:#e7e3da;--card:#fff;--acc:#2f4a3a}
+:root{--bg:#f6f1e7;--ink:#2b2a26;--mid:#7b776d;--line:#e8e1d2;--card:#fffdf8;--acc:#1e4d6b;--ok:#2f8f6b;--terra:#b8431f;--butter:#f4e3a1;--blue:#7b93a8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:520px;margin:auto;padding:16px 16px 120px}
@@ -54,12 +54,39 @@ nav button.on{background:#fff;color:var(--ink)}
 nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 dialog{border:0;border-radius:20px;padding:20px;width:min(90vw,340px)}
 dialog::backdrop{background:rgba(0,0,0,.35)}
+button:active{transform:scale(.96)}button{transition:transform .12s,background .2s}
+.card.hi{border:1.5px solid #d9b95b;background:#fffaf0}.card.pr{border-left:5px solid var(--terra)}.card.intent{background:var(--butter);border-color:#ecd98f}
+.card.intent textarea{background:transparent;border-color:#e3cf86;font:italic 17px/1.4 Georgia,serif}
+.seg .on,.chip.on{background:var(--acc)}.chk.on,.dot.on{background:var(--acc);border-color:var(--acc)}.chk{border-color:var(--acc)}
+nav button.on{background:var(--acc);color:#fff}nav{background:var(--ink)}
+.cd.sel{background:var(--acc)}.cd.today{border-color:var(--terra);color:var(--terra)}.cd.sel.today{color:#fff}.cd.has{background:#f1eadb}.cd.sel.has{background:var(--acc)}
+.dts{position:absolute;bottom:4px;display:flex;gap:2px}.dts u{position:static;width:5px;height:5px;border-radius:50%}
+.ev{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 12px;margin:0 0 8px;background:var(--bg);border-radius:14px;border-left:5px solid var(--c)}
+.ev b{font-size:13px;color:var(--mid);width:44px;flex:none}.ev.ed{display:block}.ev.ed .row{margin:6px 0}.ev.ed .btn{margin:4px 0}
+.sws{display:flex;gap:12px;margin-left:auto}.sw{width:30px;height:30px;border-radius:50%;border:3px solid transparent}.sw.on{border-color:var(--ink)}
+.hb.s1{background:var(--acc);border-color:var(--acc)}.hb.s2{border-color:var(--blue);color:var(--blue);background:#eef2f5}
+.hb.pop{animation:pop .45s}@keyframes pop{40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.ring{width:46px;height:46px;flex:none;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;position:relative}
+.ring:before{content:"";position:absolute;inset:5px;background:var(--card);border-radius:50%}.ring span{position:relative;font-size:11px;font-weight:600}
+.ring.big{width:64px;height:64px}.ring.big span{font-size:15px}
+.grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}.grid i{width:14px;height:14px;border-radius:5px;background:var(--line)}
+.grid i.c1{background:var(--acc)}.grid i.c2{background:#b7c3cf}.grid i.t{outline:1.5px solid var(--ink);outline-offset:1px}
+.num{width:18px;font:600 15px Georgia,serif;color:var(--terra);flex:none}.card:not(.pr) .num{color:var(--mid)}
+.done input{text-decoration:line-through;color:var(--mid)}
+select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-height:44px}
+.hb.s1{background:var(--ok);border-color:var(--ok)}.ring{background:conic-gradient(var(--ok) calc(var(--p)*1%),var(--line) 0)}
+.grid i.c1{background:var(--ok)}.chk{border-color:var(--ink)}.chk.on,.dot.on{background:var(--ok);border-color:var(--ok)}
+.bar i{background:var(--ok)}.cd.has{background:#ece3d0}.card.intent{border-color:#e6cf75}
+.tg{display:flex;align-items:center;gap:12px;min-height:44px;font-size:15px}.tg input{width:22px;height:22px;padding:0;border:0;flex:none;accent-color:var(--acc)}
+.hr0{border:0;border-top:1px solid var(--line);margin:14px 0}dialog{max-height:88vh;overflow:auto}
+.tg2{display:grid;grid-template-columns:1fr 64px 64px;align-items:center;min-height:44px;font-size:15px}.tg2 input{width:22px;height:22px;padding:0;border:0;justify-self:center;accent-color:var(--acc)}
+.tg2.hd{font-size:12px;color:var(--mid);min-height:28px;text-align:center}
 </style></head><body>
 <button class="ib" id="dbt" data-a="db" aria-label="Datos y respaldo">⋯</button>
 <main id="v"></main><nav id="nav"></nav>
-<dialog id="dlg"><h2>Tus datos</h2>
+<dialog id="dlg"><div id="pers"></div><h2>Tus datos</h2>
 <p class="sub">Todo se guarda automáticamente en este navegador (localStorage), solo en este dispositivo. Si borras los datos del navegador o del sitio, se pierden. Descarga un respaldo de vez en cuando.</p>
-<button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
+<h2 style="margin-top:14px">Color principal</h2><div class="sws" style="margin:0 0 12px"><button class="sw" style="background:#1e4d6b" data-a="acc" data-i="0" aria-label="Color 1"></button><button class="sw" style="background:#b8431f" data-a="acc" data-i="1" aria-label="Color 2"></button><button class="sw" style="background:#2f6b4f" data-a="acc" data-i="2" aria-label="Color 3"></button><button class="sw" style="background:#6b3fa0" data-a="acc" data-i="3" aria-label="Color 4"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
 <label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
 <form method="dialog"><button class="btn ghost">Cerrar</button></form></dialog>
 <script>
@@ -79,28 +106,49 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 let S;try{S=JSON.parse(localStorage.getItem('agenda1'))}catch(e){}
 S=Object.assign({h:[],hl:{},m:{},ev:{},w:{},d:{}},S&&typeof S==='object'?S:{});
+S.cfg=S.cfg||{acc:0};S.cfg.hide=S.cfg.hide||{};Object.keys(S.ev).forEach(k=>S.ev[k]=(S.ev[k]||[]).map(x=>typeof x==='string'?{t:x,c:0,h:''}:x));
+const ACC=['#1e4d6b','#b8431f','#2f6b4f','#6b3fa0'],EC=['#2f6fb0','#d2603a','#d9a21b','#2f8f6b'];
+const TS=['',...Array.from({length:48},(_,i)=>p2(i>>1)+':'+(i%2?'30':'00'))];
+const applyAcc=()=>document.documentElement.style.setProperty('--acc',ACC[S.cfg.acc||0]);applyAcc();
+const DEF={d_pl_wk:false,d_star_we:false,d_oth_we:false,d_co_we:false};
+const vis=k=>{const v=S.cfg.hide[k];return v===undefined?DEF[k]!==false:!v};
+function migCfg(){const h=S.cfg.hide,both=['d_gr','d_hl','d_rf'],wk=['d_star','d_oth','d_co'];
+ Object.keys(h).filter(k=>/^d_/.test(k)&&!/_(wk|we)$/.test(k)).forEach(k=>{const v=h[k];delete h[k];
+  if(both.includes(k)){h[k+'_wk']=v;h[k+'_we']=v}else if(wk.includes(k))h[k+'_wk']=v;else if(k==='d_pl')h[k+'_we']=v})}
+migCfg();
+const empty=()=>'<p class="sub" style="text-align:center;margin:40px 0">Tienes todo oculto. Actívalo desde el botón ⋯.</p>';
+const WQ=['¿Qué te gustó de la semana?','¿Qué quedó pendiente?','¿Qué aprendiste o qué piensas aplicar en el futuro?','¿Cómo ser más productivo la próxima semana?'];
+const OPT={w:[['Plan',[['w_prog','Progreso de la semana'],['w_int','Intención de la semana'],['w_imp','Tareas importantes'],['w_sec','Tareas secundarias']]],['Revisión',WQ.map((q,i)=>['w_r'+i,q])]],d:[['Plan',[['d_gr','Agradecimiento'],['d_star','Tarea más importante'],['d_oth','Otras tareas'],['d_co','Compromisos con hora'],['d_pl','Planes del día'],['d_hl','Highlight del día'],['d_rf','Reflexión']]]]};
+const persHTML=()=>{const o=OPT[U.tab];if(!o)return '<p class="sub">En Semana y Día podrás elegir qué elementos mostrar desde este botón.</p><hr class="hr0">';
+ if(U.tab==='d')return `<h2>Mostrar en Día</h2><p class="sub" style="margin:0 0 6px">Elige qué ver en los días de semana y en los fines de semana. Lo que ocultes desaparece de todos esos días; si lo vuelves a mostrar, recuperas lo que habías escrito.</p><div class="tg2 hd"><span></span><span>Lun–Vie</span><span>Sáb–Dom</span></div>`+o[0][1].map(([k,l])=>`<div class="tg2"><span>${l}</span>${['wk','we'].map(x=>`<input type="checkbox" data-a="vis" data-k="${k}_${x}"${vis(k+'_'+x)?' checked':''} aria-label="${l} ${x==='wk'?'Lun–Vie':'Sáb–Dom'}">`).join('')}</div>`).join('')+'<hr class="hr0">';
+ return `<h2>Mostrar en ${U.tab==='w'?'Semana':'Día'}</h2><p class="sub" style="margin:0 0 6px">Lo que ocultes desaparece de ${U.tab==='w'?'todas las semanas':'todos los días'}. Si lo vuelves a mostrar, recuperas lo que habías escrito.</p>`
+ +o.map(([n,L])=>`<div class="sub" style="margin-top:8px"><b>${n}</b></div>`+L.map(([k,l])=>`<label class="tg"><input type="checkbox" data-a="vis" data-k="${k}"${vis(k)?' checked':''}><span>${l}</span></label>`).join('')).join('')+'<hr class="hr0">'};
 const save=()=>{try{localStorage.setItem('agenda1',JSON.stringify(S))}catch(e){alert('No se pudo guardar en este navegador.')}};
 const g=(p,d='')=>{const v=p.split('.').reduce((o,k)=>o==null?o:o[k],S);return v??d};
 function setP(p,v){const k=p.split('.');let o=S;for(let i=0;i<k.length-1;i++){const key=k[i];if(o[key]==null)o[key]=/^\d+$/.test(k[i+1])?[]:{};o=o[key]}o[k[k.length-1]]=v;save()}
 
-const U={tab:'d',hd:td(),hm:td().slice(0,7),cm:td().slice(0,7),cd:td(),wk:iso(mon(new Date())),wt:'p',dd:td(),dt:'p',co:false};
+const U={tab:'d',hd:td(),ed:-1,pop:null,hm:td().slice(0,7),cm:td().slice(0,7),cd:td(),wk:iso(mon(new Date())),wt:'p',dd:td(),dt:'p',co:false};
 
 const inp=(p,ph='')=>`<input data-p="${p}" value="${esc(g(p))}" placeholder="${esc(ph)}">`;
 const ta=(p,ph='',r=3)=>`<textarea data-p="${p}" rows="${r}" placeholder="${esc(ph)}">${esc(g(p))}</textarea>`;
 const pageHeader=(t,s='')=>`<div class="top"><div><h1>${t}</h1><div class="sub">${s}</div></div></div>`;
-const mn=(k,s)=>`<div class="top" style="margin-top:0"><button class="ib" data-a="m" data-k="${k}" data-n="-1" aria-label="Mes anterior">‹</button><b style="text-transform:capitalize">${mt(s)}</b><button class="ib" data-a="m" data-k="${k}" data-n="1" aria-label="Mes siguiente">›</button></div>`;
+const mn=(k,s)=>`<div class="top" style="margin-top:0"><button class="ib" data-a="m" data-k="${k}" data-n="-1" aria-label="Mes anterior">‹</button><div style="text-align:center"><b style="text-transform:capitalize">${mt(s)}</b>${s!==td().slice(0,7)?`<br><button class="sub" style="text-decoration:underline;min-height:28px" data-a="hoy" data-k="${k}">Ir a hoy</button>`:''}</div><button class="ib" data-a="m" data-k="${k}" data-n="1" aria-label="Mes siguiente">›</button></div>`;
 const chk=(p)=>{const c=g(p,false);return `<button class="chk${c?' on':''}" data-a="tog" data-p="${p}" aria-label="Completada">${c?'✓':''}</button>`};
 
 function vH(){
- const m=U.hm,n=dim(m);
- if(U.hd.slice(0,7)!==m)U.hd=m===td().slice(0,7)?td():m+'-01';
- let st='';
+ const m=U.hm,n=dim(m),T=td();
+ if(U.hd.slice(0,7)!==m)U.hd=m===T.slice(0,7)?T:m+'-01';
+ let st='',ok=0;
  for(let i=1;i<=n;i++){const k=m+'-'+p2(i);st+=`<button class="chip${k===U.hd?' on':''}" data-a="hd" data-k="${k}"><span>${D[wd(pd(k))][0]}</span><b>${i}</b></button>`}
  const L=S.h.map(h=>{
-  const v=(S.hl[U.hd]||{})[h.id]||0;let c=0;
-  for(let i=1;i<=n;i++)if((S.hl[m+'-'+p2(i)]||{})[h.id]===1)c++;
-  return `<div class="card"><div class="row"><button class="hb s${v}" data-a="hab" data-id="${h.id}" aria-label="Marcar">${['','✓','✕'][v]}</button><div style="flex:1"><b>${esc(h.name)}</b><div class="sub">${c} de ${n} días</div></div><button class="ib" data-a="hen" data-id="${h.id}" aria-label="Editar">✎</button></div><div class="bar"><i style="width:${c/n*100}%"></i></div></div>`}).join('');
- return pageHeader('Hábitos','Toca un día y marca: ✓ cumplido · ✕ no cumplido · vacío = sin anotar')+mn('hm',m)+`<div class="strip">${st}</div>`
+  let c=0,cells='';
+  for(let i=1;i<=n;i++){const k=m+'-'+p2(i),v=(S.hl[k]||{})[h.id]||0;if(v===1)c++;cells+=`<i class="c${v===1?1:0}${k===T?' t':''}"></i>`}
+  ok+=c;const v=(S.hl[U.hd]||{})[h.id]||0,pc=Math.round(c/n*100);
+  return `<div class="card"><div class="row"><button class="hb s${v===1?1:0}${U.pop===h.id?' pop':''}" data-a="hab" data-id="${h.id}" aria-label="Marcar">${v===1?'✓':''}</button><div style="flex:1"><b>${esc(h.name)}</b><div class="sub">${c} de ${n} días</div></div><div class="ring" style="--p:${pc}"><span>${pc}%</span></div><button class="ib" data-a="hen" data-id="${h.id}" aria-label="Editar">✎</button></div><div class="grid">${cells}</div></div>`}).join('');
+ const tot=S.h.length*n,pc=tot?Math.round(ok/tot*100):0,full=S.h.length&&S.h.every(h=>(S.hl[U.hd]||{})[h.id]===1);
+ return pageHeader('Hábitos','Elige un día y marca ✓ los hábitos que cumpliste')+mn('hm',m)
+  +(S.h.length?`<div class="card"><div class="row"><div class="ring big" style="--p:${pc}"><span>${pc}%</span></div><div><b>Tu mes</b><div class="sub">${full?'Día completo. Bien hecho.':ok+' registros cumplidos. Cada día suma.'}</div></div></div></div>`:'')
+  +`<div class="strip">${st}</div>`
   +(L||'<p class="sub">Aún no tienes hábitos. Crea el primero.</p>')
   +(S.h.length<10?'<button class="btn" data-a="hadd">+ Nuevo hábito</button>':'<p class="sub">Llegaste al máximo de 10 hábitos.</p>');
 }
@@ -110,24 +158,29 @@ function vC(){
  let gr=D.map(d=>`<div class="sub">${d[0]}</div>`).join('');
  for(let i=0;i<rows*7;i++){
   const d=i-off+1;if(d<1||d>n){gr+='<div></div>';continue}
-  const k=m+'-'+p2(d),has=(S.ev[k]||[]).some(x=>x&&x.trim());
-  gr+=`<button class="cd${k===U.cd?' sel':''}${k===td()?' today':''}" data-a="cd" data-k="${k}">${d}${has?'<u></u>':''}</button>`}
- const t=pd(U.cd);
- const ev=(S.ev[U.cd]||[]).map((x,i)=>`<div class="row"><input data-p="ev.${U.cd}.${i}" value="${esc(x||'')}" placeholder="Anotación"><button class="ib" data-a="evd" data-i="${i}" aria-label="Eliminar">✕</button></div>`).join('');
- const tri=k=>[0,1,2].map(i=>`<div class="row"><b>${i+1}.</b>${inp('m.'+m+'.'+k+'.'+i)}</div>`).join('');
+  const k=m+'-'+p2(d),e=(S.ev[k]||[]).filter(x=>x.t.trim()||x.h);
+  gr+=`<button class="cd${k===U.cd?' sel':''}${k===td()?' today':''}${e.length?' has':''}" data-a="cd" data-k="${k}">${d}<span class="dts">${e.slice(0,3).map(x=>`<u style="background:${k===U.cd?'#fff':EC[x.c]}"></u>`).join('')}</span></button>`}
+ const t=pd(U.cd),L=(S.ev[U.cd]||[]).map((x,i)=>({x,i})).sort((p,q)=>(p.x.h||'99').localeCompare(q.x.h||'99'));
+ const list=L.map(({x,i})=>U.ed===i
+  ?`<div class="ev ed" style="--c:${EC[x.c]}"><input data-p="ev.${U.cd}.${i}.t" value="${esc(x.t)}" placeholder="Título del evento"><div class="row"><select data-p="ev.${U.cd}.${i}.h" aria-label="Hora">${(!x.h||TS.includes(x.h)?TS:[...TS,x.h]).map(t=>`<option value="${t}"${t===(x.h||'')?' selected':''}>${t||'Todo el día'}</option>`).join('')}</select><span class="sws">${EC.map((c,j)=>`<button class="sw${j===x.c?' on':''}" style="background:${c}" data-a="ec" data-i="${i}" data-j="${j}" aria-label="Color ${j+1}"></button>`).join('')}</span></div><div class="row"><button class="btn ghost" data-a="evd" data-i="${i}">Eliminar</button><button class="btn" data-a="ed" data-i="-1">Listo</button></div></div>`
+  :`<button class="ev" style="--c:${EC[x.c]}" data-a="ed" data-i="${i}"><b>${x.h||'Todo el día'}</b><span>${esc(x.t)||'Sin título'}</span></button>`).join('');
+ const tri=k=>[0,1,2].map(i=>`<div class="row"><span class="num">${i+1}</span>${inp('m.'+m+'.'+k+'.'+i)}</div>`).join('');
  return pageHeader('Calendario')+mn('cm',m)+`<div class="card"><div class="cal">${gr}</div></div>`
-  +`<div class="card"><h2>${D[wd(t)]} ${t.getDate()} de ${M[t.getMonth()]}</h2>${ev||'<p class="sub" style="margin:0">Sin anotaciones.</p>'}<button class="btn ghost" data-a="eva">+ Anotación</button></div>`
+  +`<div class="card"><h2>${D[wd(t)]} ${t.getDate()} de ${M[t.getMonth()]}</h2>${list||'<p class="sub" style="margin:0 0 8px">Día libre. Agrega lo que quieras recordar.</p>'}<button class="btn ghost" data-a="eva">+ Evento</button></div>`
   +`<div class="card"><h2>3 prioridades del mes</h2>${tri('p')}</div><div class="card"><h2>3 highlights del mes</h2>${tri('h')}</div>`;
 }
 
 function vW(){
  const k=U.wk,a=pd(k),b=add(a,6),W='w.'+k+'.',f=d=>d.getDate()+' '+M[d.getMonth()].slice(0,3);
- const rowsF=r=>[0,1,2,3,4].map(i=>`<div class="row">${chk(W+r+'.'+i+'.c')}${inp(W+r+'.'+i+'.t','Tarea '+(i+1))}</div>`).join('');
- const head=`<div class="top" style="margin-top:34px"><button class="ib" data-a="wk" data-n="-1" aria-label="Semana anterior">‹</button><div style="text-align:center"><h1>Semana</h1><div class="sub">${f(a)} – ${f(b)}</div></div><button class="ib" data-a="wk" data-n="1" aria-label="Semana siguiente">›</button></div><div class="seg"><button class="${U.wt==='p'?'on':''}" data-a="wt" data-k="p">Plan</button><button class="${U.wt==='r'?'on':''}" data-a="wt" data-k="r">Revisión</button></div>`;
- if(U.wt==='r')return head+['¿Qué te gustó de la semana?','¿Qué quedó pendiente?','¿Qué aprendiste o qué piensas aplicar en el futuro?','¿Cómo ser más productivo la próxima semana?'].map((q,i)=>`<div class="card"><label class="q">${i+1}. ${q}</label>${ta(W+'r.'+i,'',4)}</div>`).join('');
- return head+`<div class="card"><h2>Intención de la semana</h2>${ta(W+'i','¿Cuál es mi intención para esta semana?',2)}</div>`
-  +`<div class="card hi"><h2>5 tareas más importantes</h2><p class="sub" style="margin:-4px 0 4px">Si las completas, te sentirás satisfecho con tu semana.</p>${rowsF('a')}</div>`
-  +`<div class="card"><h2>5 tareas secundarias</h2>${rowsF('b')}</div>`;
+ const rowsF=r=>[0,1,2,3,4].map(i=>`<div class="row${g(W+r+'.'+i+'.c',false)?' done':''}"><span class="num">${i+1}</span>${chk(W+r+'.'+i+'.c')}${inp(W+r+'.'+i+'.t','Tarea '+(i+1))}</div>`).join('');
+ const head=`<div class="top" style="margin-top:34px"><button class="ib" data-a="wk" data-n="-1" aria-label="Semana anterior">‹</button><div style="text-align:center"><h1>Semana</h1><div class="sub">${f(a)} – ${f(b)}${k!==iso(mon(new Date()))?' · <button data-a="hoyw" style="text-decoration:underline">Esta semana</button>':''}</div></div><button class="ib" data-a="wk" data-n="1" aria-label="Semana siguiente">›</button></div><div class="seg"><button class="${U.wt==='p'?'on':''}" data-a="wt" data-k="p">Plan</button><button class="${U.wt==='r'?'on':''}" data-a="wt" data-k="r">Revisión</button></div>`;
+ if(U.wt==='r')return head+(WQ.map((q,i)=>vis('w_r'+i)?`<div class="card"><label class="q">${i+1}. ${q}</label>${ta(W+'r.'+i,'',4)}</div>`:'').join('')||empty());
+ const dn=['a','b'].map(r=>[0,1,2,3,4].filter(i=>g(W+r+'.'+i+'.c',false)).length),pc=Math.round((dn[0]+dn[1])*10);
+ const P=[['w_prog',`<div class="card"><div class="row"><div class="ring big" style="--p:${pc}"><span>${dn[0]+dn[1]}/10</span></div><div><b>Tu semana</b><div class="sub">${dn[0]} de 5 importantes · ${dn[1]} de 5 secundarias</div></div></div></div>`],
+  ['w_int',`<div class="card intent"><h2>Intención de la semana</h2>${ta(W+'i','¿Cuál es mi intención para esta semana?',2)}</div>`],
+  ['w_imp',`<div class="card pr"><h2>5 tareas más importantes</h2><p class="sub" style="margin:-4px 0 4px">Si las completas, te sentirás satisfecho con tu semana.</p>${rowsF('a')}</div>`],
+  ['w_sec',`<div class="card"><h2>5 tareas secundarias</h2>${rowsF('b')}</div>`]].filter(x=>vis(x[0])).map(x=>x[1]).join('');
+ return head+(P||empty());
 }
 
 function vD(){
@@ -137,20 +190,18 @@ function vD(){
  const gr=`<div class="card"><label class="q">¿Por qué estoy agradecido?</label>${ta(Z+'g','',2)}</div>`;
  const hl=`<div class="card"><label class="q">Highlight del día</label>${inp(Z+'hl')}</div>`;
  const rf=`<div class="card"><label class="q">¿Qué aprendiste y/o qué quieres recordar del día de hoy?</label>${ta(Z+'r','',4)}</div>`;
- if(w>4)return head+gr+`<div class="card"><label class="q">Planes del día</label>${ta(Z+'p','Planes, actividades, compromisos…',6)}</div>`+hl+rf;
  const task=i=>{const P=Z+'k.'+i+'.',s=g(P+'s',0);
   return `<div class="row">${chk(P+'c')}${inp(P+'t',i?'Otra tarea':'¿Cuál es tu tarea clave hoy?')}</div><div class="dots">${[0,1,2,3,4].map(j=>`<button class="dot${j<s?' on':''}" data-a="dot" data-p="${P}s" data-j="${j}" aria-label="Sesión ${j+1}"></button>`).join('')}<span class="sub">× 30 min</span></div>`};
  const co=U.co||Object.values(g(Z+'c',{})).some(Boolean);
- const hrs=[...Array(17)].map((_,i)=>6+i);
- return head+gr
-  +`<div class="card hi"><h2>★ Tarea más importante</h2>${task(0)}</div><div class="card"><h2>Otras tareas</h2>${task(1)}${task(2)}</div>`
-  +`<div class="card"><button class="sh" data-a="co">Compromisos con hora<span>${co?'−':'+'}</span></button>${co?hrs.map(h=>`<div class="row"><span class="sub hr">${h}:00</span>${inp(Z+'c.h'+h)}</div>`).join(''):''}</div>`
-  +hl+rf;
+ const hrs=[...Array(34)].map((_,i)=>({k:'h'+(6+(i>>1))+(i%2?'b':''),l:(6+(i>>1))+':'+(i%2?'30':'00')}));
+ const sf=w>4?'_we':'_wk';
+ return head+([['d_gr',gr],['d_pl',`<div class="card"><label class="q">Planes del día</label>${ta(Z+'p','Planes, actividades, compromisos…',6)}</div>`],['d_star',`<div class="card hi"><h2>★ Tarea más importante</h2>${task(0)}</div>`],['d_oth',`<div class="card"><h2>Otras tareas</h2>${task(1)}${task(2)}</div>`],
+  ['d_co',`<div class="card"><button class="sh" data-a="co">Compromisos con hora<span>${co?'−':'+'}</span></button>${co?hrs.map(h=>`<div class="row"><span class="sub hr">${h.l}</span>${inp(Z+'c.'+h.k)}</div>`).join(''):''}</div>`],['d_hl',hl],['d_rf',rf]].filter(x=>vis(x[0]+sf)).map(x=>x[1]).join('')||empty());
 }
 
 function R(up){
  const y=scrollY;
- $('#v').innerHTML=({h:vH,c:vC,w:vW,d:vD})[U.tab]();
+ $('#v').innerHTML=({h:vH,c:vC,w:vW,d:vD})[U.tab]();U.pop=null;
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.k===U.tab));
  const c=$('.chip.on');if(c)c.parentNode.scrollLeft=c.offsetLeft-c.parentNode.clientWidth/2+23;
  scrollTo(0,up?0:y);
@@ -163,18 +214,24 @@ document.addEventListener('input',e=>{const p=e.target.dataset&&e.target.dataset
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-a]');if(!b)return;
  const a=b.dataset.a,d=b.dataset;
- if(a==='db'){$('#dlg').showModal();return}
+ if(a==='db'){$('#pers').innerHTML=persHTML();$('#dlg').showModal();return}
  if(a==='exp'){const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));l.download='agenda-respaldo-'+td()+'.json';l.click();setTimeout(()=>URL.revokeObjectURL(l.href),1000);return}
  if(a==='go')U.tab=d.k;
  else if(a==='m'){U[d.k]=ym(U[d.k],+d.n);if(d.k==='cm')U.cd=U.cm===td().slice(0,7)?td():U.cm+'-01'}
  else if(a==='hd')U.hd=d.k;
- else if(a==='hab'){const o=S.hl[U.hd]=S.hl[U.hd]||{};o[d.id]=((o[d.id]||0)+1)%3;save()}
+ else if(a==='hab'){const o=S.hl[U.hd]=S.hl[U.hd]||{};o[d.id]=o[d.id]===1?0:1;U.pop=o[d.id]===1?d.id:null;save()}
  else if(a==='hadd'){const n=(prompt('Nombre del hábito')||'').trim();if(!n)return;S.h.push({id:Date.now().toString(36),name:n});save()}
  else if(a==='hen'){const h=S.h.find(x=>x.id===d.id),n=prompt('Editar nombre. Déjalo vacío para eliminar este hábito.',h.name);if(n===null)return;
   if(n.trim())h.name=n.trim();else if(confirm('¿Eliminar "'+h.name+'" y sus registros?')){S.h=S.h.filter(x=>x!==h);Object.values(S.hl).forEach(o=>delete o[h.id])}else return;save()}
- else if(a==='cd')U.cd=d.k;
- else if(a==='eva'){(S.ev[U.cd]=S.ev[U.cd]||[]).push('');save()}
- else if(a==='evd'){S.ev[U.cd].splice(+d.i,1);save()}
+ else if(a==='cd'){U.cd=d.k;U.ed=-1}
+ else if(a==='vis'){S.cfg.hide[d.k]=!b.checked;save()}
+ else if(a==='hoy'){U[d.k]=td().slice(0,7);if(d.k==='cm'){U.cd=td();U.ed=-1}else U.hd=td()}
+ else if(a==='hoyw')U.wk=iso(mon(new Date()));
+ else if(a==='ed')U.ed=+d.i;
+ else if(a==='ec')setP('ev.'+U.cd+'.'+d.i+'.c',+d.j);
+ else if(a==='acc'){S.cfg.acc=+d.i;save();applyAcc()}
+ else if(a==='eva'){const L=S.ev[U.cd]=S.ev[U.cd]||[];L.push({t:'',c:0,h:''});U.ed=L.length-1;save()}
+ else if(a==='evd'){S.ev[U.cd].splice(+d.i,1);U.ed=-1;save()}
  else if(a==='tog')setP(d.p,!g(d.p,false));
  else if(a==='dot'){const s=g(d.p,0),j=+d.j;setP(d.p,s===j+1?j:j+1)}
  else if(a==='wk')U.wk=iso(add(pd(U.wk),7*d.n));
@@ -183,15 +240,14 @@ document.addEventListener('click',e=>{
  else if(a==='dd')U.dd=iso(add(pd(U.dd),+d.n));
  else if(a==='today')U.dd=td();
  else if(a==='co')U.co=!U.co;
- R(['go','m','wk','wt','dt','dd','today'].includes(a));
+ R(['go','m','wk','wt','dt','dd','today','hoy','hoyw'].includes(a));
 });
 $('#imp').onchange=e=>{
  const f=e.target.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||typeof o!=='object'||!Array.isArray(o.h))throw 0;
   if(!confirm('Esto reemplazará los datos actuales. ¿Continuar?'))return;
-  S=Object.assign({h:[],hl:{},m:{},ev:{},w:{},d:{}},o);save();$('#dlg').close();R(true)}catch(x){alert('El archivo no es un respaldo válido.')}};
+  S=Object.assign({h:[],hl:{},m:{},ev:{},w:{},d:{}},o);S.cfg=S.cfg||{acc:0};S.cfg.hide=S.cfg.hide||{};migCfg();applyAcc();save();$('#dlg').close();R(true)}catch(x){alert('El archivo no es un respaldo válido.')}};
  r.readAsText(f);e.target.value='';
 };
 R(true);
 </script></body></html>
-
