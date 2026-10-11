@@ -105,7 +105,7 @@ function validateState(o){
 }
 function normalize(o){const v=Object.assign(blank(),o);v.cfg=Object.assign({acc:0,hide:{},days:{}},v.cfg);v.cfg.hide=v.cfg.hide||{};v.cfg.days=v.cfg.days||{};Object.keys(v.ev).forEach(k=>v.ev[k]=v.ev[k].map(x=>typeof x==='string'?{t:x,c:0,h:''}:{...x,c:Number.isInteger(x.c)&&x.c>=0&&x.c<4?x.c:0}));return v;}
 try{const raw=localStorage.getItem('agenda1');S=normalize(raw?validateState(JSON.parse(raw)):blank())}catch(e){S=blank();loadFailure=true;$('#storage-warning').hidden=false;$('#storage-warning').textContent='No pudimos leer tus datos. El original permanece intacto. Usa Ajustes para descargarlo o restaurar un respaldo.'}
-const ACC=['#1e4d6b','#b8431f','#2f6b4f','#6b3fa0','#806315', '#f4e3a1'], EC=['var(--acc)','#716e66','#aaa69b','#2b2a26'];
+const ACC=['#1e4d6b','#b8431f','#2f6b4f','#6b3fa0','#806315', '#f4e3a1'], EC=['#6F91B3','#B989A4','#C5A052','#7D9B83'];
 const TS=['',...Array.from({length:48},(_,i)=>p2(i>>1)+':'+(i%2?'30':'00'))];
 function applyAcc(){document.documentElement.style.setProperty('--acc',ACC[S.cfg.acc]||ACC[0]);document.querySelectorAll('[data-a=acc]').forEach(b=>{const selected=+b.dataset.i===(S.cfg.acc||0);b.setAttribute('aria-pressed',selected);b.classList.toggle('on',selected)})}applyAcc();
 const DEF={d_pl_wk:false,d_star_we:true,d_oth_we:true,d_co_we:false,d_hab_wk:true,d_hab_we:true,d_co_wk:false,d_learn_wk:false,d_learn_we:false,d_remember_wk:false,d_remember_we:false};
