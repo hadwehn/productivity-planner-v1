@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e7"><title>Productivity Planner</title>
+<style>
+[hidden]{display:none!important}
+
+:root{--bg:#f7f6f2;--card:#fffefa;--ink:#2b2a26;--mid:#716e66;--line:#e2dfd7;--surface:#eeede7;--acc:#1e4d6b;--ok:var(--acc);--terra:var(--mid);--blue:var(--mid);--butter:var(--surface)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:auto;padding:24px 20px calc(118px + env(safe-area-inset-bottom))}
+h1{font:500 30px/1.2 Georgia,serif;margin:0}h2{font:600 11px/1.45 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin:0 0 12px}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}button:disabled{opacity:.3;cursor:default}
+input,textarea{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:10px 2px;border-radius:0}
+textarea{border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;line-height:1.6}input:focus,textarea:focus{border-color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}input:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:0}
+select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:44px;max-width:100%}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:32px 0 20px}.top>div{min-width:0}.sub{color:var(--mid);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}.card.hi{border-color:var(--acc)}.card.pr{border-left:2px solid var(--acc)}
+.card.intent{background:var(--surface);border-color:var(--line)}.card.intent textarea{border:0;font:italic 20px/1.5 Georgia,serif;padding:0;min-height:64px}
+.q{display:block;font-weight:600;font-size:14px;margin-bottom:8px}.ib{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;font-size:22px}
+#dbt{position:fixed;top:8px;right:max(10px,calc(50% - 328px));z-index:5;color:var(--mid);background:var(--bg)}
+.seg{display:flex;gap:3px;background:var(--surface);border-radius:12px;padding:3px;margin-bottom:18px}.seg button{flex:1;min-width:0;min-height:44px;border-radius:9px;font-size:13px;color:var(--mid)}.seg .on{background:var(--acc);color:white}
+.row{display:flex;align-items:center;gap:10px;min-width:0}.row input{flex:1}.chk,.hb{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;font-size:17px}.chk.on,.hb.s1{background:var(--acc);border-color:var(--acc);color:white}
+.dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 10px}.dot{width:36px;height:36px;border:1px solid var(--line);border-radius:50%}.dot.on{background:var(--acc);border-color:var(--acc)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border-radius:10px;background:var(--acc);color:white;font-size:15px;margin:8px 0;padding:10px 14px;text-align:center}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sh{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:44px;text-align:left;font-size:14px;font-weight:600;gap:10px}.hr{width:48px;flex:none}
+.quote{margin:0 0 24px;padding:4px 16px;border-left:1px solid var(--line);font:italic 17px/1.6 Georgia,serif;color:var(--mid)}.quote footer{font:12px/1.5 system-ui;margin-top:7px}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px}.chip{flex:none;width:46px;height:60px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--surface);font-size:13px}.chip.on{background:var(--acc);color:white}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.cd{aspect-ratio:1;min-height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;position:relative}.cd.today{border:1px solid var(--acc)}.cd.has{background:var(--surface)}.cd.sel,.cd.sel.has{background:var(--acc);color:white}
+.dts{position:absolute;bottom:4px;display:flex;gap:2px}.dts u{width:5px;height:5px;border-radius:50%}
+nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94vw,460px);max-width:calc(100vw - 16px);display:flex;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:6px;box-shadow:0 4px 18px #2b2a260a;z-index:5}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 0;border-radius:18px;color:var(--mid);font-size:11px;min-height:52px}nav button.on{background:var(--acc);color:white}nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ev{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;margin-bottom:8px;background:var(--surface);border-radius:10px;border-left:3px solid var(--c);overflow-wrap:anywhere}.ev b{font-size:12px;color:var(--mid);width:52px;flex:none}.ev.ed{display:block}.ev.ed .row{margin:6px 0;flex-wrap:wrap}.ev.ed .btn{margin:4px 0}
+.sws{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}.sw{width:44px;height:44px;border-radius:50%;border:4px solid var(--card);outline:1px solid var(--line)}.sw.on,.sw[aria-pressed=true]{outline:2px solid var(--acc);outline-offset:2px}
+.ring{width:46px;height:46px;flex:none;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;position:relative}.ring:before{content:"";position:absolute;inset:5px;background:var(--card);border-radius:50%}.ring span{position:relative;font-size:11px;font-weight:600}.ring.big{width:64px;height:64px}.ring.big span{font-size:15px}
+.grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}.grid i{width:14px;height:14px;border-radius:4px;background:var(--line)}.grid i.c1{background:var(--acc)}.grid i.t{outline:1px solid var(--ink);outline-offset:1px}
+.num{width:18px;font:500 15px Georgia,serif;color:var(--mid);flex:none}.done input{text-decoration:line-through;color:var(--mid)}
+dialog{border:1px solid var(--line);border-radius:18px;padding:0;width:min(94vw,520px);max-height:86dvh;overflow:auto;background:var(--card);color:var(--ink)}dialog::backdrop{background:#24231f50}.modal-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:12px 20px;border-bottom:1px solid var(--line);z-index:1}.modal-head h2{margin:0}.modal-body{padding:20px}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:14px}.tg span{flex:1}.tg input{width:22px;height:22px;flex:none;padding:0;border:0;accent-color:var(--acc)}.hr0{border:0;border-top:1px solid var(--line);margin:20px 0}
+.prefs-tabs{margin-top:16px}.day-picks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:14px}.day-picks button{min-height:44px;border:1px solid var(--line);border-radius:10px;font-size:12px;position:relative}.day-picks button.on{background:var(--acc);border-color:var(--acc);color:white}.day-picks button.custom:after{content:"";position:absolute;bottom:4px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}
+.pref-state{margin:4px 0 10px}.pref-title{margin-top:22px}.pref-reset,.link{font-size:13px;color:var(--acc);text-decoration:underline;min-height:44px;cursor:pointer}.task-add{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 4px;color:var(--mid);font-size:13px}.task-add:hover{color:var(--acc)}.tiny-action{min-width:44px;min-height:44px;font-size:18px;color:var(--mid)}
+.task-line{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}.task-line input{border:0}.effort{margin:0 0 8px 54px}.effort summary{font-size:12px;color:var(--mid);cursor:pointer;min-height:30px;padding-top:4px}
+.habit-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.habit-row:last-child{border:0}.habit-row span{flex:1}.context{padding:12px 2px;color:var(--mid);font-size:14px}.context b{color:var(--ink)}.section-note{margin:0 0 20px;color:var(--mid);font-size:14px}.section-title{font:500 23px Georgia,serif;margin:24px 0 12px}.module-sort{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}.module-sort span{flex:1;font-size:14px}
+#status{position:fixed;bottom:calc(98px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90vw;background:var(--ink);color:white;padding:10px 16px;border-radius:12px;font-size:13px;z-index:20;display:none}#status.show{display:block}#storage-warning{padding:12px;background:var(--surface);font-size:14px}
+fieldset{border:0;padding:0;margin:18px 0}legend{font-weight:600;font-size:14px;margin-bottom:10px}.schedule{display:flex;gap:4px}.schedule label{flex:1;text-align:center;font-size:12px}.schedule input{width:22px;height:22px;display:block;margin:8px auto;accent-color:var(--acc)}.modal-body input[type=text]{border:1px solid var(--line);border-radius:10px;padding:12px}
+.mode-list{display:grid;gap:10px;margin:16px 0}.mode-card{display:block;position:relative;text-align:left;border:1px solid var(--line);border-radius:12px;padding:16px 42px 16px 16px;width:100%;min-height:74px}.mode-card b{font-weight:600;font-size:15px}.mode-card span{display:block;color:var(--mid);font-size:13px;margin-top:4px}.mode-card.selected{border-color:var(--acc);background:var(--surface)}.mode-card.selected:after{content:'✓';position:absolute;right:16px;top:18px;color:var(--acc)}.legacy{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.legacy summary{color:var(--mid);font-size:13px;min-height:44px;cursor:pointer}.legacy label{margin-top:12px}.mode-description{color:var(--mid);font-size:13px;margin:12px 0}.welcome-lead{font:500 27px/1.25 Georgia,serif;margin:0 0 12px}
+@media(max-width:380px){main{padding-left:12px;padding-right:12px}.card{padding:16px}.seg button{font-size:12px}.effort{margin-left:0}.day-picks button{font-size:11px}}
+.color-options {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: 0;
+}
+
+.color-options .sw {
+  flex: 0 1 44px;
+  width: 44px;
+  min-width: 0;
+  height: 44px;
+}
+
+/* Cuenta y acceso: misma paleta, tipografía y ritmo de la agenda. */
+.access-shell{width:min(100%,940px);min-height:100svh;margin:auto;padding:64px 36px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:76px}
+.access-brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.025em;color:var(--acc);margin-bottom:64px}
+.brand-mark{width:36px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.brand-mark svg{width:23px;height:25px}.access-eyebrow{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin:0 0 16px}
+.access-intro h1{font:400 64px/1.06 Georgia,serif;letter-spacing:-2px;margin:0 0 24px}.access-intro h1 em{font-weight:400;color:var(--acc)}
+.access-lead{color:var(--mid);font-size:15px;line-height:1.8;margin:0}.access-detail{display:flex;gap:7px;margin-top:34px}.access-detail span{width:7px;height:7px;border-radius:50%;background:var(--line)}.access-detail span:first-child{background:var(--acc)}
+.access-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:34px 30px;box-shadow:0 8px 36px #2b2a2604;min-width:0}
+.access-symbol{width:42px;height:42px;border:1px solid var(--line);border-radius:13px;display:grid;place-items:center;color:var(--acc);margin-bottom:26px}.access-symbol svg{width:23px;height:23px}
+.access-card h2{font:400 28px/1.2 Georgia,serif;color:var(--ink);letter-spacing:-.5px;text-transform:none;margin:0 0 10px}.access-description{font-size:14px;color:var(--mid);line-height:1.65;margin:0 0 26px}
+.access-card .q{font-size:12px;font-weight:500;margin:0 0 8px}.access-card input{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px 14px;min-height:50px;transition:border-color .2s,box-shadow .2s}.access-card input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #1e4d6b0c}.access-card input::placeholder{color:#aaa69c}
+.access-primary{justify-content:space-between;gap:14px;margin:16px 0 0;font-size:14px;padding:13px 16px;min-height:49px}.access-primary svg{width:19px;height:19px;flex:none}.access-primary:disabled{opacity:.55}
+.access-hint{font-size:11px;color:var(--mid);line-height:1.6;margin:13px 0 0}.access-footnote{font:italic 13px/1.6 Georgia,serif;color:var(--mid);border-top:1px solid var(--line);margin:27px 0 0;padding-top:18px}
+.auth-feedback{font-size:12px;line-height:1.65;color:var(--mid);margin:16px 0 0;overflow-wrap:anywhere}.auth-feedback:empty{display:none}.access-card[data-error=true] .auth-feedback{color:#9d4029;background:#b8431f08;border-left:2px solid #b8431f;padding:10px 12px;border-radius:0 7px 7px 0}
+#code{font-size:25px;letter-spacing:.2em;text-align:center;font-variant-numeric:tabular-nums;padding-left:20px}.otp-address{font-size:12px;color:var(--acc);background:var(--surface);border-radius:8px;padding:9px 12px;margin:0 0 22px;overflow-wrap:anywhere}.access-secondary{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--mid);font-size:11px}.access-secondary button{min-height:44px;text-decoration:underline;text-underline-offset:3px}.access-signout{min-height:44px;width:100%;font-size:12px;color:var(--mid);text-decoration:underline}
+#dbt.options-button{background:var(--card);border:1px solid var(--line);border-radius:50%;width:40px;min-width:44px;height:44px;box-shadow:0 2px 10px #2b2a2604}#dbt.options-button svg{width:22px;height:22px}.sync-indicator{position:absolute;right:0;bottom:1px;width:9px;height:9px;border-radius:50%;background:var(--line);border:2px solid var(--bg)}.sync-indicator[data-state=saved]{background:var(--acc)}.sync-indicator[data-state=error],.sync-indicator[data-state=conflict],.sync-indicator[data-state=warning]{background:#b8431f}.sync-indicator[data-state=pending],.sync-indicator[data-state=saving]{background:#b69551;animation:sync-breathe 1.2s ease-in-out infinite}
+@keyframes sync-breathe{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.sync-indicator{animation:none!important}.access-card input{transition:none}}
+.account-panel{margin:26px 0 12px;border-top:1px solid var(--line);padding-top:22px}.account-identity{display:flex;align-items:center;gap:12px;margin:16px 0 18px}.account-avatar{height:40px;width:40px;flex:none;display:grid;place-items:center;background:var(--surface);border-radius:50%;color:var(--acc)}.account-avatar svg{width:21px;height:21px}.account-identity>div{min-width:0}.account-caption{display:block;font-size:10px;color:var(--mid);margin-bottom:2px}#account-email{display:block;font-size:14px;overflow-wrap:anywhere;line-height:1.5}
+.account-sync{display:flex;gap:10px;padding:12px;background:var(--surface);border-radius:11px;margin-bottom:15px}.account-sync-icon{color:var(--acc);display:flex;padding-top:2px}.account-sync-icon svg{width:20px;height:20px;flex:none}#cloud-status{font-size:12px;font-weight:500;margin:0;overflow-wrap:anywhere}.account-hint{font-size:11px;color:var(--mid);margin:3px 0 0;line-height:1.5}.account-actions{display:grid}.account-action{display:flex;align-items:center;gap:12px;width:100%;min-height:49px;text-align:left;border-bottom:1px solid var(--line);padding:9px 3px;font-size:13px}.account-action svg{width:18px;height:18px;color:var(--mid);flex:none}.account-action>span:first-of-type{flex:1}.account-action .action-arrow{flex:0;color:var(--mid);font-size:15px}.account-action:last-child{border:0}.account-logout{margin-top:4px;color:var(--mid)}.metrics-result{font-size:12px;color:var(--mid);overflow-wrap:anywhere;margin:0;padding:12px 0;line-height:1.7}
+.cloud-alert{width:calc(100% - 40px);max-width:640px;margin:70px auto 10px;border:1px solid #b8431f44;border-radius:14px;padding:20px;background:var(--card);overflow-wrap:anywhere}.cloud-alert-title{font:400 23px/1.3 Georgia,serif;margin:0 0 10px}.cloud-alert p:not(.cloud-alert-title){font-size:13px;color:var(--mid)}.cloud-alert .btn{font-size:13px}
+@media(max-width:700px){.access-shell{max-width:440px;grid-template-columns:1fr;gap:28px;align-content:center;padding:30px 22px 36px;min-height:100svh}.access-brand{margin-bottom:28px;font-size:11px}.access-intro h1{font-size:45px;letter-spacing:-1.5px;margin-bottom:13px}.access-intro h1 br{display:none}.access-intro h1 em{white-space:nowrap}.access-eyebrow{margin-bottom:9px;font-size:9px}.access-lead{font-size:13px;line-height:1.7}.access-lead br{display:none}.access-detail{display:none}.access-card{padding:25px 23px;border-radius:18px}.access-symbol{display:none}.access-card h2{font-size:26px}.access-description{font-size:13px;margin-bottom:23px}.access-footnote{margin-top:23px}.cloud-alert{width:calc(100% - 24px);padding:16px}}
+@media(max-width:350px){.access-shell{padding:24px 16px;gap:22px}.access-intro h1{font-size:39px}.access-card{padding:22px 18px}}
+</style></head><body>
+<section id="access" class="access-shell" aria-labelledby="access-title">
+ <div class="access-intro">
+  <div class="access-brand"><span class="brand-mark"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="15" height="18" rx="3"/><path d="M9 3v18M12 8h4m-4 4h4"/></svg></span><span>Productivity Planner</span></div>
+  <p class="access-eyebrow">Un espacio para ti</p>
+  <h1>Un día<br><em>a la vez.</em></h1>
+  <p class="access-lead">Haz espacio para lo que importa.<br>Lo demás puede esperar un momento.</p>
+  <div class="access-detail" aria-hidden="true"><span></span><span></span><span></span></div>
+ </div>
+ <div class="access-card">
+  <span class="access-symbol"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg></span>
+  <h2 id="access-title">Tu agenda te espera.</h2>
+  <p id="access-description" class="access-description">Estamos recuperando tu sesión.</p>
+  <form id="login-form" hidden>
+   <label class="q" for="email">Tu correo electrónico</label>
+   <input id="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="nombre@correo.com" required>
+   <button class="btn access-primary" id="send-code"><span>Recibir mi código</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></button>
+   <p class="access-hint">Sin contraseña. Te enviaremos un código para entrar.</p>
+  </form>
+  <form id="code-form" hidden>
+   <p id="otp-email" class="otp-address"></p>
+   <label class="q" for="code">Tu código de acceso</label>
+   <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" placeholder="······" required>
+   <button class="btn access-primary"><span>Entrar a mi agenda</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></button>
+   <div class="access-secondary"><button type="button" id="resend">Reenviar código</button><span aria-hidden="true">·</span><button type="button" id="change-email">Cambiar correo</button></div>
+  </form>
+  <p id="auth-status" class="auth-feedback" role="status" aria-live="polite">Recuperando sesión…</p>
+  <button class="btn ghost" id="retry-load" hidden>Reintentar carga</button>
+  <button class="access-signout" id="access-logout" type="button" hidden>Salir de esta cuenta</button>
+  <p class="access-footnote">Tu planificación, contigo donde estés.</p>
+ </div>
+</section>
+<section id="cloud-error" class="cloud-alert" hidden role="alert">
+ <p class="cloud-alert-title">Revisemos tu sincronización</p>
+ <p id="cloud-error-text"></p>
+ <button id="retry-save" class="btn">Reintentar guardado</button>
+ <button id="rescue" class="btn ghost">Descargar mis cambios pendientes</button>
+ <button id="load-cloud" class="btn ghost">Descartar cambios pendientes y cargar nube</button>
+</section>
+<div id="planner" hidden inert>
+<button class="ib options-button" id="dbt" data-a="db" aria-label="Opciones y cuenta" title="Opciones y cuenta"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span id="sync-indicator" class="sync-indicator" data-state="loading" aria-hidden="true"></span></button>
+<div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
+<dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
+<p class="sub">Tus datos se guardan en tu cuenta. Espera a ver «Guardado en la nube» antes de cerrar. Descarga un respaldo periódicamente. Importar reemplaza la agenda de la cuenta indicada en este menú.</p>
+<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#1e4d6b" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#b8431f" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#2f6b4f" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#6b3fa0" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#806315" data-a="acc" data-i="4" aria-label="Mostaza"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
+<label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
+<section id="account" class="account-panel" aria-labelledby="account-title" hidden>
+ <h2 id="account-title">Tu cuenta</h2>
+ <div class="account-identity"><span class="account-avatar"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span><div><span class="account-caption">Sesión iniciada</span><span id="account-email"></span></div></div>
+ <div class="account-sync"><span class="account-sync-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18H6a4 4 0 0 1-.6-8A6.5 6.5 0 0 1 18 8a5 5 0 0 1 0 10h-1"/><path d="m9 17 2 2 4-5"/></svg></span><div><p id="cloud-status" role="status" aria-live="polite">Cargando agenda…</p><p class="account-hint">Los cambios se guardan automáticamente.</p></div></div>
+ <div class="account-actions">
+ <button id="save-now" class="account-action"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-2l2 2M4 17l2 2a7 7 0 0 0 12-2"/></svg><span>Sincronizar ahora</span><span class="action-arrow" aria-hidden="true">↗</span></button>
+ <button id="metrics" class="account-action" hidden><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16h16M8 16v-4m4 4V8m4 8v-6"/></svg><span>Métricas de la aplicación</span><span class="action-arrow" aria-hidden="true">↗</span></button>
+ <p id="metrics-result" class="metrics-result" hidden></p>
+ <button id="logout" class="account-action account-logout"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4m-1-8h12m-4-4 4 4-4 4"/></svg><span>Cerrar sesión</span></button>
+ </div>
+</section><form method="dialog"><button class="btn ghost">Cerrar</button></form></div></dialog><dialog id="welcomeDlg" aria-label="Elige tu experiencia"></dialog><dialog id="editDlg" aria-label="Editar hábito"></dialog><dialog id="moveDlg" aria-label="Planificar tarea"></dialog>
+</div>
+<script type="module" src="boot.js"></script>
+<noscript>Activa JavaScript para usar la agenda.</noscript>
+</body></html>
