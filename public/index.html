@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e7"><title>Productivity Planner</title>
+<style>
+[hidden]{display:none!important}
+
+:root{--bg:#f7f6f2;--card:#fffefa;--ink:#2b2a26;--mid:#716e66;--line:#e2dfd7;--surface:#eeede7;--acc:#1e4d6b;--ok:var(--acc);--terra:var(--mid);--blue:var(--mid);--butter:var(--surface)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:auto;padding:24px 20px calc(118px + env(safe-area-inset-bottom))}
+h1{font:500 30px/1.2 Georgia,serif;margin:0}h2{font:600 11px/1.45 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin:0 0 12px}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}button:disabled{opacity:.3;cursor:default}
+input,textarea{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:10px 2px;border-radius:0}
+textarea{border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;line-height:1.6}input:focus,textarea:focus{border-color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}input:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:0}
+select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:44px;max-width:100%}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:32px 0 20px}.top>div{min-width:0}.sub{color:var(--mid);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}.card.hi{border-color:var(--acc)}.card.pr{border-left:2px solid var(--acc)}
+.card.intent{background:var(--surface);border-color:var(--line)}.card.intent textarea{border:0;font:italic 20px/1.5 Georgia,serif;padding:0;min-height:64px}
+.q{display:block;font-weight:600;font-size:14px;margin-bottom:8px}.ib{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;font-size:22px}
+#dbt{position:fixed;top:8px;right:max(10px,calc(50% - 328px));z-index:5;color:var(--mid);background:var(--bg)}
+.seg{display:flex;gap:3px;background:var(--surface);border-radius:12px;padding:3px;margin-bottom:18px}.seg button{flex:1;min-width:0;min-height:44px;border-radius:9px;font-size:13px;color:var(--mid)}.seg .on{background:var(--acc);color:white}
+.row{display:flex;align-items:center;gap:10px;min-width:0}.row input{flex:1}.chk,.hb{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;font-size:17px}.chk.on,.hb.s1{background:var(--acc);border-color:var(--acc);color:white}
+.dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 10px}.dot{width:36px;height:36px;border:1px solid var(--line);border-radius:50%}.dot.on{background:var(--acc);border-color:var(--acc)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border-radius:10px;background:var(--acc);color:white;font-size:15px;margin:8px 0;padding:10px 14px;text-align:center}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sh{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:44px;text-align:left;font-size:14px;font-weight:600;gap:10px}.hr{width:48px;flex:none}
+.quote{margin:0 0 24px;padding:4px 16px;border-left:1px solid var(--line);font:italic 17px/1.6 Georgia,serif;color:var(--mid)}.quote footer{font:12px/1.5 system-ui;margin-top:7px}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px}.chip{flex:none;width:46px;height:60px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--surface);font-size:13px}.chip.on{background:var(--acc);color:white}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.cd{aspect-ratio:1;min-height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;position:relative}.cd.today{border:1px solid var(--acc)}.cd.has{background:var(--surface)}.cd.sel,.cd.sel.has{background:var(--acc);color:white}
+.dts{position:absolute;bottom:4px;display:flex;gap:2px}.dts u{width:5px;height:5px;border-radius:50%}
+nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94vw,460px);max-width:calc(100vw - 16px);display:flex;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:6px;box-shadow:0 4px 18px #2b2a260a;z-index:5}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 0;border-radius:18px;color:var(--mid);font-size:11px;min-height:52px}nav button.on{background:var(--acc);color:white}nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ev{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;margin-bottom:8px;background:var(--surface);border-radius:10px;border-left:3px solid var(--c);overflow-wrap:anywhere}.ev b{font-size:12px;color:var(--mid);width:52px;flex:none}.ev.ed{display:block}.ev.ed .row{margin:6px 0;flex-wrap:wrap}.ev.ed .btn{margin:4px 0}
+.sws{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}.sw{width:44px;height:44px;border-radius:50%;border:4px solid var(--card);outline:1px solid var(--line)}.sw.on,.sw[aria-pressed=true]{outline:2px solid var(--acc);outline-offset:2px}
+.ring{width:46px;height:46px;flex:none;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;position:relative}.ring:before{content:"";position:absolute;inset:5px;background:var(--card);border-radius:50%}.ring span{position:relative;font-size:11px;font-weight:600}.ring.big{width:64px;height:64px}.ring.big span{font-size:15px}
+.grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}.grid i{width:14px;height:14px;border-radius:4px;background:var(--line)}.grid i.c1{background:var(--acc)}.grid i.t{outline:1px solid var(--ink);outline-offset:1px}
+.num{width:18px;font:500 15px Georgia,serif;color:var(--mid);flex:none}.done input{text-decoration:line-through;color:var(--mid)}
+dialog{border:1px solid var(--line);border-radius:18px;padding:0;width:min(94vw,520px);max-height:86dvh;overflow:auto;background:var(--card);color:var(--ink)}dialog::backdrop{background:#24231f50}.modal-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:12px 20px;border-bottom:1px solid var(--line);z-index:1}.modal-head h2{margin:0}.modal-body{padding:20px}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:14px}.tg span{flex:1}.tg input{width:22px;height:22px;flex:none;padding:0;border:0;accent-color:var(--acc)}.hr0{border:0;border-top:1px solid var(--line);margin:20px 0}
+.prefs-tabs{margin-top:16px}.day-picks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:14px}.day-picks button{min-height:44px;border:1px solid var(--line);border-radius:10px;font-size:12px;position:relative}.day-picks button.on{background:var(--acc);border-color:var(--acc);color:white}.day-picks button.custom:after{content:"";position:absolute;bottom:4px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}
+.pref-state{margin:4px 0 10px}.pref-title{margin-top:22px}.pref-reset,.link{font-size:13px;color:var(--acc);text-decoration:underline;min-height:44px;cursor:pointer}.task-add{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 4px;color:var(--mid);font-size:13px}.task-add:hover{color:var(--acc)}.tiny-action{min-width:44px;min-height:44px;font-size:18px;color:var(--mid)}
+.task-line{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}.task-line input{border:0}.effort{margin:0 0 8px 54px}.effort summary{font-size:12px;color:var(--mid);cursor:pointer;min-height:30px;padding-top:4px}
+.habit-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.habit-row:last-child{border:0}.habit-row span{flex:1}.context{padding:12px 2px;color:var(--mid);font-size:14px}.context b{color:var(--ink)}.section-note{margin:0 0 20px;color:var(--mid);font-size:14px}.section-title{font:500 23px Georgia,serif;margin:24px 0 12px}.module-sort{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}.module-sort span{flex:1;font-size:14px}
+#status{position:fixed;bottom:calc(98px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90vw;background:var(--ink);color:white;padding:10px 16px;border-radius:12px;font-size:13px;z-index:20;display:none}#status.show{display:block}#storage-warning{padding:12px;background:var(--surface);font-size:14px}
+fieldset{border:0;padding:0;margin:18px 0}legend{font-weight:600;font-size:14px;margin-bottom:10px}.schedule{display:flex;gap:4px}.schedule label{flex:1;text-align:center;font-size:12px}.schedule input{width:22px;height:22px;display:block;margin:8px auto;accent-color:var(--acc)}.modal-body input[type=text]{border:1px solid var(--line);border-radius:10px;padding:12px}
+.mode-list{display:grid;gap:10px;margin:16px 0}.mode-card{display:block;position:relative;text-align:left;border:1px solid var(--line);border-radius:12px;padding:16px 42px 16px 16px;width:100%;min-height:74px}.mode-card b{font-weight:600;font-size:15px}.mode-card span{display:block;color:var(--mid);font-size:13px;margin-top:4px}.mode-card.selected{border-color:var(--acc);background:var(--surface)}.mode-card.selected:after{content:'✓';position:absolute;right:16px;top:18px;color:var(--acc)}.legacy{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.legacy summary{color:var(--mid);font-size:13px;min-height:44px;cursor:pointer}.legacy label{margin-top:12px}.mode-description{color:var(--mid);font-size:13px;margin:12px 0}.welcome-lead{font:500 27px/1.25 Georgia,serif;margin:0 0 12px}
+@media(max-width:380px){main{padding-left:12px;padding-right:12px}.card{padding:16px}.seg button{font-size:12px}.effort{margin-left:0}.day-picks button{font-size:11px}}
+.color-options {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: 0;
+}
+
+.color-options .sw {
+  flex: 0 1 44px;
+  width: 44px;
+  min-width: 0;
+  height: 44px;
+}
+</style></head><body>
+<section id="access" style="max-width:520px;margin:32px auto;padding:20px">
+ <h1>Productivity Planner</h1><p id="auth-status" role="status">Recuperando sesión…</p>
+ <form id="login-form" hidden><label class="q" for="email">Tu correo</label>
+ <input id="email" type="email" autocomplete="email" required>
+ <button class="btn" id="send-code">Enviar código</button></form>
+ <form id="code-form" hidden><label class="q" for="code">Código recibido</label>
+ <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required>
+ <button class="btn">Entrar</button><button type="button" class="btn ghost" id="resend">Reenviar código</button>
+ <button type="button" id="change-email" class="link">Cambiar correo</button></form>
+ <button class="btn ghost" id="retry-load" hidden>Reintentar carga</button>
+</section>
+<section id="account" hidden style="max-width:680px;margin:auto;padding:16px 20px 0">
+ <span id="account-email" class="sub"></span><p id="cloud-status" role="status">Cargando agenda…</p>
+ <button id="save-now" class="link">Guardar ahora</button> · <button id="logout" class="link">Cerrar sesión</button>
+ <div id="cloud-error" hidden role="alert">
+  <p id="cloud-error-text"></p><button id="retry-save" class="btn">Reintentar guardado</button>
+  <button id="rescue" class="btn ghost">Descargar mis cambios pendientes</button>
+  <button id="load-cloud" class="btn ghost">Descartar cambios pendientes y cargar nube</button>
+ </div>
+ <button id="metrics" class="link">Consultar métricas (solo administrador)</button><p id="metrics-result" class="sub"></p>
+</section>
+<div id="planner" hidden inert>
+<button class="ib" id="dbt" data-a="db" aria-label="Datos y respaldo">⋯</button>
+<div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
+<dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
+<p class="sub">Tus datos se guardan en tu cuenta. Espera a ver «Guardado en la nube» antes de cerrar. Descarga un respaldo periódicamente. Importar reemplaza la agenda de la cuenta indicada arriba.</p>
+<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#1e4d6b" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#b8431f" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#2f6b4f" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#6b3fa0" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#806315" data-a="acc" data-i="4" aria-label="Mostaza"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
+<label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
+<form method="dialog"><button class="btn ghost">Cerrar</button></form></div></dialog><dialog id="welcomeDlg" aria-label="Elige tu experiencia"></dialog><dialog id="editDlg" aria-label="Editar hábito"></dialog><dialog id="moveDlg" aria-label="Planificar tarea"></dialog>
+</div>
+<script type="module" src="boot.js"></script>
+<noscript>Activa JavaScript para usar la agenda.</noscript>
+</body></html>
