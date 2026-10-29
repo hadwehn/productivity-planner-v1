@@ -1,75 +1,7 @@
-<!doctype html>
-<html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f6f1e7"><title>Productivity Planner</title>
-<style>
+import { makeClient } from './client.js';
+import { CloudStore } from './store.js';
+let cloud=null,ready=false,client=null,sessionUser=null,polling=false,authGeneration=0;
 
-:root{--bg:#f7f6f2;--card:#fffefa;--ink:#2b2a26;--mid:#716e66;--line:#e2dfd7;--surface:#eeede7;--acc:#1e4d6b;--ok:var(--acc);--terra:var(--mid);--blue:var(--mid);--butter:var(--surface)}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:680px;margin:auto;padding:24px 20px calc(118px + env(safe-area-inset-bottom))}
-h1{font:500 30px/1.2 Georgia,serif;margin:0}h2{font:600 11px/1.45 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin:0 0 12px}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}button:disabled{opacity:.3;cursor:default}
-input,textarea{width:100%;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:10px 2px;border-radius:0}
-textarea{border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;line-height:1.6}input:focus,textarea:focus{border-color:var(--acc)}
-:focus-visible{outline:2px solid var(--acc);outline-offset:3px}input:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:0}
-select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:44px;max-width:100%}
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:32px 0 20px}.top>div{min-width:0}.sub{color:var(--mid);font-size:13px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}.card.hi{border-color:var(--acc)}.card.pr{border-left:2px solid var(--acc)}
-.card.intent{background:var(--surface);border-color:var(--line)}.card.intent textarea{border:0;font:italic 20px/1.5 Georgia,serif;padding:0;min-height:64px}
-.q{display:block;font-weight:600;font-size:14px;margin-bottom:8px}.ib{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;font-size:22px}
-#dbt{position:fixed;top:8px;right:max(10px,calc(50% - 328px));z-index:5;color:var(--mid);background:var(--bg)}
-.seg{display:flex;gap:3px;background:var(--surface);border-radius:12px;padding:3px;margin-bottom:18px}.seg button{flex:1;min-width:0;min-height:44px;border-radius:9px;font-size:13px;color:var(--mid)}.seg .on{background:var(--acc);color:white}
-.row{display:flex;align-items:center;gap:10px;min-width:0}.row input{flex:1}.chk,.hb{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;font-size:17px}.chk.on,.hb.s1{background:var(--acc);border-color:var(--acc);color:white}
-.dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 10px}.dot{width:36px;height:36px;border:1px solid var(--line);border-radius:50%}.dot.on{background:var(--acc);border-color:var(--acc)}
-.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border-radius:10px;background:var(--acc);color:white;font-size:15px;margin:8px 0;padding:10px 14px;text-align:center}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.sh{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:44px;text-align:left;font-size:14px;font-weight:600;gap:10px}.hr{width:48px;flex:none}
-.quote{margin:0 0 24px;padding:4px 16px;border-left:1px solid var(--line);font:italic 17px/1.6 Georgia,serif;color:var(--mid)}.quote footer{font:12px/1.5 system-ui;margin-top:7px}
-.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px}.chip{flex:none;width:46px;height:60px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--surface);font-size:13px}.chip.on{background:var(--acc);color:white}
-.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.cd{aspect-ratio:1;min-height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;position:relative}.cd.today{border:1px solid var(--acc)}.cd.has{background:var(--surface)}.cd.sel,.cd.sel.has{background:var(--acc);color:white}
-.dts{position:absolute;bottom:4px;display:flex;gap:2px}.dts u{width:5px;height:5px;border-radius:50%}
-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94vw,460px);max-width:calc(100vw - 16px);display:flex;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:6px;box-shadow:0 4px 18px #2b2a260a;z-index:5}
-nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 0;border-radius:18px;color:var(--mid);font-size:11px;min-height:52px}nav button.on{background:var(--acc);color:white}nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.ev{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;margin-bottom:8px;background:var(--surface);border-radius:10px;border-left:3px solid var(--c);overflow-wrap:anywhere}.ev b{font-size:12px;color:var(--mid);width:52px;flex:none}.ev.ed{display:block}.ev.ed .row{margin:6px 0;flex-wrap:wrap}.ev.ed .btn{margin:4px 0}
-.sws{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}.sw{width:44px;height:44px;border-radius:50%;border:4px solid var(--card);outline:1px solid var(--line)}.sw.on,.sw[aria-pressed=true]{outline:2px solid var(--acc);outline-offset:2px}
-.ring{width:46px;height:46px;flex:none;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;position:relative}.ring:before{content:"";position:absolute;inset:5px;background:var(--card);border-radius:50%}.ring span{position:relative;font-size:11px;font-weight:600}.ring.big{width:64px;height:64px}.ring.big span{font-size:15px}
-.grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}.grid i{width:14px;height:14px;border-radius:4px;background:var(--line)}.grid i.c1{background:var(--acc)}.grid i.t{outline:1px solid var(--ink);outline-offset:1px}
-.num{width:18px;font:500 15px Georgia,serif;color:var(--mid);flex:none}.done input{text-decoration:line-through;color:var(--mid)}
-dialog{border:1px solid var(--line);border-radius:18px;padding:0;width:min(94vw,520px);max-height:86dvh;overflow:auto;background:var(--card);color:var(--ink)}dialog::backdrop{background:#24231f50}.modal-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:12px 20px;border-bottom:1px solid var(--line);z-index:1}.modal-head h2{margin:0}.modal-body{padding:20px}
-.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:14px}.tg span{flex:1}.tg input{width:22px;height:22px;flex:none;padding:0;border:0;accent-color:var(--acc)}.hr0{border:0;border-top:1px solid var(--line);margin:20px 0}
-.prefs-tabs{margin-top:16px}.day-picks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:14px}.day-picks button{min-height:44px;border:1px solid var(--line);border-radius:10px;font-size:12px;position:relative}.day-picks button.on{background:var(--acc);border-color:var(--acc);color:white}.day-picks button.custom:after{content:"";position:absolute;bottom:4px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}
-.pref-state{margin:4px 0 10px}.pref-title{margin-top:22px}.pref-reset,.link{font-size:13px;color:var(--acc);text-decoration:underline;min-height:44px;cursor:pointer}.task-add{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 4px;color:var(--mid);font-size:13px}.task-add:hover{color:var(--acc)}.tiny-action{min-width:44px;min-height:44px;font-size:18px;color:var(--mid)}
-.task-line{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}.task-line input{border:0}.effort{margin:0 0 8px 54px}.effort summary{font-size:12px;color:var(--mid);cursor:pointer;min-height:30px;padding-top:4px}
-.habit-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.habit-row:last-child{border:0}.habit-row span{flex:1}.context{padding:12px 2px;color:var(--mid);font-size:14px}.context b{color:var(--ink)}.section-note{margin:0 0 20px;color:var(--mid);font-size:14px}.section-title{font:500 23px Georgia,serif;margin:24px 0 12px}.module-sort{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}.module-sort span{flex:1;font-size:14px}
-#status{position:fixed;bottom:calc(98px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90vw;background:var(--ink);color:white;padding:10px 16px;border-radius:12px;font-size:13px;z-index:20;display:none}#status.show{display:block}#storage-warning{padding:12px;background:var(--surface);font-size:14px}
-fieldset{border:0;padding:0;margin:18px 0}legend{font-weight:600;font-size:14px;margin-bottom:10px}.schedule{display:flex;gap:4px}.schedule label{flex:1;text-align:center;font-size:12px}.schedule input{width:22px;height:22px;display:block;margin:8px auto;accent-color:var(--acc)}.modal-body input[type=text]{border:1px solid var(--line);border-radius:10px;padding:12px}
-.mode-list{display:grid;gap:10px;margin:16px 0}.mode-card{display:block;position:relative;text-align:left;border:1px solid var(--line);border-radius:12px;padding:16px 42px 16px 16px;width:100%;min-height:74px}.mode-card b{font-weight:600;font-size:15px}.mode-card span{display:block;color:var(--mid);font-size:13px;margin-top:4px}.mode-card.selected{border-color:var(--acc);background:var(--surface)}.mode-card.selected:after{content:'✓';position:absolute;right:16px;top:18px;color:var(--acc)}.legacy{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.legacy summary{color:var(--mid);font-size:13px;min-height:44px;cursor:pointer}.legacy label{margin-top:12px}.mode-description{color:var(--mid);font-size:13px;margin:12px 0}.welcome-lead{font:500 27px/1.25 Georgia,serif;margin:0 0 12px}
-@media(max-width:380px){main{padding-left:12px;padding-right:12px}.card{padding:16px}.seg button{font-size:12px}.effort{margin-left:0}.day-picks button{font-size:11px}}
-.color-options {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  gap: 6px;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: 0;
-}
-
-.color-options .sw {
-  flex: 0 1 44px;
-  width: 44px;
-  min-width: 0;
-  height: 44px;
-}
-</style></head><body>
-<button class="ib" id="dbt" data-a="db" aria-label="Datos y respaldo">⋯</button>
-<div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
-<dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
-<p class="sub">Tus datos se guardan en este navegador y dispositivo. No se sincronizan. Borrar los datos del navegador los elimina. Descarga un respaldo antes de cambiar de dispositivo o de archivo; puedes importarlo después.</p>
-<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#1e4d6b" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#b8431f" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#2f6b4f" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#6b3fa0" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#806315" data-a="acc" data-i="4" aria-label="Mostaza"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
-<label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
-<form method="dialog"><button class="btn ghost">Cerrar</button></form></div></dialog><dialog id="welcomeDlg" aria-label="Elige tu experiencia"></dialog><dialog id="editDlg" aria-label="Editar hábito"></dialog><dialog id="moveDlg" aria-label="Planificar tarea"></dialog>
-<script>
 const $=s=>document.querySelector(s);
 const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const D=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -104,7 +36,8 @@ function validateState(o){
  return o;
 }
 function normalize(o){const v=Object.assign(blank(),o);v.cfg=Object.assign({acc:0,hide:{},days:{}},v.cfg);v.cfg.hide=v.cfg.hide||{};v.cfg.days=v.cfg.days||{};Object.keys(v.ev).forEach(k=>v.ev[k]=v.ev[k].map(x=>typeof x==='string'?{t:x,c:0,h:''}:{...x,c:Number.isInteger(x.c)&&x.c>=0&&x.c<4?x.c:0}));return v;}
-try{const raw=localStorage.getItem('agenda1');S=normalize(raw?validateState(JSON.parse(raw)):blank())}catch(e){S=blank();loadFailure=true;$('#storage-warning').hidden=false;$('#storage-warning').textContent='No pudimos leer tus datos. El original permanece intacto. Usa Ajustes para descargarlo o restaurar un respaldo.'}
+S=normalize(blank());
+
 const ACC=['#1e4d6b','#b8431f','#2f6b4f','#6b3fa0','#806315', '#f4e3a1'], EC=['#6F91B3','#B989A4','#C5A052','#7D9B83'];
 const TS=['',...Array.from({length:48},(_,i)=>p2(i>>1)+':'+(i%2?'30':'00'))];
 function applyAcc(){document.documentElement.style.setProperty('--acc',ACC[S.cfg.acc]||ACC[0]);document.querySelectorAll('[data-a=acc]').forEach(b=>{const selected=+b.dataset.i===(S.cfg.acc||0);b.setAttribute('aria-pressed',selected);b.classList.toggle('on',selected)})}applyAcc();
@@ -158,9 +91,9 @@ function refreshPrefs(focusId){
 }
 let statusTimer;
 function toast(message){$('#status').textContent=message;$('#status').classList.add('show');clearTimeout(statusTimer);statusTimer=setTimeout(()=>$('#status').classList.remove('show'),3200)}
-const save=()=>{if(loadFailure){toast('Guardado bloqueado para proteger tus datos originales. Exporta y restaura desde Ajustes.');return false}try{localStorage.setItem('agenda1',JSON.stringify(S));$('#storage-warning').hidden=true;return true}catch(e){$('#storage-warning').hidden=false;$('#storage-warning').textContent='No se pudo guardar. Exporta un respaldo antes de cerrar esta página.';return false}};
+const save=()=>{if(!cloud||!ready)return false;return cloud.schedule(()=>checkedState(S));};
 const g=(p,d='')=>{const v=p.split('.').reduce((o,k)=>o==null?o:o[k],S);return v??d};
-function setP(p,v){const k=p.split('.');let o=S;for(let i=0;i<k.length-1;i++){const key=k[i];if(o[key]==null)o[key]=/^\d+$/.test(k[i+1])?[]:{};o=o[key]}o[k[k.length-1]]=v;save()}
+function setP(p,v){const k=p.split('.');if(k.some(x=>['__proto__','constructor','prototype'].includes(x)))throw Error('Ruta no permitida.');let o=S;for(let i=0;i<k.length-1;i++){const key=k[i];if(o[key]==null)o[key]=/^\d+$/.test(k[i+1])?[]:{};o=o[key]}o[k[k.length-1]]=v;save()}
 
 const U={tab:'d',hd:td(),ed:-1,pop:null,hm:td().slice(0,7),cm:td().slice(0,7),cd:td(),wk:iso(mon(new Date())),wt:'p',dd:td(),dt:'p',co:false,pm:'group',pday:wd(pd(td()))};
 
@@ -197,8 +130,8 @@ function vC(){
   gr+=`<button class="cd${k===U.cd?' sel':''}${k===td()?' today':''}${e.length?' has':''}" data-a="cd" data-k="${k}">${d}<span class="dts">${e.slice(0,3).map(x=>`<u style="background:${k===U.cd?'#fff':EC[x.c]}"></u>`).join('')}</span></button>`}
  const t=pd(U.cd),L=(S.ev[U.cd]||[]).map((x,i)=>({x,i})).sort((p,q)=>(p.x.h||'99').localeCompare(q.x.h||'99'));
  const list=L.map(({x,i})=>U.ed===i
-  ?`<div class="ev ed" style="--c:${EC[x.c]}"><input data-p="ev.${U.cd}.${i}.t" value="${esc(x.t)}" placeholder="Título del evento"><div class="row"><select data-p="ev.${U.cd}.${i}.h" aria-label="Hora">${(!x.h||TS.includes(x.h)?TS:[...TS,x.h]).map(t=>`<option value="${t}"${t===(x.h||'')?' selected':''}>${t||'Todo el día'}</option>`).join('')}</select><span class="sws">${EC.map((c,j)=>`<button class="sw${j===x.c?' on':''}" style="background:${c}" data-a="ec" data-i="${i}" data-j="${j}" aria-label="Color ${j+1}"></button>`).join('')}</span></div><div class="row"><button class="btn ghost" data-a="evd" data-i="${i}">Eliminar</button><button class="btn" data-a="ed" data-i="-1">Listo</button></div></div>`
-  :`<button class="ev" style="--c:${EC[x.c]}" data-a="ed" data-i="${i}"><b>${x.h||'Todo el día'}</b><span>${esc(x.t)||'Sin título'}</span></button>`).join('');
+  ?`<div class="ev ed" style="--c:${EC[x.c]}"><input data-p="ev.${U.cd}.${i}.t" value="${esc(x.t)}" placeholder="Título del evento"><div class="row"><select data-p="ev.${U.cd}.${i}.h" aria-label="Hora">${(!x.h||TS.includes(x.h)?TS:[...TS,x.h]).map(t=>`<option value="${esc(t)}"${t===(x.h||'')?' selected':''}>${esc(t||'Todo el día')}</option>`).join('')}</select><span class="sws">${EC.map((c,j)=>`<button class="sw${j===x.c?' on':''}" style="background:${c}" data-a="ec" data-i="${i}" data-j="${j}" aria-label="Color ${j+1}"></button>`).join('')}</span></div><div class="row"><button class="btn ghost" data-a="evd" data-i="${i}">Eliminar</button><button class="btn" data-a="ed" data-i="-1">Listo</button></div></div>`
+  :`<button class="ev" style="--c:${EC[x.c]}" data-a="ed" data-i="${i}"><b>${esc(x.h||'Todo el día')}</b><span>${esc(x.t)||'Sin título'}</span></button>`).join('');
  const tri=k=>[0,1,2].map(i=>`<div class="row"><span class="num">${i+1}</span>${inp('m.'+m+'.'+k+'.'+i)}</div>`).join('');
  return pageHeader('Calendario')+mn('cm',m)+`<div class="card"><div class="cal">${gr}</div></div>`
   +`<div class="card"><h2>${D[wd(t)]} ${t.getDate()} de ${M[t.getMonth()]}</h2>${list||'<p class="sub" style="margin:0 0 8px">Día libre. Agrega lo que quieras recordar.</p>'}<button class="btn ghost" data-a="eva">+ Evento</button></div>`
@@ -253,7 +186,7 @@ function showWelcome(){if(S.cfg.welcomed)return;$('#welcomeDlg').innerHTML=`<div
 const MODULES=['d_int','d_gr','d_star','d_oth','d_hab','d_pl','d_co','d_rf'];
 function moduleOrder(list){const order=Array.isArray(S.cfg.order)?S.cfg.order:MODULES;return list.slice().sort((a,b)=>(order.includes(a[0])?order.indexOf(a[0]):99)-(order.includes(b[0])?order.indexOf(b[0]):99))}
 function sortPrefs(){return `<details><summary class="link">Ordenar los espacios del día</summary>${moduleOrder(OPT.d[0][1].filter(x=>x[0]!=='d_rf')).map(([k,l],i,arr)=>`<div class="module-sort"><span>${l}</span><button class="tiny-action" data-a="sort" data-k="${k}" data-n="-1" aria-label="Subir ${l}" ${i===0?'disabled':''}>↑</button><button class="tiny-action" data-a="sort" data-k="${k}" data-n="1" aria-label="Bajar ${l}" ${i===arr.length-1?'disabled':''}>↓</button></div>`).join('')}<p class="sub">La reflexión permanece al final para acompañar el cierre del día.</p></details>`}
-function habitEditor(id){const h=S.h.find(h=>h.id===id);$('#editDlg').innerHTML=`<div class="modal-head"><h2>${h?'Editar':'Nuevo'} hábito</h2><button class="ib" data-a="editclose" aria-label="Cerrar">×</button></div><form id="habitForm" class="modal-body"><label class="q" for="habitName">Algo pequeño que te haga bien</label><input id="habitName" type="text" required maxlength="100" placeholder="Por ejemplo, caminar 10 minutos" value="${esc(h?.name||'')}"><fieldset><legend>¿Qué días quieres hacerlo?</legend><div class="schedule">${D.map((d,i)=>`<label>${d.slice(0,3)}<input type="checkbox" name="days" value="${i}"${!h?.days||h.days.includes(i)?' checked':''}></label>`).join('')}</div></fieldset><button class="btn" type="submit">Guardar hábito</button>${h?'<button class="btn ghost" type="button" data-a="habitdelete" data-id="'+esc(id)+'">Eliminar hábito</button>':''}<p class="sub">Los días libres no cuentan en el progreso. Puedes volver a empezar cuando quieras.</p></form>`;$('#editDlg').showModal();$('#habitForm').onsubmit=e=>{e.preventDefault();const name=$('#habitName').value.trim(),days=[...document.querySelectorAll('#habitForm input[name=days]:checked')].map(x=>+x.value);if(!name||!days.length){toast('Escribe un nombre y elige al menos un día.');return}if(h){h.name=name;h.days=days}else S.h.push({id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(36),name,days,createdOn:td()});save();$('#editDlg').close();R();toast('Hábito guardado')};}
+function habitEditor(id){const h=S.h.find(h=>h.id===id);$('#editDlg').innerHTML=`<div class="modal-head"><h2>${h?'Editar':'Nuevo'} hábito</h2><button class="ib" data-a="editclose" aria-label="Cerrar">×</button></div><form id="habitForm" class="modal-body"><label class="q" for="habitName">Algo pequeño que te haga bien</label><input id="habitName" type="text" required maxlength="100" placeholder="Por ejemplo, caminar 10 minutos" value="${esc(h?.name||'')}"><fieldset><legend>¿Qué días quieres hacerlo?</legend><div class="schedule">${D.map((d,i)=>`<label>${d.slice(0,3)}<input type="checkbox" name="days" value="${i}"${!h?.days||h.days.includes(i)?' checked':''}></label>`).join('')}</div></fieldset><button class="btn" type="submit">Guardar hábito</button>${h?'<button class="btn ghost" type="button" data-a="habitdelete" data-id="'+esc(id)+'">Eliminar hábito</button>':''}<p class="sub">Los días libres no cuentan en el progreso. Puedes volver a empezar cuando quieras.</p></form>`;$('#editDlg').showModal();$('#habitForm').onsubmit=e=>{e.preventDefault();const name=$('#habitName').value.trim(),days=[...document.querySelectorAll('#habitForm input[name=days]:checked')].map(x=>+x.value);if(!name||!days.length){toast('Escribe un nombre y elige al menos un día.');return}if(h){h.name=name;h.days=days}else S.h.push({id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(36),name,days,createdOn:td()});save();$('#editDlg').close();R();toast('Hábito actualizado; guardado pendiente')};}
 function planTask(r,i){const path='w.'+U.wk+'.'+r+'.'+i;$('#moveDlg').innerHTML=`<div class="modal-head"><h2>Llevar al día</h2><button class="ib" data-a="moveclose" aria-label="Cerrar">×</button></div><form id="moveForm" class="modal-body"><p>${esc(g(path+'.t'))}</p><label class="q" for="moveDate">¿Cuándo quieres darle espacio?</label><input id="moveDate" type="date" required value="${td()}"><p class="sub">Se añade a Otras tareas. Se mantiene en tu semana y el estado de completado se comparte.</p><button class="btn">Planificar tarea</button></form>`;$('#moveDlg').showModal();$('#moveForm').onsubmit=e=>{e.preventDefault();const date=$('#moveDate').value;if(!date)return;const day=S.d[date]=S.d[date]||{};const rows=day.k=day.k||{};if(Object.values(rows).some(x=>x?.source===path)){toast('Esta tarea ya está en ese día.');return}let n=1;while(rows[n]?.t)n++;rows[n]={t:g(path+'.t'),c:g(path+'.c',false),s:0,source:path};day.otherCount=Math.max(otherTaskCount(date),n);setDayVisibility('d_oth',wd(pd(date)),true);save();$('#moveDlg').close();U.dd=date;U.dt='p';U.tab='d';R(true);toast('Tarea planificada')};}
 function R(up){
  const y=scrollY,opened=[...document.querySelectorAll('.effort')].map(x=>x.open);
@@ -310,7 +243,7 @@ document.addEventListener('click',e=>{
  if(a==='prefreset'){delete S.cfg.days[U.pday];save();refreshPrefs('pref-day-'+U.pday);return}
  if(a==='dayvis'){setDayVisibility(d.k,U.pday,b.checked);save();refreshPrefs(b.id);return}
  if(a==='groupvis'){setGroupVisibility(d.k,d.group,b.checked);save();refreshPrefs(b.id);return}
- if(a==='exp'){const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([loadFailure?(localStorage.getItem('agenda1')||JSON.stringify(S)):JSON.stringify({format:'con-intencion',version:2,exportedAt:new Date().toISOString(),data:S},null,2)],{type:'application/json'}));l.download='agenda-respaldo-'+td()+'.json';l.click();setTimeout(()=>URL.revokeObjectURL(l.href),1000);return}
+ if(a==='exp'){downloadCurrent();return}
  if(a==='go')U.tab=d.k;
  else if(a==='m'){U[d.k]=ym(U[d.k],+d.n);if(d.k==='cm')U.cd=U.cm===td().slice(0,7)?td():U.cm+'-01'}
  else if(a==='hd')U.hd=d.k;
@@ -338,16 +271,188 @@ document.addEventListener('click',e=>{
 });
 function syncTask(path,value){const match=path.match(/^d\.([^.]*)\.k\.(\d+)\.c$/);let source=match?S.d[match[1]]?.k?.[match[2]]?.source:path.slice(0,-2);if(!source||!/^w\./.test(source))return;setP(source+'.c',value);for(const day of Object.values(S.d))for(const row of Object.values(day.k||{}))if(row?.source===source)row.c=value;save()}
 function exportSnapshot(data,name){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([typeof data==='string'?data:JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-$('#imp').onchange=async e=>{
- const f=e.target.files[0];e.target.value='';if(!f)return;
- try{if(f.size>10*1024*1024)throw Error('El respaldo supera 10 MB.');const json=JSON.parse(await f.text());if(json?.format==='con-intencion'&&json.version!==2)throw Error('Versión de respaldo no compatible.');const next=normalize(validateState(json?.format==='con-intencion'?json.data:json));
- if(!confirm('Restaurar reemplazará tus datos y preferencias. Primero descargaremos una copia de lo actual. ¿Continuar?'))return;
- let oldRaw;try{oldRaw=localStorage.getItem('agenda1');if(oldRaw)localStorage.setItem('agenda1-before-restore',oldRaw);localStorage.setItem('agenda1',JSON.stringify(next))}catch(err){throw Error('No hay espacio para una restauración segura. No se cambió la información actual.')}
- exportSnapshot(oldRaw||S,'agenda-antes-de-restaurar-'+td()+'.json');S=next;loadFailure=false;migCfg();unifyClosure();applyAcc();save();$('#dlg').close();$('#storage-warning').hidden=true;R(true);toast('Respaldo restaurado. Tu copia anterior se ha descargado.');
- }catch(err){alert('No se pudo importar: '+err.message)}
-};
+$('#imp').onchange=importBackup;
 $('#welcomeDlg').addEventListener('cancel',()=>{S.cfg.welcomed=true;save()});
 for(const dialog of [$('#editDlg'),$('#moveDlg')]){let outside=false;const hit=e=>{const r=dialog.getBoundingClientRect();return e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)};dialog.addEventListener('pointerdown',e=>outside=hit(e));dialog.addEventListener('click',e=>{if(outside&&hit(e))dialog.close();outside=false});}
-R(true);
-showWelcome();
-</script></body></html>
+
+// Validación adicional: el formato antiguo aceptaba valores que luego rompían el render.
+function checkedState(raw){
+ const o=normalize(validateState(structuredClone(raw)));
+ const fail=m=>{throw Error(m)};
+ const text=(v,k)=>{if(v!==undefined&&typeof v!=='string')fail('Texto incorrecto: '+k)};
+ const date=k=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||iso(pd(k))!==k)fail('Fecha incorrecta: '+k)};
+ const collection=(v,k)=>{if(v!==undefined&&!plain(v)&&!Array.isArray(v))fail('Lista incorrecta: '+k)};
+ const texts=(v,k)=>{collection(v,k);Object.values(v||{}).forEach(x=>{if(x!==null)text(x,k)})};
+ const tasks=(v,k,max)=>{
+  collection(v,k);
+  for(const [i,t] of Object.entries(v||{})){
+   if(!/^\d+$/.test(i)||+i>max)fail('Índice de tarea incorrecto: '+k);
+   if(t===null)continue;
+   if(!plain(t))fail('Tarea incorrecta: '+k);
+   text(t.t,k);if(t.c!==undefined&&typeof t.c!=='boolean')fail('Estado de tarea incorrecto.');
+   if(t.s!==undefined&&(!Number.isInteger(t.s)||t.s<0||t.s>5))fail('Sesiones incorrectas.');
+   if(t.source!==undefined){if(typeof t.source!=='string'||!/^w\.\d{4}-\d{2}-\d{2}\.[ab]\.[0-4]$/.test(t.source))fail('Origen de tarea incorrecto.');date(t.source.split('.')[1]);}
+  }
+ };
+ for(const h of o.h){if(!/^[A-Za-z0-9_-]{1,100}$/.test(h.id))fail('Identificador de hábito incompatible.');if(h.createdOn!==undefined)date(h.createdOn);}
+ for(const [k,v] of Object.entries(o.hl)){date(k);for(const x of Object.values(v))if(![0,1,2].includes(x))fail('Registro de hábito incorrecto.');}
+ for(const [k,v] of Object.entries(o.ev)){date(k);for(const e of v){text(e.t,'evento');if(e.h!==undefined&&(typeof e.h!=='string'||!/^$|^(?:[01]\d|2[0-3]):[0-5]\d$/.test(e.h)))fail('Hora incorrecta.');}}
+ for(const [k,v] of Object.entries(o.m)){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(k))fail('Mes incorrecto.');texts(v.p,'prioridades');texts(v.h,'highlights');}
+ for(const [k,v] of Object.entries(o.w)){date(k);text(v.i,'intención semanal');texts(v.r,'revisión');tasks(v.a,k,4);tasks(v.b,k,4);}
+ for(const [k,v] of Object.entries(o.d)){date(k);for(const f of ['n','g','i','p','r','hl','learn','remember'])text(v[f],f);tasks(v.k,k,500);texts(v.c,'agenda');}
+ if(!Number.isInteger(o.cfg.acc)||o.cfg.acc<0||o.cfg.acc>=ACC.length)fail('Color incorrecto.');
+ for(const v of Object.values(o.cfg.hide))if(typeof v!=='boolean')fail('Visibilidad incorrecta.');
+ for(const [k,v] of Object.entries(o.cfg.days)){if(!/^[0-6]$/.test(k)||Object.values(v).some(x=>typeof x!=='boolean'))fail('Día personalizado incorrecto.');}
+ if(new Blob([JSON.stringify(o)]).size>9*1024*1024)fail('Agenda demasiado grande (máximo práctico 9 MiB).');
+ return o;
+}
+function summary(o){
+ const rows=periods=>Object.values(periods).flatMap(v=>Object.values(v.k||{})).filter(Boolean);
+ const links=rows(o.d).filter(x=>x.source);
+ return {habitos:o.h.length,diasHabitos:Object.keys(o.hl).length,
+  marcasHabitos:Object.values(o.hl).reduce((n,x)=>n+Object.keys(x).length,0),
+  eventos:Object.values(o.ev).reduce((n,x)=>n+x.length,0),meses:Object.keys(o.m).length,
+  semanas:Object.keys(o.w).length,dias:Object.keys(o.d).length,tareasDiarias:rows(o.d).length,
+  tareasSemanales:Object.values(o.w).reduce((n,x)=>n+['a','b'].reduce((m,k)=>m+Object.values(x[k]||{}).filter(Boolean).length,0),0),
+  vinculos:links.length,origenesAusentes:links.filter(x=>{const [,k,r,i]=x.source.split('.');return !o.w[k]?.[r]?.[i]}).length,
+  bytesUTF8:new Blob([JSON.stringify(o)]).size};
+}
+function envelope(){return {format:'con-intencion',version:2,exportedAt:new Date().toISOString(),ownerId:sessionUser?.id,revision:cloud?.revision,pending:!!cloud?.unsaved,data:S};}
+function downloadCurrent(){exportSnapshot(envelope(),'agenda-respaldo-'+td()+'.json');}
+function setReady(value){ready=value;$('#planner').inert=!value;}
+function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());}
+function cloudStatus(kind,error){
+ const labels={pending:'Cambios pendientes…',saving:'Guardando…',saved:'Guardado en la nube',error:'No se pudo guardar',conflict:'Hay cambios en otro dispositivo'};
+ $('#cloud-status').textContent=labels[kind]||kind;
+ if(kind==='error'||kind==='conflict'){
+  setReady(false);closeDialogs();$('#cloud-error').hidden=false;
+  $('#retry-save').hidden=kind==='conflict';
+  $('#cloud-error-text').textContent=kind==='conflict'?
+   'Tu borrador sigue en esta pestaña. Descárgalo antes de cargar la versión de la nube. No se fusionarán automáticamente.':
+   'Tus cambios siguen en esta pestaña. Reintenta o descarga un respaldo antes de salir. Detalle: '+(error?.message||'Error de conexión.');
+ }else if(kind==='saved'){$('#cloud-error').hidden=true;setReady(true);}
+}
+async function importBackup(e){
+ const f=e.target.files[0];e.target.value='';if(!f||!ready)return;
+ try{
+  if(f.size>10*1024*1024)throw Error('El archivo supera 10 MiB.');
+  const json=JSON.parse(await f.text());
+  if(json?.format==='con-intencion'&&json.version!==2)throw Error('Versión no compatible.');
+  const next=checkedState(json?.format==='con-intencion'?json.data:json),info=summary(next);
+  if(info.origenesAusentes)throw Error('Hay '+info.origenesAusentes+' tareas cuyo origen semanal falta. Repara el respaldo o conserva el original; no se importó nada.');
+  await cloud.flush();
+  if(!confirm('Cuenta destino: '+sessionUser.email+'\n'+JSON.stringify(info,null,2)+'\n'+
+   (json.ownerId&&json.ownerId!==sessionUser.id?'El respaldo pertenece a otra cuenta. ':'')+
+   'REEMPLAZARÁ toda esta agenda, no mezclará ni añadirá duplicados. Descargaremos primero la versión actual. ¿Continuar?'))return;
+  downloadCurrent();S=next;migCfg();unifyClosure();applyAcc();
+  save();setReady(false);await cloud.flush();$('#dlg').close();R(true);
+  toast('Importación guardada. Comprueba el resumen y el contenido.');
+ }catch(error){alert('No se completó la importación: '+error.message);}
+}
+async function loadUser(user){
+ const generation=++authGeneration;
+ cloud?.stop();cloud=null;sessionUser=user;setReady(false);closeDialogs();
+ S=normalize(blank());$('#v').innerHTML='';$('#pers').innerHTML='';
+ $('#planner').hidden=true;$('#cloud-error').hidden=true;$('#metrics-result').textContent='';
+ $('#account').hidden=!user;$('#account-email').textContent=user?.email||'';
+ $('#access').hidden=false;$('#login-form').hidden=true;$('#code-form').hidden=true;
+ $('#retry-load').hidden=true;
+ if(!user){$('#auth-status').textContent='Entra con tu correo para recuperar tu agenda.';$('#login-form').hidden=false;return;}
+ $('#auth-status').textContent='Cargando tus datos…';
+ const store=new CloudStore(client,user.id,(kind,error)=>{if(cloud===store)cloudStatus(kind,error)});cloud=store;
+ try{
+  const row=await store.read();if(generation!==authGeneration)return;
+  S=row?checkedState(row.data):normalize(blank());store.revision=row?.revision||null;
+  const before=JSON.stringify(S);migCfg();unifyClosure();applyAcc();
+  $('#access').hidden=true;$('#planner').hidden=false;setReady(true);R(true);
+  cloudStatus('saved');
+  if(!row||JSON.stringify(S)!==before){save();await store.flush();}
+  if(generation!==authGeneration)return;
+  showWelcome();
+ }catch(error){
+  if(generation!==authGeneration)return;
+  setReady(false);$('#access').hidden=false;$('#planner').hidden=true;
+  $('#auth-status').textContent='No se pudo cargar: '+error.message+' No se reemplazaron los datos de la nube.';
+  $('#retry-load').hidden=false;
+ }
+}
+async function poll(){
+ if(!cloud||!ready||cloud.unsaved||polling||document.hidden)return;
+ if(document.querySelector('dialog[open]')||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+ polling=true;const store=cloud,generation=authGeneration;
+ try{
+  const meta=await store.read(true);
+  if(store!==cloud||generation!==authGeneration||store.unsaved||!ready)return;
+  if((meta?.revision||null)!==store.revision){
+   const row=await store.read();
+   if(store!==cloud||generation!==authGeneration||store.unsaved||!ready)return;
+   if(document.querySelector('dialog[open]')||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+   if(!row)throw Error('La agenda ya no existe. Vuelve a iniciar sesión.');
+   S=checkedState(row.data);store.revision=row.revision;migCfg();unifyClosure();applyAcc();R();
+   $('#cloud-status').textContent='Actualizado desde otro dispositivo';
+  }
+ }catch(error){$('#cloud-status').textContent='No se pudo comprobar la sincronización. Reintenta con conexión.';}
+ finally{polling=false;}
+}
+$('#save-now').onclick=async()=>{try{await cloud?.flush();await poll()}catch{}};
+$('#retry-save').onclick=async()=>{try{await cloud.retry();R()}catch{}};
+$('#rescue').onclick=downloadCurrent;
+$('#load-cloud').onclick=async()=>{
+ if(cloud?.unsaved&&!confirm('¿Ya descargaste tus cambios? Cargar la nube descartará el borrador de esta pestaña.'))return;
+ await loadUser(sessionUser);
+};
+$('#retry-load').onclick=()=>loadUser(sessionUser);
+$('#logout').onclick=async()=>{
+ setReady(false);closeDialogs();
+ if(cloud?.unsaved){try{await cloud.flush()}catch{if(!confirm('Hay cambios sin guardar. Descárgalos primero si quieres conservarlos. ¿Cerrar sesión y descartarlos?'))return;}}
+ setReady(false);
+ try{const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;await loadUser(null);$('#code').value='';$('#email').value='';}
+ catch(error){if(cloud&&!cloud.error)setReady(true);alert('No se pudo cerrar sesión: '+error.message);}
+};
+$('#metrics').onclick=async()=>{
+ try{const {data,error}=await client.rpc('operational_metrics');if(error)throw error;$('#metrics-result').textContent=JSON.stringify(data);}
+ catch{$('#metrics-result').textContent='No disponible: necesitas el rol de administrador o revisar tu conexión.';}
+};
+let lastSent=0,otpEmail='';
+async function sendCode(){
+ if(Date.now()-lastSent<60000)throw Error('Espera 60 segundos antes de solicitar otro código.');
+ otpEmail=$('#email').value.trim().toLowerCase();
+ const {error}=await client.auth.signInWithOtp({email:otpEmail,options:{shouldCreateUser:true}});
+ if(error)throw error;
+ lastSent=Date.now();$('#login-form').hidden=true;$('#code-form').hidden=false;
+ $('#code').value='';$('#auth-status').textContent='Revisa tu correo y spam. Introduce el código más reciente.';
+}
+async function authAction(form,action){
+ const buttons=[...form.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+ try{await action()}catch(error){$('#auth-status').textContent='No se pudo continuar: '+error.message+' Si el código venció, solicita otro; ante límite de envío, espera.';}
+ finally{buttons.forEach(b=>b.disabled=false);}
+}
+$('#login-form').onsubmit=e=>{e.preventDefault();authAction(e.target,sendCode)};
+$('#code-form').onsubmit=e=>{
+ e.preventDefault();authAction(e.target,async()=>{
+  const {data,error}=await client.auth.verifyOtp({email:otpEmail,token:$('#code').value.trim(),type:'email'});
+  if(error)throw error;
+  $('#code').value='';if(sessionUser?.id!==data.user.id)await loadUser(data.user);
+ });
+};
+$('#resend').onclick=()=>authAction($('#code-form'),sendCode);
+$('#change-email').onclick=()=>{$('#code-form').hidden=true;$('#login-form').hidden=false;$('#code').value='';};
+window.addEventListener('beforeunload',e=>{if(cloud?.unsaved){e.preventDefault();e.returnValue='';}});
+window.addEventListener('online',poll);
+window.addEventListener('focus',poll);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+setInterval(poll,60000);
+// No hay llamadas Auth esperadas dentro del callback: se difieren fuera del lock del SDK.
+async function boot(){
+ try{
+  client=makeClient();
+  client.auth.onAuthStateChange((event,session)=>{
+   if(event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED')return;
+   setTimeout(()=>{if((session?.user?.id||null)!==(sessionUser?.id||null))loadUser(session?.user||null)},0);
+  });
+  const {data,error}=await client.auth.getSession();if(error)throw error;
+  await loadUser(data.session?.user||null);
+ }catch(error){$('#auth-status').textContent='No se pudo iniciar: '+error.message;$('#retry-load').hidden=false;$('#retry-load').onclick=boot;}
+}
+// boot.js muestra recuperación si no se pueden cargar los módulos o el CDN.
+boot();
