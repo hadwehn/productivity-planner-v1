@@ -122,6 +122,56 @@ body{letter-spacing:-.008em}h1,.section-title,.welcome-lead{letter-spacing:-.035
 .btn,nav button.on,.seg .on,.chip.on{background:var(--acc);color:white}
 @media(max-width:480px){main{padding-left:16px;padding-right:16px}.card{padding:17px}.phase-toggle{font-size:21px}.event-color-row{align-items:start;flex-direction:column}.access-intro h1 em{white-space:normal}.access-intro h1{font-size:clamp(38px,10vw,45px)}.drag-handle{min-width:24px;width:24px}}
 @media(prefers-reduced-motion:reduce){.task-line{transition:none}}
+/* Intenciones luminosas, con una pincelada del color elegido */
+.card.intent{
+  background:color-mix(in srgb,var(--acc) 11%,#fff);
+  border:1px solid color-mix(in srgb,var(--acc) 20%,#fff);
+  color:var(--ink);
+  box-shadow:0 3px 18px #172c4205;
+}
+.card.intent h2{color:color-mix(in srgb,var(--acc) 78%,#182536)}
+.card.intent textarea{color:var(--ink);caret-color:var(--acc)}
+.card.intent textarea::placeholder{color:var(--mid)}
+.card.intent textarea:focus{outline:2px solid color-mix(in srgb,var(--acc) 35%,transparent);outline-offset:6px}
+/* Todas las cajas de texto de la planificación crecen verticalmente. */
+textarea[data-p]{overflow:hidden;resize:none;min-height:44px;height:auto;max-height:none;overflow-wrap:anywhere}
+.row textarea[data-p]{flex:1;min-width:0;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 2px;font-size:16px;line-height:1.45}
+.task-line textarea[data-p]{min-height:43px}
+.ev.ed textarea[data-p]{border:1px solid var(--line);border-radius:10px;padding:11px;line-height:1.45}
+
+
+/* Selector de evento compacto: un color siempre visible, seis al desplegar. */
+.event-color-picker{position:relative;min-width:122px}
+.event-color-picker summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer;border:1px solid var(--line);border-radius:11px;padding:6px 10px;font-size:13px;color:var(--ink);user-select:none}
+.event-color-picker summary::-webkit-details-marker{display:none}
+.color-preview{width:24px;height:24px;border-radius:50%;flex:none;box-shadow:0 0 0 2px white,0 0 0 3px var(--line)}
+.color-chevron{margin-left:auto;color:var(--mid);font-size:19px}
+.event-color-picker[open] .color-chevron{transform:rotate(180deg)}
+.event-color-options{display:grid;grid-template-columns:repeat(3,44px);gap:9px;position:absolute;right:0;top:calc(100% + 6px);z-index:4;background:var(--card);border:1px solid var(--line);box-shadow:0 9px 24px #172c4220;border-radius:13px;padding:12px}
+.event-color-options .sw{width:44px;height:44px}
+.day-work{margin-top:24px}.day-work>.section-title{margin:0 0 14px}
+
+
+/* Dos ambientes, siempre con azul como identidad. */
+:root[data-theme="soft"]{--bg:#F8F7F4;--card:#FFFDF9;--ink:#292B30;--mid:#74736F;--line:#E7E2DA;--surface:#F0EDE7;--acc-soft:#EEF2F8}
+:root[data-theme="soft"] .card{box-shadow:0 2px 12px #584a3907}
+/* Identidad azul constante, colores ajustables solo para hábitos y eventos. */
+.theme-preferences{margin:22px 0 18px}.theme-preferences h2{margin-bottom:8px}
+.theme-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}
+.theme-choice{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);background:var(--card);padding:14px 12px;border-radius:14px;min-height:124px}
+.theme-choice strong{font-size:14px;font-weight:650}.theme-choice>span:not(.theme-dots){font-size:11px;color:var(--mid)}
+.theme-choice.selected{border:2px solid var(--acc);padding:13px 11px;background:var(--acc-soft)}
+.theme-dots{display:flex;gap:4px;margin-top:auto}.theme-dots i{height:14px;width:14px;border-radius:50%;display:block}
+.habit-card{border-left:3px solid var(--habit-color)}
+.habit-card .hb.s1,.habit-card .grid i.c1,.habit-card .ring{--acc:var(--habit-color)}
+.habit-row .chk.on{background:var(--habit-color);border-color:var(--habit-color)}
+.habit-colors{margin:20px 0}.habit-color-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.habit-color-choice{display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;min-height:44px}
+.habit-color-choice input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.habit-color-choice span{display:block;width:26px;height:26px;flex:none;border-radius:50%;border:3px solid white;box-shadow:0 0 0 1px var(--line)}
+.habit-color-choice input:checked+span{box-shadow:0 0 0 2px var(--acc)}
+.habit-color-choice input:focus-visible+span{outline:2px solid var(--acc);outline-offset:4px}
+@media(max-width:380px){.theme-choices{grid-template-columns:1fr}.habit-color-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
@@ -166,7 +216,13 @@ body{letter-spacing:-.008em}h1,.section-title,.welcome-lead{letter-spacing:-.035
 <div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
 <dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
 <p class="sub">Tus datos se guardan en tu cuenta. Espera a ver «Guardado en la nube» antes de cerrar. Descarga un respaldo periódicamente. Importar reemplaza el diario de la cuenta indicada en este menú.</p>
-<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#3569B0" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#C24A32" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#247759" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#744DB2" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#94620C" data-a="acc" data-i="4" aria-label="Mostaza"></button><button class="sw" style="background:#176A83" data-a="acc" data-i="5" aria-label="Azul petróleo"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
+<section class="theme-preferences" aria-labelledby="style-title">
+<h2 id="style-title">Estilo visual</h2>
+<p class="sub">El azul identifica siempre tu diario. El estilo cambia los colores de hábitos y eventos.</p>
+<div class="theme-choices" role="group" aria-label="Estilo visual">
+<button type="button" class="theme-choice" data-a="theme" data-k="modern" aria-pressed="true"><strong>Moderno</strong><span>Vibrante y fresco</span><span class="theme-dots" aria-hidden="true"><i style="background:#3569B0"></i><i style="background:#FF4050"></i><i style="background:#2FC45B"></i><i style="background:#AC4EDF"></i><i style="background:#FF9B00"></i><i style="background:#24AFC1"></i></span></button>
+<button type="button" class="theme-choice" data-a="theme" data-k="soft" aria-pressed="false"><strong>Papelería suave</strong><span>Sereno y editorial</span><span class="theme-dots" aria-hidden="true"><i style="background:#3569B0"></i><i style="background:#B96B65"></i><i style="background:#4D8970"></i><i style="background:#9478B5"></i><i style="background:#C28F44"></i><i style="background:#518D9B"></i></span></button>
+</div></section><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
 <label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
 <section id="account" class="account-panel" aria-labelledby="account-title" hidden>
  <h2 id="account-title">Tu cuenta</h2>
