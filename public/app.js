@@ -458,7 +458,7 @@ function setSyncFeedback(kind,message){
 function setAccessStage(stage){
  $('#access').dataset.error='false';
  const code=stage==='code',loading=stage==='loading';
- $('#access-title').textContent=loading?'Recuperando tu agenda…':code?'Revisa tu correo.':'Tu agenda te espera.';
+ $('#access-title').textContent=loading?'Recuperando tu diario…':code?'Revisa tu correo.':'Tu diario te espera.';
  $('#access-description').textContent=loading?'Un momento, estamos buscando tu espacio.':code?'Introduce el código en esta pantalla. Puedes leer el correo desde otro dispositivo.':'Entra para continuar con tus planes, tus hábitos y tus ideas.';
 }
 async function updateAccountRole(uid,generation){
@@ -490,7 +490,7 @@ async function importBackup(e){
   await cloud.flush();
   if(!confirm('Cuenta destino: '+sessionUser.email+'\n'+JSON.stringify(info,null,2)+'\n'+
    (json.ownerId&&json.ownerId!==sessionUser.id?'El respaldo pertenece a otra cuenta. ':'')+
-   'REEMPLAZARÁ toda esta agenda, no mezclará ni añadirá duplicados. Descargaremos primero la versión actual. ¿Continuar?'))return;
+   'REEMPLAZARÁ todo este diario, no mezclará ni añadirá duplicados. Descargaremos primero la versión actual. ¿Continuar?'))return;
   downloadCurrent();S=next;migCfg();unifyClosure();applyAcc();
   save();setReady(false);await cloud.flush();$('#dlg').close();R(true);
   toast('Importación guardada. Comprueba el resumen y el contenido.');
@@ -504,7 +504,7 @@ async function loadUser(user){
  $('#account').hidden=!user;$('#account-email').textContent=user?.email||'';
  $('#access-logout').hidden=!user;$('#metrics').hidden=true;$('#metrics-result').hidden=true;
  $('#otp-email').textContent='';setAccessStage(user?'loading':'email');
- setSyncFeedback('loading','Cargando agenda…');applyAcc();
+ setSyncFeedback('loading','Cargando diario…');applyAcc();
  $('#access').hidden=false;$('#login-form').hidden=true;$('#code-form').hidden=true;
  $('#retry-load').hidden=true;
  if(!user){$('#auth-status').textContent='';$('#login-form').hidden=false;return;}
@@ -538,7 +538,7 @@ async function poll(){
    const row=await store.read();
    if(store!==cloud||generation!==authGeneration||store.unsaved||!ready)return;
    if(document.querySelector('dialog[open]')||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
-   if(!row)throw Error('La agenda ya no existe. Vuelve a iniciar sesión.');
+   if(!row)throw Error('El diario ya no existe. Vuelve a iniciar sesión.');
    S=checkedState(row.data);store.revision=row.revision;migCfg();unifyClosure();applyAcc();R();
    setSyncFeedback('saved','Actualizado desde otro dispositivo');
   }
