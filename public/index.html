@@ -7,13 +7,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="productividad">
-    <link rel="apple-touch-icon" href="icons/estoico-productivity-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/estoico-productivity-icon.png?v=3">
+    <link rel="icon" type="image/png" href="icons/estoico-productivity-icon.png?v=3">
 
 
     <link rel="manifest" href="manifest.json">
 
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <meta name="theme-color" content="#f6f1e7">
+    <meta name="theme-color" content="#F5F6F8">
     <title>Diario de la Productividad</title>
 <style>
 [hidden]{display:none!important}
@@ -195,10 +196,25 @@ textarea[data-p]{overflow:hidden;resize:none;min-height:44px;height:auto;max-hei
   color: var(--acc);
 }
 @media(max-width:480px){.day-phase .phase-toggle,.day-work > .section-title{font-size:12px}}
+
+/* Marca Estoico: imagen original transparente, sin recrear la tipografía. */
+.access-brand{display:flex;flex-direction:column;align-items:flex-start;gap:7px;margin-bottom:52px}
+.access-wordmark{display:block;width:clamp(178px,28vw,240px);height:auto;aspect-ratio:3/1;object-fit:contain;object-position:left center}
+.access-product-name{font-size:10px;font-weight:650;letter-spacing:.17em;color:var(--mid)}
+@media(max-width:700px){.access-brand{margin-bottom:26px;gap:2px}.access-wordmark{width:200px}.access-product-name{font-size:9px}}
+/* Reordenamiento táctil accesible y discreto de hábitos. */
+.habit-drag-handle{flex:0 0 28px;width:28px;min-height:44px;border:0;background:transparent;color:var(--mid);font-size:25px;line-height:1;touch-action:none;user-select:none;cursor:grab;border-radius:8px}
+.habit-drag-handle:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.habit-card{transition:opacity .15s,box-shadow .15s,background .15s}
+.habit-card .row>div[style*="flex:1"]{min-width:0}
+.habit-card.habit-dragging{opacity:.55;background:var(--acc-soft);box-shadow:0 8px 22px #172c4217}
+.habit-card.habit-drop-target{outline:2px solid var(--acc);outline-offset:3px}
+.is-habit-dragging,.is-habit-dragging *{user-select:none!important;cursor:grabbing!important}
+@media(prefers-reduced-motion:reduce){.habit-card{transition:none}}
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
-  <div class="access-brand"><span class="brand-mark"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="15" height="18" rx="3"/><path d="M9 3v18M12 8h4m-4 4h4"/></svg></span><span>Diario de la Productividad</span></div>
+  <div class="access-brand"><img class="access-wordmark" src="icons/estoico-icon.png?v=3" width="240" height="80" alt="estoico." decoding="async"><span class="access-product-name">DIARIO DE LA PRODUCTIVIDAD</span></div>
   <p class="access-eyebrow">Un espacio para ti</p>
   <h1>Un día <br><em>a la vez.</em></h1>
   <p class="access-lead">Haz espacio para lo que importa.<br>Lo demás puede esperar un momento.</p>
