@@ -172,6 +172,29 @@ textarea[data-p]{overflow:hidden;resize:none;min-height:44px;height:auto;max-hei
 .habit-color-choice input:checked+span{box-shadow:0 0 0 2px var(--acc)}
 .habit-color-choice input:focus-visible+span{outline:2px solid var(--acc);outline-offset:4px}
 @media(max-width:380px){.theme-choices{grid-template-columns:1fr}.habit-color-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Los tres momentos del día comparten una sola jerarquía tipográfica. */
+.day-phase .phase-toggle,
+.day-work > .section-title {
+  font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.day-phase .phase-toggle { min-height: 48px; margin: 6px 0 12px; }
+.day-work > .section-title { margin: 0 0 14px; }
+.day-phase .phase-toggle span:last-child {
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--acc);
+}
+@media(max-width:480px){.day-phase .phase-toggle,.day-work > .section-title{font-size:12px}}
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
