@@ -132,13 +132,13 @@ function vH(){
   for(let i=1;i<=n;i++){const k=m+'-'+p2(i),v=(S.hl[k]||{})[h.id]||0;if(k<=T&&habitDue(h,k)){scheduled++;if(v===1)c++}cells+=`<i class="c${v===1?1:0}${k===T?' t':''}"></i>`}
   let streak=0;for(let back=0;back<370;back++){const date=iso(add(pd(T),-back));if(h.createdOn&&date<h.createdOn)break;if(!habitDue(h,date))continue;if((S.hl[date]||{})[h.id]===1)streak++;else if(date!==T)break;}
   ok+=c;const v=(S.hl[U.hd]||{})[h.id]||0,pc=scheduled?Math.round(c/scheduled*100):0;
-  return `<div class="card habit-card" style="--habit-color:${eventColor(h.color??0)}"><div class="row"><button class="hb s${v===1?1:0}${U.pop===h.id?' pop':''}" data-a="hab" data-id="${esc(h.id)}" aria-label="Marcar">${v===1?'✓':''}</button><div style="flex:1"><b>${esc(h.name)}</b><div class="sub">${c} de ${scheduled} días previstos · ${streak} ${streak===1?'día':'días'} de racha</div></div><div class="ring" style="--p:${pc}"><span>${pc}%</span></div><button class="ib" data-a="hen" data-id="${esc(h.id)}" aria-label="Editar">✎</button></div><div class="grid">${cells}</div></div>`}).join('');
+  return `<div class="card habit-card" data-habit-id="${esc(h.id)}" style="--habit-color:${eventColor(h.color??0)}"><div class="row"><button type="button" class="habit-drag-handle" data-habit-drag="${esc(h.id)}" aria-label="Mover ${esc(h.name)}. Usa las flechas arriba y abajo, o mantén presionado y arrastra." title="Arrastrar para ordenar · flechas ↑ ↓" aria-keyshortcuts="ArrowUp ArrowDown">⠿</button><button class="hb s${v===1?1:0}${U.pop===h.id?' pop':''}" data-a="hab" data-id="${esc(h.id)}" aria-label="Marcar">${v===1?'✓':''}</button><div style="flex:1"><b>${esc(h.name)}</b><div class="sub">${c} de ${scheduled} días previstos · ${streak} ${streak===1?'día':'días'} de racha</div></div><div class="ring" style="--p:${pc}"><span>${pc}%</span></div><button class="ib" data-a="hen" data-id="${esc(h.id)}" aria-label="Editar">✎</button></div><div class="grid">${cells}</div></div>`}).join('');
  const tot=S.h.reduce((sum,h)=>sum+Array.from({length:n},(_,i)=>m+'-'+p2(i+1)).filter(k=>k<=T&&habitDue(h,k)).length,0),pc=tot?Math.round(ok/tot*100):0,full=S.h.length&&S.h.every(h=>(S.hl[U.hd]||{})[h.id]===1);
  return pageHeader('Hábitos','Pequeños pasos. Siempre puedes retomar.')+mn('hm',m)
   +(S.h.length?`<div class="card"><div class="row"><div class="ring big" style="--p:${pc}"><span>${pc}%</span></div><div><b>Tu mes</b><div class="sub">${ok} registros. Los días futuros no cuentan.</div></div></div></div>`:'')
   +`<div class="strip">${st}</div>`
   +(L||'<p class="sub">Aún no tienes hábitos. Crea el primero.</p>')
-  +'<p class="habit-tip">Cada marca cuenta. La racha solo considera tus días programados y puedes retomarla cuando quieras.</p><button class="btn" data-a="hadd">+ Nuevo hábito</button>';
+  +'<p class="habit-tip">Mantén presionado ⠿ para ordenar tus hábitos. También puedes usar ↑ y ↓ desde el teclado. El orden se refleja en tu planificación diaria.</p><p class="habit-tip">Cada marca cuenta. La racha solo considera tus días programados y puedes retomarla cuando quieras.</p><button class="btn" data-a="hadd">+ Nuevo hábito</button>';
 }
 
 function vC(){
@@ -331,6 +331,70 @@ document.addEventListener('pointermove',e=>{
 },{passive:false});
 function finishTaskDrag(e){if(!taskDrag||e.pointerId!==taskDrag.pointer)return;clearTimeout(dragTimer);const v=taskDrag;taskDrag=null;document.body.classList.remove('is-dragging');document.querySelectorAll('.task-line.dragging,.task-line.drop-target').forEach(x=>x.classList.remove('dragging','drop-target'));if(v.active&&e.type==='pointerup'){moveDailyTask(v.index,v.target);}}
 document.addEventListener('pointerup',finishTaskDrag);document.addEventListener('pointercancel',finishTaskDrag);
+
+// Orden de hábitos: desplaza el objeto entero, conservando su ID, color, calendario y racha.
+function reorderHabit(fromId,toId){
+ const from=S.h.findIndex(h=>h.id===fromId),to=S.h.findIndex(h=>h.id===toId);
+ if(from<0||to<0||from===to)return false;
+ const [habit]=S.h.splice(from,1);S.h.splice(to,0,habit);
+ save();R();toast('Orden de hábitos actualizado');return true;
+}
+let habitDrag=null,habitDragTimer=null;
+function clearHabitDrag(){
+ clearTimeout(habitDragTimer);
+ document.body.classList.remove('is-habit-dragging');
+ document.querySelectorAll('.habit-card.habit-dragging,.habit-card.habit-drop-target').forEach(el=>el.classList.remove('habit-dragging','habit-drop-target'));
+ habitDrag=null;
+}
+document.addEventListener('pointerdown',e=>{
+ const handle=e.target.closest('[data-habit-drag]');
+ if(!handle||!ready||U.tab!=='h')return;
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ const id=handle.dataset.habitDrag;
+ habitDrag={id,target:id,pointer:e.pointerId,x:e.clientX,y:e.clientY,active:false};
+ clearTimeout(habitDragTimer);
+ habitDragTimer=setTimeout(()=>{
+  if(!habitDrag||habitDrag.pointer!==e.pointerId)return;
+  habitDrag.active=true;
+  document.body.classList.add('is-habit-dragging');
+  handle.closest('.habit-card')?.classList.add('habit-dragging');
+ },e.pointerType==='mouse'?160:320);
+});
+document.addEventListener('pointermove',e=>{
+ if(!habitDrag||e.pointerId!==habitDrag.pointer)return;
+ if(!habitDrag.active){
+  if(Math.hypot(e.clientX-habitDrag.x,e.clientY-habitDrag.y)>12)clearHabitDrag();
+  return;
+ }
+ e.preventDefault();
+ const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.habit-card[data-habit-id]');
+ document.querySelectorAll('.habit-card.habit-drop-target').forEach(el=>el.classList.remove('habit-drop-target'));
+ if(target){habitDrag.target=target.dataset.habitId;target.classList.add('habit-drop-target');}
+ if(e.clientY>window.innerHeight-105)window.scrollBy(0,12);
+ else if(e.clientY<80)window.scrollBy(0,-12);
+},{passive:false});
+function finishHabitDrag(e){
+ if(!habitDrag||e.pointerId!==habitDrag.pointer)return;
+ const {id,target,active}=habitDrag;
+ clearHabitDrag();
+ if(active&&e.type==='pointerup')reorderHabit(id,target);
+}
+document.addEventListener('pointerup',finishHabitDrag);
+document.addEventListener('pointercancel',finishHabitDrag);
+// Alternativa accesible para quienes usan teclado o no pueden arrastrar.
+document.addEventListener('keydown',e=>{
+ const handle=e.target.closest('[data-habit-drag]');
+ if(!handle||!['ArrowUp','ArrowDown'].includes(e.key)||!ready)return;
+ e.preventDefault();
+ const from=S.h.findIndex(h=>h.id===handle.dataset.habitDrag),to=from+(e.key==='ArrowUp'?-1:1);
+ if(from<0||to<0||to>=S.h.length)return;
+ const focusedId=handle.dataset.habitDrag;
+ if(reorderHabit(focusedId,S.h[to].id)){
+  const next=[...document.querySelectorAll('[data-habit-drag]')].find(el=>el.dataset.habitDrag===focusedId);
+  next?.focus({preventScroll:true});
+ }
+});
+
 function syncTask(path,value){const match=path.match(/^d\.([^.]*)\.k\.(\d+)\.c$/);let source=match?S.d[match[1]]?.k?.[match[2]]?.source:path.slice(0,-2);if(!source||!/^w\./.test(source))return;setP(source+'.c',value);for(const day of Object.values(S.d))for(const row of Object.values(day.k||{}))if(row?.source===source)row.c=value;save()}
 function exportSnapshot(data,name){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([typeof data==='string'?data:JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('#imp').onchange=importBackup;
