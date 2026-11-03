@@ -98,6 +98,30 @@ fieldset{border:0;padding:0;margin:18px 0}legend{font-weight:600;font-size:14px;
 .cloud-alert{width:calc(100% - 40px);max-width:640px;margin:70px auto 10px;border:1px solid #b8431f44;border-radius:14px;padding:20px;background:var(--card);overflow-wrap:anywhere}.cloud-alert-title{font:400 23px/1.3 Georgia,serif;margin:0 0 10px}.cloud-alert p:not(.cloud-alert-title){font-size:13px;color:var(--mid)}.cloud-alert .btn{font-size:13px}
 @media(max-width:700px){.access-shell{max-width:440px;grid-template-columns:1fr;gap:28px;align-content:center;padding:30px 22px 36px;min-height:100svh}.access-brand{margin-bottom:28px;font-size:11px}.access-intro h1{font-size:45px;letter-spacing:-1.5px;margin-bottom:13px}.access-intro h1 br{display:none}.access-intro h1 em{white-space:nowrap}.access-eyebrow{margin-bottom:9px;font-size:9px}.access-lead{font-size:13px;line-height:1.7}.access-lead br{display:none}.access-detail{display:none}.access-card{padding:25px 23px;border-radius:18px}.access-symbol{display:none}.access-card h2{font-size:26px}.access-description{font-size:13px;margin-bottom:23px}.access-footnote{margin-top:23px}.cloud-alert{width:calc(100% - 24px);padding:16px}}
 @media(max-width:350px){.access-shell{padding:24px 16px;gap:22px}.access-intro h1{font-size:39px}.access-card{padding:22px 18px}}
+
+/* 2026 · identidad visual: pigmentos intensos, superficies limpias */
+:root{--bg:#F5F6F8;--card:#FFFFFF;--ink:#182536;--mid:#627183;--line:#DCE2E9;--surface:#EBF0F5;--acc:#3569B0;--acc-soft:#EDF3FB;--ok:var(--acc)}
+body{letter-spacing:-.008em}h1,.section-title,.welcome-lead{letter-spacing:-.035em}
+.card{border-radius:17px;box-shadow:0 3px 18px #172c4207;border-color:#e1e6ec}
+.card.intent{background:var(--acc);color:white;border-color:var(--acc)}
+.card.intent h2{color:#ffffffd9}.card.intent textarea{color:white;caret-color:white}.card.intent textarea::placeholder{color:#ffffffe0}.card.intent textarea:focus{outline:2px solid #ffffffa8;outline-offset:6px}
+.seg,.chip{background:var(--surface)}.mode-card.selected,.otp-address,.account-avatar,.account-sync{background:var(--acc-soft)}
+.ev{background:color-mix(in srgb,var(--c) 9%,white);border-left:4px solid var(--c)}
+.ev b{color:var(--ink)}.cd.has{background:var(--acc-soft)}
+.sw{border:3px solid white;box-shadow:0 0 0 1px var(--line)}
+.color-options{flex-wrap:wrap;width:100%;gap:12px}.color-options .sw{flex:0 0 44px}
+.phase-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;width:100%;font:500 23px/1.3 Georgia,serif;letter-spacing:-.025em;text-align:left;margin:8px 0 13px}.phase-toggle span:last-child{font:400 24px system-ui;color:var(--acc)}
+.day-phase{margin-top:20px}.day-phase+.day-phase{margin-top:24px}.day-phase .card:last-child{margin-bottom:8px}
+.drag-note{font-size:12px;margin:-4px 0 10px}.drag-handle{width:28px;min-width:28px;height:44px;touch-action:none;user-select:none;color:var(--mid);font-size:25px;cursor:grab}
+.task-line{transition:background .12s,border-color .12s}.task-line.dragging{opacity:.55;background:var(--acc-soft)}.task-line.drop-target{border-top:3px solid var(--acc)}.is-dragging{user-select:none;cursor:grabbing}
+.task-line .row{gap:6px}.task-line .chk{width:39px;height:39px}.task-line .tiny-action{min-width:34px}
+.event-time{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:12px}.time-label{font-size:12px;color:var(--mid);flex:1;min-width:130px}.time-label input{display:block;border:1px solid var(--line);border-radius:10px;margin-top:5px;padding:9px;background:white;min-height:44px;color:var(--ink)}
+.time-label input:disabled{opacity:.4}.all-day{border:1px solid var(--line);padding:10px 12px;border-radius:10px;min-height:44px;font-size:13px}.all-day.selected{background:var(--acc);color:white;border-color:var(--acc)}
+.event-color-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0}.event-color-row .sw{width:39px;height:39px}
+.habit-tip{font-size:12px;line-height:1.6;color:var(--mid);padding:8px 2px 4px}.grid i{width:15px;height:15px;border-radius:4px}.grid{gap:5px}
+.btn,nav button.on,.seg .on,.chip.on{background:var(--acc);color:white}
+@media(max-width:480px){main{padding-left:16px;padding-right:16px}.card{padding:17px}.phase-toggle{font-size:21px}.event-color-row{align-items:start;flex-direction:column}.access-intro h1 em{white-space:normal}.access-intro h1{font-size:clamp(38px,10vw,45px)}.drag-handle{min-width:24px;width:24px}}
+@media(prefers-reduced-motion:reduce){.task-line{transition:none}}
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
@@ -142,7 +166,7 @@ fieldset{border:0;padding:0;margin:18px 0}legend{font-weight:600;font-size:14px;
 <div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
 <dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
 <p class="sub">Tus datos se guardan en tu cuenta. Espera a ver «Guardado en la nube» antes de cerrar. Descarga un respaldo periódicamente. Importar reemplaza el diario de la cuenta indicada en este menú.</p>
-<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#1e4d6b" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#b8431f" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#2f6b4f" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#6b3fa0" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#806315" data-a="acc" data-i="4" aria-label="Mostaza"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
+<h2 style="margin-top:14px">Color principal</h2><div class="sws color-options" style="margin:0 0 12px"><button class="sw" style="background:#3569B0" data-a="acc" data-i="0" aria-label="Azul"></button><button class="sw" style="background:#C24A32" data-a="acc" data-i="1" aria-label="Terracota"></button><button class="sw" style="background:#247759" data-a="acc" data-i="2" aria-label="Verde"></button><button class="sw" style="background:#744DB2" data-a="acc" data-i="3" aria-label="Violeta"></button><button class="sw" style="background:#94620C" data-a="acc" data-i="4" aria-label="Mostaza"></button><button class="sw" style="background:#176A83" data-a="acc" data-i="5" aria-label="Azul petróleo"></button></div><button class="btn" data-a="exp">Descargar respaldo (JSON)</button>
 <label class="btn ghost">Importar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
 <section id="account" class="account-panel" aria-labelledby="account-title" hidden>
  <h2 id="account-title">Tu cuenta</h2>
