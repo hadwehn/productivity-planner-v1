@@ -295,6 +295,91 @@ h2,.pref-title,.q,.access-eyebrow{font-family:inherit;letter-spacing:.055em}
 @media(max-width:480px){.sticky-page-head{margin-left:-3px;margin-right:-3px}.sticky-page-head .top{margin-right:43px}.sticky-page-head .top + .top{margin-right:0}#eventDlg .event-time{grid-template-columns:minmax(0,1fr)}#eventDlg .event-all-day{width:100%}}
 @media(max-width:380px){#eventDlg .event-category-list{grid-template-columns:repeat(2,minmax(0,1fr))}#eventDlg .habit-color-choice{padding:8px 5px;gap:5px}#eventDlg .habit-color-choice small{font-size:11px}}
 
+
+/* Cuatro eventos: 1-3 puntos en una fila, cuatro en una matriz 2 × 2. */
+.dts{left:50%;transform:translateX(-50%);justify-content:center;align-items:center;pointer-events:none}
+.dts.four{display:grid;grid-template-columns:repeat(2,5px);grid-template-rows:repeat(2,5px);gap:3px;bottom:3px}
+.dts.four u{display:block}
+/* Solo los controles editables permiten seleccionar texto en móvil. */
+#planner,#planner button,#planner label,#planner .card,#planner nav,#planner .sticky-page-head{-webkit-user-select:none;user-select:none}
+#planner input,#planner textarea,#planner [contenteditable="true"]{-webkit-user-select:text;user-select:text}
+#planner input,#planner textarea{-webkit-touch-callout:default}
+/* Notas: barra breve de formato, sin menús adicionales. */
+.notes-card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;box-shadow:0 3px 18px #172c4207}
+.notes-card .section-note{margin:0 0 12px}
+.notes-toolbar{display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--line);padding:0 0 11px;margin-bottom:12px;flex-wrap:wrap}
+.notes-toolbar button{min-width:43px;height:42px;padding:5px 10px;border-radius:9px;color:var(--ink);font-size:16px;font-weight:600;border:1px solid transparent}
+.notes-toolbar button:hover,.notes-toolbar button:focus-visible{background:var(--acc-soft);border-color:var(--line)}
+.notes-toolbar button[data-note-format="italic"]{font-style:italic;font-family:Georgia,serif}
+.notes-toolbar button[data-note-format="title"]{font-family:Georgia,serif;font-size:20px}
+.notes-editable{min-height:320px;outline:0;font:16px/1.75 system-ui,-apple-system,"Segoe UI",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;padding:9px 4px 25px;caret-color:var(--acc)}
+.notes-editable:empty:before{content:attr(data-placeholder);color:var(--mid);pointer-events:none}
+.notes-editable h3{font:600 20px/1.4 system-ui,sans-serif;letter-spacing:-.02em;margin:14px 0 7px}
+.notes-editable ul,.notes-editable ol{padding-left:28px;margin:7px 0}
+.notes-editable li{padding-left:2px;margin:2px 0}
+.notes-editable p,.notes-editable div{margin:0 0 6px}
+@media(max-width:380px){.notes-toolbar{gap:2px}.notes-toolbar button{min-width:40px}}
+
+
+/* Apariencia: independiente de la paleta de categorías y compatible con datos previos. */
+.appearance-preferences{margin:22px 0 12px}
+.appearance-preferences h2{margin-bottom:8px}
+.appearance-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.appearance-choice{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:14px;font-weight:600;color:var(--ink)}
+.appearance-choice svg{width:18px;height:18px;flex:none}
+.appearance-choice.selected{border-color:var(--acc);background:var(--acc-soft);color:var(--ink);box-shadow:inset 0 0 0 1px var(--acc)}
+/* Tonos oscuros suaves, sin negro puro ni superficies que pierdan contraste. */
+:root[data-appearance="dark"]{
+ --bg:#121923;--card:#1B2633;--ink:#EDF2F8;--mid:#ACBACB;--line:#354456;
+ --surface:#263546;--acc:#7AAAF0;--acc-soft:#273F5B;--ok:#7AAAF0;
+ color-scheme:dark;
+}
+:root[data-appearance="dark"][data-theme="soft"]{
+ --bg:#191B23;--card:#252730;--ink:#F0EDF2;--mid:#BAB5C1;--line:#42414B;
+ --surface:#32313B;--acc-soft:#343B50;
+}
+:root[data-appearance="dark"] body{background:var(--bg);color:var(--ink)}
+:root[data-appearance="dark"] .card,
+:root[data-appearance="dark"] .notes-card,
+:root[data-appearance="dark"] .access-card{border-color:var(--line);box-shadow:0 3px 18px #0002}
+:root[data-appearance="dark"] .card.intent{
+ background:color-mix(in srgb,var(--acc) 14%,var(--card));
+ border-color:color-mix(in srgb,var(--acc) 33%,var(--line));color:var(--ink)
+}
+:root[data-appearance="dark"] .card.intent h2{color:var(--acc)}
+:root[data-appearance="dark"] .card.intent textarea{color:var(--ink);caret-color:var(--acc)}
+:root[data-appearance="dark"] .card.intent textarea::placeholder{color:var(--mid)}
+:root[data-appearance="dark"] .card.intent textarea:focus{outline-color:color-mix(in srgb,var(--acc) 65%,transparent)}
+:root[data-appearance="dark"] .ev{background:color-mix(in srgb,var(--c) 14%,var(--card))}
+:root[data-appearance="dark"] .ev b{color:var(--ink)}
+:root[data-appearance="dark"] .event-time .time-label input,
+:root[data-appearance="dark"] .modal-body input[type=text],
+:root[data-appearance="dark"] .access-card input{background:var(--surface);color:var(--ink);border-color:var(--line)}
+:root[data-appearance="dark"] .access-card input::placeholder{color:var(--mid)}
+:root[data-appearance="dark"] select,
+:root[data-appearance="dark"] .event-color-picker summary,
+:root[data-appearance="dark"] .event-color-options,
+:root[data-appearance="dark"] dialog{background:var(--card);color:var(--ink);border-color:var(--line)}
+:root[data-appearance="dark"] .modal-head{background:var(--card)}
+:root[data-appearance="dark"] .sw{border-color:var(--card)}
+:root[data-appearance="dark"] .color-preview{box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--line)}
+:root[data-appearance="dark"] .habit-color-choice span{border-color:var(--card)}
+:root[data-appearance="dark"] .sticky-page-head{box-shadow:0 7px 15px -13px #000a}
+:root[data-appearance="dark"] .chip.on,
+:root[data-appearance="dark"] .cd.sel,
+:root[data-appearance="dark"] .cd.sel.has,
+:root[data-appearance="dark"] .seg .on,
+:root[data-appearance="dark"] .btn:not(.ghost),
+:root[data-appearance="dark"] nav button.on,
+:root[data-appearance="dark"] .chk.on,
+:root[data-appearance="dark"] .all-day.selected{color:#101D2C}
+:root[data-appearance="dark"] .habit-card .hb.s1{color:#101D2C}
+:root[data-appearance="dark"] .drag-preview{box-shadow:0 13px 35px #0009!important}
+:root[data-appearance="dark"] #status{background:#EDF2F8;color:#172431}
+:root[data-appearance="dark"] .toast-undo{color:#172431}
+:root[data-appearance="dark"] .theme-choice.selected,
+:root[data-appearance="dark"] .mode-card.selected{border-color:var(--acc)}
+
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
@@ -339,6 +424,13 @@ h2,.pref-title,.q,.access-eyebrow{font-family:inherit;letter-spacing:.055em}
 <div id="storage-warning" hidden role="alert"></div><main id="v"></main><nav id="nav" aria-label="Navegación principal"></nav><div id="status" role="status" aria-live="polite"></div>
 <dialog id="dlg" aria-label="Personalización y respaldo"><div class="modal-head"><h2>A tu manera</h2><button class="ib" data-a="close" aria-label="Cerrar ajustes">×</button></div><div class="modal-body"><div id="pers"></div><h2>Tus datos</h2>
 <p class="sub">Tus datos se guardan en tu cuenta. Espera a ver «Guardado en la nube» antes de cerrar. Descarga un respaldo periódicamente. Importar reemplaza el diario de la cuenta indicada en este menú.</p>
+<section class="appearance-preferences" aria-labelledby="appearance-title">
+<h2 id="appearance-title">Apariencia</h2>
+<p class="sub">Elige cómo quieres ver tu diario. Puedes cambiarlo cuando quieras.</p>
+<div class="appearance-options" role="group" aria-label="Modo claro u oscuro">
+<button type="button" class="appearance-choice" data-a="appearance" data-k="light" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>Claro</button>
+<button type="button" class="appearance-choice" data-a="appearance" data-k="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 15.5A8.5 8.5 0 0 1 8.5 3.6 8.5 8.5 0 1 0 20.4 15.5Z"/></svg>Oscuro</button>
+</div></section>
 <section class="theme-preferences" aria-labelledby="style-title">
 <h2 id="style-title">Estilo visual</h2>
 <p class="sub">El azul identifica siempre tu diario. El estilo cambia los colores de hábitos y eventos.</p>
