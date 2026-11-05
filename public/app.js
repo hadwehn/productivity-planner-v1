@@ -182,11 +182,30 @@ function vW(){
 }
 
 // Dos filas iniciales; las adicionales se guardan para cada fecha.
-function otherTaskCount(date){
- const day=S.d[date]||{},rows=day.k||{};
- const existing=Object.keys(rows).filter(k=>/^\d+$/.test(k)&&Number(k)>0&&Number(k)<=500).map(Number);
- const stored=Number(day.otherCount);
- return Math.max(2,Number.isFinite(stored)?Math.floor(stored):2,...existing);
+function otherTaskCount(date) {
+  const day = S.d[date] || {};
+  const rows = day.k || {};
+
+  const filled = Object.keys(rows)
+    .filter(k => {
+      const n = Number(k);
+      if (!Number.isInteger(n) || n < 1 || n > 500) {
+        return false;
+      }
+
+      const task = rows[k];
+      return !!(
+        task?.t?.trim() ||
+        task?.c ||
+        task?.s ||
+        task?.source
+      );
+    })
+    .map(Number);
+
+  const lastTask = Math.max(0, ...filled);
+
+  return Math.max(2, Math.min(500, lastTask + 1));
 }
 function vD(){
  const k=U.dd,t=pd(k),w=wd(t),Z='d.'+k+'.';
