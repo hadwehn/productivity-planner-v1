@@ -35,7 +35,7 @@ function validateState(o){
  for(const week of Object.values(o.w||{}))for(const k of ['a','b']){if(week[k]!==undefined&&!plain(week[k])&&!Array.isArray(week[k]))throw Error('Tareas semanales incorrectas.');for(const row of Object.values(week[k]||{}))if(row!==null&&(!plain(row)||(row.t!==undefined&&typeof row.t!=='string')))throw Error('Tarea semanal incorrecta.');}
  return o;
 }
-function normalize(o){const v=Object.assign(blank(),o);v.cfg=Object.assign({acc:0,hide:{},days:{}},v.cfg);v.cfg.hide=v.cfg.hide||{};v.cfg.days=v.cfg.days||{};v.cfg.theme=v.cfg.theme==='soft'?'soft':'modern';Object.keys(v.ev).forEach(k=>v.ev[k]=v.ev[k].map(x=>typeof x==='string'?{t:x,c:0,h:''}:{...x,c:Number.isInteger(x.c)&&x.c>=-1&&x.c<6?x.c:-1}));return v;}
+function normalize(o){const v=Object.assign(blank(),o);v.cfg=Object.assign({acc:0,hide:{},days:{}},v.cfg);v.cfg.hide=v.cfg.hide||{};v.cfg.days=v.cfg.days||{};v.cfg.theme=v.cfg.theme==='soft'?'soft':'modern';v.cfg.appearance=v.cfg.appearance==='dark'?'dark':'light';Object.keys(v.ev).forEach(k=>v.ev[k]=v.ev[k].map(x=>typeof x==='string'?{t:x,c:0,h:''}:{...x,c:Number.isInteger(x.c)&&x.c>=-1&&x.c<6?x.c:-1}));return v;}
 S=normalize(blank());
 
 // Identidad azul permanente; dos paletas para los elementos personalizables.
@@ -56,11 +56,16 @@ const categoryName=i=>i===-1?'Sin categoría':CATEGORY_NAMES[Number.isInteger(i)
 const TS=['',...Array.from({length:48},(_,i)=>p2(i>>1)+':'+(i%2?'30':'00'))];
 function applyAcc(){
  const root=document.documentElement;
- root.style.setProperty('--acc','#3569B0');
- root.style.setProperty('--acc-soft','#EDF3FB');
+ root.style.setProperty('--acc',S.cfg.appearance==='dark'?'#7AAAF0':'#3569B0');
+ root.style.setProperty('--acc-soft',S.cfg.appearance==='dark'?(S.cfg.theme==='soft'?'#343B50':'#273F5B'):'#EDF3FB');
  root.dataset.theme=S.cfg.theme==='soft'?'soft':'modern';
- document.querySelectorAll('[data-a=theme]').forEach(b=>{
-  const on=b.dataset.k===root.dataset.theme;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));
+ root.dataset.appearance=S.cfg.appearance==='dark'?'dark':'light';
+ root.style.colorScheme=root.dataset.appearance;
+ const themeMeta=document.querySelector('meta[name="theme-color"]');
+ if(themeMeta)themeMeta.content=root.dataset.appearance==='dark'?'#121923':(root.dataset.theme==='soft'?'#F8F7F4':'#F5F6F8');
+ document.querySelectorAll('[data-a=theme],[data-a=appearance]').forEach(b=>{
+  const on=b.dataset.k===(b.dataset.a==='appearance'?root.dataset.appearance:root.dataset.theme);
+  b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));
  });
 }
 applyAcc();
@@ -152,7 +157,7 @@ function vC(){
  for(let i=0;i<rows*7;i++){
   const d=i-off+1;if(d<1||d>n){gr+='<div></div>';continue}
   const k=m+'-'+p2(d),e=(S.ev[k]||[]).filter(x=>x.t.trim()||x.h);
-  gr+=`<button class="cd${k===U.cd?' sel':''}${k===td()?' today':''}${e.length?' has':''}" data-a="cd" data-k="${k}">${d}<span class="dts">${e.slice(0,3).map(x=>`<u style="background:${k===U.cd?'#fff':eventColor(x.c)}"></u>`).join('')}</span></button>`}
+  gr+=`<button class="cd${k===U.cd?' sel':''}${k===td()?' today':''}${e.length?' has':''}" data-a="cd" data-k="${k}">${d}<span class="dts${e.length>=4?' four':''}">${e.slice(0,4).map(x=>`<u style="background:${k===U.cd?'#fff':eventColor(x.c)}"></u>`).join('')}</span></button>`}
   const t=pd(U.cd),L=(S.ev[U.cd]||[]).map((x,i)=>({x,i})).sort((p,q)=>(p.x.h||'99').localeCompare(q.x.h||'99'));
   const list=L.map(({x,i})=>`<button class="ev" style="--c:${eventColor(x.c??-1)}" data-a="eventedit" data-i="${i}" aria-label="Editar evento ${esc(x.t||'Sin título')}"><b>${esc(x.h||'Todo el día')}</b><span>${esc(x.t)||'Sin título'}</span></button>`).join('');
  const tri=k=>[0,1,2].map(i=>`<div class="row"><span class="num">${i+1}</span>${inp('m.'+m+'.'+k+'.'+i)}</div>`).join('');
@@ -184,7 +189,7 @@ function otherTaskCount(date){
 function vD(){
  const k=U.dd,t=pd(k),w=wd(t),Z='d.'+k+'.';
  const head=`<div class="sticky-page-head"><div class="top"><button class="ib" data-a="dd" data-n="-1" aria-label="Día anterior">‹</button><div style="text-align:center"><h1>${D[w]}</h1><div class="sub">${t.getDate()} de ${M[t.getMonth()]} ${t.getFullYear()}${k!==td()?' · <button data-a="today" style="text-decoration:underline">Hoy</button>':''}</div></div><button class="ib" data-a="dd" data-n="1" aria-label="Día siguiente">›</button></div><div class="seg"><button class="${U.dt!=='n'?'on':''}" data-a="dt" data-k="p">Planificación</button><button class="${U.dt==='n'?'on':''}" data-a="dt" data-k="n">Notas</button></div></div>`;
- if(U.dt==='n')return head+'<p class="section-note">Un espacio libre para tus ideas, sin orden ni reglas.</p>'+ta(Z+'n','Escribe tus notas…',12);
+ if(U.dt==='n')return head+notesEditor(k);
  const gr=`<div class="card gratitude-card"><h2>Estoy agradecido por...</h2><p class="sub gratitude-hint">No hace falta llenar los tres espacios. Agradece a tu manera.</p><div class="gratitude-list">${['g','g2','g3'].map((f,i)=>`<div class="gratitude-row"><span class="gratitude-number">${i+1}</span>${ta(Z+f,'Algo que agradezco…',2)}</div>`).join('')}</div></div>`;
  const intention=`<div class="card intent"><h2>Intención del día</h2>${ta(Z+'i','¿Cómo quieres vivir este día?',2)}</div>`;
  const rf=closureCard(k);
@@ -206,6 +211,77 @@ function vD(){
  const daytime=ordered.length?`<section class="day-work"><h2 class="section-title">Durante el día</h2>${ordered.map(x=>x[1]).join('')}</section>`:'';
  return head+quote+dayContext(k)+(beginning+daytime+reflection||empty());
 }
+
+// Editor de notas compacto. La versión HTML se conserva separada del texto heredado.
+const NOTE_TAGS=new Set(['B','STRONG','I','EM','UL','OL','LI','H3','P','DIV','BR']);
+function cleanNote(html){
+ const source=document.createElement('template');source.innerHTML=String(html||'');
+ const convert=(node,depth=0)=>{
+  if(depth>35)return document.createTextNode('');
+  if(node.nodeType===Node.TEXT_NODE)return document.createTextNode(node.textContent||'');
+  if(node.nodeType!==Node.ELEMENT_NODE)return document.createTextNode('');
+  if(['SCRIPT','STYLE','SVG','IFRAME','OBJECT','IMG','FORM'].includes(node.tagName))return document.createTextNode('');
+  const frag=NOTE_TAGS.has(node.tagName)?document.createElement(node.tagName.toLowerCase()):document.createDocumentFragment();
+  for(const child of [...node.childNodes])frag.appendChild(convert(child,depth+1));
+  return frag;
+ };
+ const safe=document.createElement('div');for(const child of [...source.content.childNodes])safe.appendChild(convert(child));
+ return safe.innerHTML;
+}
+function notesEditor(date){
+ const base='d.'+date+'.';const rich=g(base+'nRich',null),legacy=g(base+'n','');
+ const content=typeof rich==='string'?cleanNote(rich):esc(legacy).replace(/\n/g,'<br>');
+ const buttons=[['bold','B','Negrita'],['italic','I','Cursiva'],['title','T','Título'],['bullet','•','Lista con viñetas'],['number','1.','Lista numerada']];
+ return `<section class="notes-card"><p class="section-note">Tus ideas, a tu manera.</p><div class="notes-toolbar" role="toolbar" aria-label="Formato de notas">${buttons.map(([action,label,title])=>`<button type="button" data-note-format="${action}" aria-label="${title}" title="${title}">${label}</button>`).join('')}</div><div id="notesEditor" class="notes-editable" contenteditable="true" role="textbox" aria-label="Notas del día" aria-multiline="true" data-note-date="${date}" data-placeholder="Escribe tus notas…" spellcheck="true">${content}</div></section>`;
+}
+let lastNotesSelection=null;
+function rememberNoteSelection(){
+ const sel=window.getSelection(),editor=$('#notesEditor');
+ if(sel?.rangeCount&&editor&&editor.contains(sel.anchorNode)&&editor.contains(sel.focusNode))lastNotesSelection=sel.getRangeAt(0).cloneRange();
+}
+function restoreNoteSelection(){
+ const editor=$('#notesEditor'),sel=window.getSelection();if(!editor||!sel)return;
+ if(lastNotesSelection&&editor.contains(lastNotesSelection.startContainer)&&editor.contains(lastNotesSelection.endContainer)){
+  sel.removeAllRanges();sel.addRange(lastNotesSelection);
+ }else{editor.focus();}
+}
+function saveNotes(){
+ const editor=$('#notesEditor');if(!editor)return;
+ const key='d.'+editor.dataset.noteDate+'.';
+ const html=cleanNote(editor.innerHTML);
+ setP(key+'nRich',html);
+ setP(key+'n',editor.innerText||editor.textContent||'');
+}
+document.addEventListener('selectionchange',rememberNoteSelection);
+document.addEventListener('beforeinput',e=>{
+ const editor=e.target.closest?.('#notesEditor');if(!editor||e.inputType!=='insertText'||e.data!==' ')return;
+ const selection=window.getSelection();if(!selection?.rangeCount||!selection.isCollapsed)return;
+ const range=selection.getRangeAt(0),node=range.startContainer;
+ if(node.nodeType!==Node.TEXT_NODE)return;
+ const before=node.textContent.slice(0,range.startOffset);
+ const kind=/^\s*1\.$/.test(before)?'insertOrderedList':/^\s*[-*]$/.test(before)?'insertUnorderedList':null;
+ if(!kind)return;
+ e.preventDefault();const start=document.createRange();start.setStart(node,0);start.setEnd(node,range.startOffset);start.deleteContents();
+ document.execCommand(kind,false,null);saveNotes();
+});
+document.addEventListener('input',e=>{if(e.target.id==='notesEditor')saveNotes();});
+document.addEventListener('blur',e=>{if(e.target.id==='notesEditor')saveNotes();},true);
+document.addEventListener('pointerdown',e=>{if(e.target.closest?.('[data-note-format]'))rememberNoteSelection();});
+document.addEventListener('click',e=>{
+ const btn=e.target.closest?.('[data-note-format]');if(!btn)return;
+ const editor=$('#notesEditor');if(!editor)return;
+ restoreNoteSelection();editor.focus({preventScroll:true});
+ const action=btn.dataset.noteFormat;
+ if(action==='bold')document.execCommand('bold',false,null);
+ if(action==='italic')document.execCommand('italic',false,null);
+ if(action==='bullet')document.execCommand('insertUnorderedList',false,null);
+ if(action==='number')document.execCommand('insertOrderedList',false,null);
+ if(action==='title'){
+  const anchor=window.getSelection()?.anchorNode,heading=anchor?.parentElement?.closest('h3');
+  document.execCommand('formatBlock',false,heading?'div':'h3');
+ }
+ saveNotes();rememberNoteSelection();
+});
 
 function habitDue(h,date){return (!h.createdOn||date>=h.createdOn)&&(!Array.isArray(h.days)||h.days.includes(wd(pd(date))))}
 function dailyHabits(date){const list=S.h.filter(h=>habitDue(h,date));return `<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Hábitos del día</h2><button class="link" data-a="go" data-k="h">Ver progreso</button></div>${list.map(h=>{const done=(S.hl[date]||{})[h.id]===1;return `<div class="habit-row" style="--habit-color:${eventColor(h.color??0)}"><button class="chk${done?' on':''}" data-a="dailyhab" data-id="${esc(h.id)}" aria-label="${esc(h.name)}" aria-pressed="${done}">${done?'✓':''}</button><span>${esc(h.name)}</span></div>`}).join('')||'<p class="sub">'+(S.h.length?'Hoy no tienes hábitos previstos.':'Empieza con algo pequeño que te haga bien.')+'</p>'}<button class="task-add" data-a="hadd">＋ Nuevo hábito</button></div>`}
@@ -319,6 +395,7 @@ document.addEventListener('click',e=>{
  else if(a==='ed')U.ed=+d.i;
  else if(a==='ec')setP('ev.'+U.cd+'.'+d.i+'.c',+d.j);
  else if(a==='theme'){S.cfg.theme=d.k==='soft'?'soft':'modern';save();applyAcc();R();toast('Estilo visual actualizado');return}
+ else if(a==='appearance'){S.cfg.appearance=d.k==='dark'?'dark':'light';save();applyAcc();R();toast(S.cfg.appearance==='dark'?'Modo oscuro activado':'Modo claro activado');return}
 
  else if(a==='evd'){S.ev[U.cd].splice(+d.i,1);U.ed=-1;save()}
  else if(a==='tog'){const value=!g(d.p,false);setP(d.p,value);syncTask(d.p,value)}
