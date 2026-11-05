@@ -260,6 +260,41 @@ h2,.pref-title,.q,.access-eyebrow{font-family:inherit;letter-spacing:.055em}
 .gratitude-list{display:grid;gap:10px}.gratitude-row{display:flex;align-items:flex-start;gap:12px}.gratitude-number{flex:0 0 25px;width:25px;height:25px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;font:600 12px/1 system-ui;color:var(--acc);margin-top:10px}.gratitude-row textarea{flex:1;min-width:0;min-height:48px;padding:10px 12px;line-height:1.45}
 .carry-action svg{width:19px;height:19px;display:block;margin:auto}.carry-action{color:var(--acc);border-radius:9px}.carry-action:hover,.carry-action:focus-visible{background:var(--acc-soft)}.remove-action{color:var(--mid)}.settings-logout{margin-top:18px;border-color:var(--line);font-weight:600}
 @media(max-width:480px){.task-line .row{gap:3px}.task-line .tiny-action{min-width:34px;width:34px}.gratitude-row{gap:8px}.phase-toggle{font-size:12px}}
+
+/* Cabeceras de navegación fijas al deslizar: por pestaña, con fondo opaco. */
+.sticky-page-head{position:sticky;top:0;z-index:4;background:var(--bg);padding:11px 0 7px;margin:-11px -4px 12px;padding-left:4px;padding-right:4px;box-shadow:0 7px 12px -13px #18253644}
+.sticky-page-head .top{margin:0 48px 6px 0;min-height:52px}
+.sticky-page-head .top>div{flex:1;min-width:0}
+.sticky-page-head .top h1{font-size:clamp(23px,5.5vw,30px)}
+.sticky-page-head .seg{margin:8px 0 0}
+.sticky-page-head .top + .top{margin-right:0;min-height:40px;margin-top:2px}
+.sticky-page-head .top + .top .ib{min-height:36px}
+.habit-add-top{margin:4px 0 14px}
+.gratitude-hint{margin:-5px 0 15px;line-height:1.55}
+/* Columna única de acciones: no roba ancho al campo de texto. */
+.task-actions{display:flex;flex-direction:column;align-items:center;flex:0 0 36px;width:36px;gap:0}
+.task-line .task-actions .tiny-action{height:30px;min-height:30px;width:36px;min-width:36px;font-size:21px}
+.task-line .task-actions .carry-action{height:32px;min-height:32px}
+.task-line .row>textarea{flex:1;min-width:0}
+.carry-action svg{width:20px;height:20px}
+.toast-undo{color:white;text-decoration:underline;text-underline-offset:3px;font-weight:700;min-height:28px;margin-left:12px}
+#status.show{display:flex;align-items:center;justify-content:center;gap:4px}
+/* Vista en elevación para arrastrar y ordenar, con feedback del destino. */
+.drag-preview{position:fixed!important;z-index:100;pointer-events:none!important;opacity:.96!important;transform:rotate(-1deg) scale(1.015);box-shadow:0 13px 35px #18253640!important;background:var(--card)!important;border:1px solid var(--acc)!important;border-radius:12px;overflow:hidden;box-sizing:border-box}
+.task-line.dragging,.habit-card.habit-dragging{opacity:.25!important}
+.drag-handle,.habit-drag-handle{touch-action:none}
+/* Eventos editables dentro del mismo diálogo que los hábitos. */
+#eventDlg{width:min(94vw,500px)}
+#eventDlg .modal-body{padding-bottom:24px}
+#eventDlg .event-time{margin:18px 0 12px;align-items:end}
+#eventDlg .event-all-day{display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid var(--line);border-radius:10px;min-height:46px;padding:10px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+#eventDlg .event-all-day input{width:18px;height:18px;min-width:18px;accent-color:var(--acc)}
+#eventDlg .optional-hint{font-weight:400;color:var(--mid);font-size:12px}
+#eventDlg .event-category-field{margin-bottom:18px}
+#eventDlg .event-category-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:480px){.sticky-page-head{margin-left:-3px;margin-right:-3px}.sticky-page-head .top{margin-right:43px}.sticky-page-head .top + .top{margin-right:0}#eventDlg .event-time{grid-template-columns:minmax(0,1fr)}#eventDlg .event-all-day{width:100%}}
+@media(max-width:380px){#eventDlg .event-category-list{grid-template-columns:repeat(2,minmax(0,1fr))}#eventDlg .habit-color-choice{padding:8px 5px;gap:5px}#eventDlg .habit-color-choice small{font-size:11px}}
+
 </style></head><body>
 <section id="access" class="access-shell" aria-labelledby="access-title">
  <div class="access-intro">
@@ -322,7 +357,7 @@ h2,.pref-title,.q,.access-eyebrow{font-family:inherit;letter-spacing:.055em}
  <p id="metrics-result" class="metrics-result" hidden></p>
 
  </div>
-</section><button id="logout" class="btn ghost settings-logout" type="button">Cerrar sesión</button></div></dialog><dialog id="welcomeDlg" aria-label="Elige tu experiencia"></dialog><dialog id="editDlg" aria-label="Editar hábito"></dialog><dialog id="moveDlg" aria-label="Planificar tarea"></dialog>
+</section><button id="logout" class="btn ghost settings-logout" type="button">Cerrar sesión</button></div></dialog><dialog id="welcomeDlg" aria-label="Elige tu experiencia"></dialog><dialog id="editDlg" aria-label="Editar hábito"></dialog><dialog id="moveDlg" aria-label="Planificar tarea"></dialog><dialog id="eventDlg" aria-label="Crear o editar evento"></dialog>
 </div>
 <script type="module" src="boot.js"></script>
 <noscript>Activa JavaScript para usar el diario</noscript>
