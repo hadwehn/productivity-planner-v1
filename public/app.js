@@ -339,6 +339,11 @@ function planTask(r,i){
   U.dd=date;U.dt='p';U.tab='d';R(true);toast('Tarea planificada');
  };
 }
+function expandTextArea(el){
+ if(!(el instanceof HTMLTextAreaElement))return;
+ el.style.height='auto';
+ el.style.height=Math.max(el.scrollHeight,el.dataset.p&&el.rows===1?43:0)+'px';
+}
 function expandAllTextAreas(root=document){
  root.querySelectorAll('textarea[data-p]').forEach(expandTextArea);
 }
