@@ -1,6 +1,7 @@
 // Reglas de hábitos. Dos frecuencias: días fijos de la semana (h.days) o «N veces por semana» (h.perWeek).
 import { S, save } from './state.js';
-import { addDays, iso, newId, parseDate, shiftDate, today, weekdayOf } from './util.js';
+import { DAY_SHORT, addDays, iso, newId, parseDate, shiftDate, today, weekdayOf } from './util.js';
+import { plural, tr } from './i18n.js';
 
 export const isWeekly = h => Number.isInteger(h.perWeek);
 export const isDone = (h, date) => (S.hl[date] || {})[h.id] === 1;
@@ -31,12 +32,12 @@ export function weekCount(h, date) {
 
 /** Texto corto de frecuencia. */
 export function frequencyLabel(h) {
-  if (isWeekly(h)) return `${h.perWeek} ${h.perWeek === 1 ? 'vez' : 'veces'} por semana`;
+  if (isWeekly(h)) return tr(`${h.perWeek} ${h.perWeek === 1 ? 'vez' : 'veces'} por semana`, `${h.perWeek} ${h.perWeek === 1 ? 'time' : 'times'} a week`);
   const days = Array.isArray(h.days) ? h.days.slice().sort() : [0, 1, 2, 3, 4, 5, 6];
-  if (days.length === 7) return 'Todos los días';
-  if (days.join() === '0,1,2,3,4') return 'De lunes a viernes';
-  if (days.join() === '5,6') return 'Fines de semana';
-  return days.map(d => ['L', 'M', 'X', 'J', 'V', 'S', 'D'][d]).join(' · ');
+  if (days.length === 7) return tr('Todos los días', 'Every day');
+  if (days.join() === '0,1,2,3,4') return tr('De lunes a viernes', 'Weekdays');
+  if (days.join() === '5,6') return tr('Fines de semana', 'Weekends');
+  return days.map(d => DAY_SHORT[d]).join(' · ');
 }
 
 /**
@@ -52,7 +53,7 @@ export function streak(h, T = today()) {
       if (h.createdOn && shiftDate(m, 6) < h.createdOn) break;
       if (weekCount(h, m) >= h.perWeek) n++; else break;
     }
-    return { n, unit: n === 1 ? 'semana' : 'semanas' };
+    return { n, unit: plural(n, 'semana', 'semanas', 'week', 'weeks') };
   }
   let n = 0;
   for (let back = 0; back < 400; back++) {
@@ -61,7 +62,7 @@ export function streak(h, T = today()) {
     if (!isDue(h, date)) continue;
     if (isDone(h, date)) n++; else if (date !== T) break;
   }
-  return { n, unit: n === 1 ? 'día' : 'días' };
+  return { n, unit: plural(n, 'día', 'días', 'day', 'days') };
 }
 
 /** Constancia de los últimos 28 días (0-100). Perdona: cuenta lo hecho, no castiga lo que falta. */

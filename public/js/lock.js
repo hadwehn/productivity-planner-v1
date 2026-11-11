@@ -5,6 +5,7 @@ import { S, save } from './state.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { esc } from './util.js';
+import { tr } from './i18n.js';
 
 const LENGTH = 4, MAX_FAILURES = 5, WAIT_MS = 30000;
 
@@ -27,27 +28,27 @@ const matches = async pin => lockEnabled() && (await hashPin(pin, S.cfg.journalL
 const st = { mode: 'unlock', buf: '', first: '', msg: '', failures: 0, until: 0, shake: false };
 function reset(mode) { Object.assign(st, { mode, buf: '', first: '', msg: '', shake: false }); }
 
-const TITLES = {
-  unlock: ['Diario protegido', 'Ingresa tu código para verlo.'],
-  create: ['Crea un código', 'Cuatro dígitos que recuerdes con facilidad.'],
-  confirm: ['Confirma el código', 'Escríbelo otra vez.'],
-  disable: ['Quitar la protección', 'Ingresa tu código actual.'],
-  change: ['Cambiar código', 'Primero, ingresa tu código actual.'],
-};
+const TITLES = () => ({
+  unlock: [tr('Diario protegido', 'Journal locked'), tr('Ingresa tu código para verlo.', 'Enter your code to open it.')],
+  create: [tr('Crea un código', 'Create a code'), tr('Cuatro dígitos que recuerdes con facilidad.', 'Four digits you can remember easily.')],
+  confirm: [tr('Confirma el código', 'Confirm the code'), tr('Escríbelo otra vez.', 'Type it again.')],
+  disable: [tr('Quitar la protección', 'Turn off the lock'), tr('Ingresa tu código actual.', 'Enter your current code.')],
+  change: [tr('Cambiar código', 'Change code'), tr('Primero, ingresa tu código actual.', 'First, enter your current code.')],
+});
 
 export function keypad() {
-  const [title, sub] = TITLES[st.mode];
+  const [title, sub] = TITLES()[st.mode];
   const dots = Array.from({ length: LENGTH }, (_, i) => `<i class="${i < st.buf.length ? 'on' : ''}"></i>`).join('');
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(k => (k === '' ? '<span></span>'
-    : k === 'del' ? `<button type="button" class="key quiet" data-a="pindel" aria-label="Borrar">⌫</button>`
+    : k === 'del' ? `<button type="button" class="key quiet" data-a="pindel" aria-label="${tr('Borrar', 'Delete')}">⌫</button>`
       : `<button type="button" class="key" data-a="pin" data-k="${k}">${k}</button>`)).join('');
   return `<div class="lock${st.shake ? ' shake' : ''}" data-keypad>
     <span class="lock-icon">${icon('lock')}</span>
     <h2 class="lock-title">${title}</h2><p class="lock-sub">${sub}</p>
-    <div class="pin-dots" aria-label="${st.buf.length} de ${LENGTH} dígitos">${dots}</div>
+    <div class="pin-dots" aria-label="${st.buf.length} ${tr('de', 'of')} ${LENGTH}">${dots}</div>
     <p class="lock-msg" role="alert">${esc(st.msg)}</p>
     <div class="keys">${keys}</div>
-    ${st.mode === 'unlock' || st.mode === 'disable' || st.mode === 'change' ? '<button type="button" class="link" data-a="pinforgot">¿Olvidaste tu código?</button>' : ''}
+    ${st.mode === 'unlock' || st.mode === 'disable' || st.mode === 'change' ? `<button type="button" class="link" data-a="pinforgot">${tr('¿Olvidaste tu código?', 'Forgot your code?')}</button>` : ''}
   </div>`;
 }
 
@@ -58,16 +59,16 @@ const settingsChanged = () => document.dispatchEvent(new CustomEvent('planner:se
 function fail() {
   st.failures++;
   st.shake = true;
-  st.msg = 'Código incorrecto.';
+  st.msg = tr('Código incorrecto.', 'Wrong code.');
   if (st.failures >= MAX_FAILURES) {
     st.failures = 0;
     st.until = Date.now() + WAIT_MS;
-    st.msg = 'Demasiados intentos. Espera 30 segundos.';
+    st.msg = tr('Demasiados intentos. Espera 30 segundos.', 'Too many tries. Wait 30 seconds.');
   }
 }
 
 export async function pressDigit(d) {
-  if (Date.now() < st.until) { st.msg = 'Espera unos segundos antes de intentar de nuevo.'; redraw(); return; }
+  if (Date.now() < st.until) { st.msg = tr('Espera unos segundos antes de intentar de nuevo.', 'Wait a few seconds before trying again.'); redraw(); return; }
   if (st.buf.length >= LENGTH) return;
   st.buf += d;
   st.shake = false;
@@ -80,7 +81,7 @@ export async function pressDigit(d) {
   } else if (st.mode === 'create') {
     Object.assign(st, { first: pin, mode: 'confirm', msg: '' });
   } else if (st.mode === 'confirm') {
-    if (pin !== st.first) { reset('create'); st.msg = 'Los códigos no coinciden. Vuelve a crearlo.'; st.shake = true; }
+    if (pin !== st.first) { reset('create'); st.msg = tr('Los códigos no coinciden. Vuelve a crearlo.', 'The codes don’t match. Create it again.'); st.shake = true; }
     else {
       const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
       S.cfg.journalLock = { hash: await hashPin(pin, salt), salt };
@@ -89,7 +90,7 @@ export async function pressDigit(d) {
       reset('unlock');
       document.dispatchEvent(new CustomEvent('planner:closesheet'));
       settingsChanged();
-      toast('Diario protegido con código');
+      toast(tr('Diario protegido con código', 'Journal locked with a code'));
       return;
     }
   } else if (st.mode === 'disable') {
@@ -99,7 +100,7 @@ export async function pressDigit(d) {
       reset('unlock');
       document.dispatchEvent(new CustomEvent('planner:closesheet'));
       settingsChanged();
-      toast('Protección del Diario desactivada');
+      toast(tr('Protección del Diario desactivada', 'Journal lock turned off'));
       return;
     }
     fail();
@@ -117,22 +118,22 @@ export const showUnlock = () => { if (st.mode !== 'unlock') reset('unlock'); ret
 
 // ——— Olvidé mi código: se confirma la identidad con un código enviado al correo ———
 export function forgotHTML(sent = false, error = '') {
-  const email = auth?.email?.() || 'tu correo';
+  const email = auth?.email?.() || tr('tu correo', 'your email');
   return `<div class="lock" data-forgot>
     <span class="lock-icon">${icon('lock')}</span>
-    <h2 class="lock-title">¿Olvidaste tu código?</h2>
-    <p class="lock-sub">${sent ? `Escribe el código que enviamos a <b>${esc(email)}</b>.` : `Te enviaremos un código a <b>${esc(email)}</b>, como al iniciar sesión. Con él quitamos la protección del Diario; luego puedes crear un código nuevo.`}</p>
-    ${sent ? `<form data-form="forgotverify" style="width:100%;max-width:280px"><input class="input" id="forgotCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Código del correo" style="text-align:center;letter-spacing:.2em;font-size:20px"><button class="btn" style="margin-top:12px">Verificar</button></form>`
-      : '<button type="button" class="btn" data-a="forgotsend" style="max-width:280px">Enviarme el código</button>'}
+    <h2 class="lock-title">${tr('¿Olvidaste tu código?', 'Forgot your code?')}</h2>
+    <p class="lock-sub">${sent ? tr(`Escribe el código que enviamos a <b>${esc(email)}</b>.`, `Enter the code we sent to <b>${esc(email)}</b>.`) : tr(`Te enviaremos un código a <b>${esc(email)}</b>, como al iniciar sesión. Con él quitamos la protección del Diario; luego puedes crear un código nuevo.`, `We’ll send a code to <b>${esc(email)}</b>, just like when you sign in. With it we turn off the Journal lock; then you can create a new code.`)}</p>
+    ${sent ? `<form data-form="forgotverify" style="width:100%;max-width:280px"><input class="input" id="forgotCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="${tr('Código del correo', 'Code from the email')}" style="text-align:center;letter-spacing:.2em;font-size:20px"><button class="btn" style="margin-top:12px">${tr('Verificar', 'Verify')}</button></form>`
+      : `<button type="button" class="btn" data-a="forgotsend" style="max-width:280px">${tr('Enviarme el código', 'Send me the code')}</button>`}
     <p class="lock-msg" role="alert">${esc(error)}</p>
   </div>`;
 }
 export async function sendForgotCode() {
-  if (!auth) throw Error('Sesión no disponible.');
+  if (!auth) throw Error(tr('Sesión no disponible.', 'Session not available.'));
   await auth.send();
 }
 export async function verifyForgotCode(code) {
-  if (!auth) throw Error('Sesión no disponible.');
+  if (!auth) throw Error(tr('Sesión no disponible.', 'Session not available.'));
   await auth.verify(code);
   delete S.cfg.journalLock;
   save();

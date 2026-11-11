@@ -1,4 +1,5 @@
 // Frases del día. Todas tienen fuente documentada; las traducciones al español son propias.
+import { isEn } from './i18n.js';
 // El orden alterna autores para que días seguidos no repitan voz.
 export const QUOTES = [
   ['Ningún día en el que aprendes algo es una pérdida total.', 'David Eddings'],
@@ -43,9 +44,55 @@ export const QUOTES = [
   ['Haz cada acto de tu vida como si fuera el último.', 'Marco Aurelio'],
 ];
 
+// Versión en inglés, en el mismo orden. Autores de habla inglesa: frase original;
+// clásicos (Séneca, Marco Aurelio, Epicteto, Cicerón, Lao Tse…): traducción habitual.
+export const QUOTES_EN = [
+  ['No day in which you learn something is a complete loss.', 'David Eddings'],
+  ['It is not that we have a short time to live, but that we waste a lot of it.', 'Seneca'],
+  ['Life is like riding a bicycle. To keep your balance, you must keep moving.', 'Albert Einstein'],
+  ['What stands in the way becomes the way.', 'Marcus Aurelius'],
+  ['Your success is a series of small wins.', 'Jamie Tardy'],
+  ['It is not things that disturb us, but our judgments about them.', 'Epictetus'],
+  ['We are what we repeatedly do. Excellence, then, is not an act, but a habit.', 'Will Durant'],
+  ['What a man can be, he must be.', 'Abraham Maslow'],
+  ['While we are postponing, life speeds by.', 'Seneca'],
+  ['How we spend our days is, of course, how we spend our lives.', 'Annie Dillard'],
+  ['Optimism is the faith that leads to achievement.', 'Helen Keller'],
+  ['The soul becomes dyed with the color of its thoughts.', 'Marcus Aurelius'],
+  ['You do not rise to the level of your goals. You fall to the level of your systems.', 'James Clear'],
+  ['First say to yourself what you would be; and then do what you have to do.', 'Epictetus'],
+  ['One important key to success is self-confidence. An important key to self-confidence is preparation.', 'Arthur Ashe'],
+  ['A journey of a thousand miles begins with a single step.', 'Lao Tzu'],
+  ['We suffer more often in imagination than in reality.', 'Seneca'],
+  ['It is not enough to be busy; so are the ants. The question is: what are we busy about?', 'Henry David Thoreau'],
+  ['Gratitude is not only the greatest of virtues, but the parent of all the others.', 'Cicero'],
+  ['If it is not right, do not do it; if it is not true, do not say it.', 'Marcus Aurelius'],
+  ['Define success on your own terms, achieve it by your own rules.', 'Anne Sweeney'],
+  ['There is nothing so useless as doing efficiently that which should not be done at all.', 'Peter Drucker'],
+  ['No great thing is created suddenly.', 'Epictetus'],
+  ['How wonderful it is that nobody need wait a single moment before starting to improve the world.', 'Anne Frank'],
+  ['If one does not know to which port one is sailing, no wind is favorable.', 'Seneca'],
+  ['Every action you take is a vote for the type of person you wish to become.', 'James Clear'],
+  ['Very little is needed to make a happy life.', 'Marcus Aurelius'],
+  ['What is important is seldom urgent, and what is urgent is seldom important.', 'Dwight D. Eisenhower'],
+  ['Life can only be understood backwards; but it must be lived forwards.', 'Søren Kierkegaard'],
+  ['Begin at once to live, and count each separate day as a separate life.', 'Seneca'],
+  ['Dost thou love life? Then do not squander time, for that is the stuff life is made of.', 'Benjamin Franklin'],
+  ['It is impossible for a man to learn what he thinks he already knows.', 'Epictetus'],
+  ['Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.', 'Antoine de Saint-Exupéry'],
+  ['Waste no more time arguing about what a good man should be. Be one.', 'Marcus Aurelius'],
+  ['Nothing in life is to be feared, it is only to be understood.', 'Marie Curie'],
+  ['While we teach, we learn.', 'Seneca'],
+  ['Focusing is about saying no.', 'Steve Jobs'],
+  ['Tell me, what is it you plan to do with your one wild and precious life?', 'Mary Oliver'],
+  ['It is not the man who has too little, but the man who craves more, who is poor.', 'Seneca'],
+  ['Perform every act in life as though it were your last.', 'Marcus Aurelius'],
+];
+
 /** Una frase fija por fecha, recorriendo toda la lista antes de repetir. */
 export function quoteFor(date) {
   const [y, m, d] = date.split('-').map(Number);
   const dayNumber = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
-  return QUOTES[((dayNumber % QUOTES.length) + QUOTES.length) % QUOTES.length];
+  const list = isEn() ? QUOTES_EN : QUOTES;
+  return list[((dayNumber % list.length) + list.length) % list.length];
 }

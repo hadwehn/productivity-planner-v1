@@ -14,26 +14,28 @@ import { openSheet } from './sheets.js';
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
-import { autosize, focusEnd, render } from './render.js';
+import { autosize, focusEnd, render, renderNav } from './render.js';
+import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
 let canEdit = () => false;
 
 // ——— Ajustes ———
-const TODAY_PREFS = [['intention', 'Intención del día'], ['gratitude', 'Gratitud'], ['habits', 'Hábitos'], ['mood', 'Ánimo del día'], ['reflection', 'Reflexión'], ['quote', 'Frase del día']];
+const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')]];
 export function drawSettings() {
-  $('#today-prefs').innerHTML = TODAY_PREFS.map(([k, label]) =>
+  $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+  for (const b of document.querySelectorAll('[data-a=lang]')) { const on = b.dataset.k === getLang(); b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
   const locked = lockEnabled();
-  $('#privacy-prefs').innerHTML = `<label class="toggle-row"><span>Proteger el Diario con código</span><span class="switch"><input type="checkbox" data-a="journallock"${locked ? ' checked' : ''}><i></i></span></label>`
-    + (locked ? '<div class="toggle-row"><button type="button" class="link" data-a="pinchange">Cambiar código</button></div>' : '');
+  $('#privacy-prefs').innerHTML = `<label class="toggle-row"><span>${tr('Proteger el Diario con código', 'Lock the Journal with a code')}</span><span class="switch"><input type="checkbox" data-a="journallock"${locked ? ' checked' : ''}><i></i></span></label>`
+    + (locked ? `<div class="toggle-row"><button type="button" class="link" data-a="pinchange">${tr('Cambiar código', 'Change code')}</button></div>` : '');
 }
 function openSettings() { drawSettings(); $('#settings').showModal(); }
 
 // ——— Código del Diario ———
-const lockSheet = html => openSheet('Código del Diario', html);
+const lockSheet = html => openSheet(tr('Código del Diario', 'Journal code'), html);
 const sheetBody = html => { const body = $('#sheet .sheet-body'); if (body) body.innerHTML = html; };
 document.addEventListener('planner:lock', () => {
   const body = $('#sheet[open] .sheet-body');
@@ -47,8 +49,8 @@ function watchSheetClose() {
   $('#sheet').addEventListener('close', () => { if (lockMode() !== 'unlock') { relock(); if (U.tab === 'journal') render(); } });
 }
 
-// Al salir del Diario (o de la app) vuelve a quedar protegido.
-const navigate = fn => (d, b) => { fn(d, b); if (U.tab !== 'journal') relock(); render(true); };
+// El Diario pide el código al abrir la app (o al volver a ella), no al cambiar de pestaña.
+const navigate = fn => (d, b) => { fn(d, b); render(true); };
 const update = fn => (d, b) => { fn(d, b); render(); };
 const openDay = date => { U.date = date; U.tab = 'today'; };
 
@@ -67,7 +69,7 @@ const ACTIONS = {
   pinforgot: () => lockSheet(forgotHTML()),
   forgotsend: async () => {
     try { await sendForgotCode(); sheetBody(forgotHTML(true)); setTimeout(() => $('#forgotCode')?.focus(), 50); }
-    catch (error) { sheetBody(forgotHTML(false, 'No pudimos enviar el código: ' + error.message)); }
+    catch (error) { sheetBody(forgotHTML(false, tr('No pudimos enviar el código: ', 'We couldn’t send the code: ') + error.message)); }
   },
 
   // Navegación
@@ -121,6 +123,7 @@ const ACTIONS = {
 
   // Ajustes
   appearance: d => { S.cfg.appearance = d.k; save(); applyTheme(); drawSettings(); },
+  lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },
   todaypref: (d, b) => { S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked }; save(); render(); },
 };
 
@@ -144,8 +147,8 @@ function onSubmit(e) {
     const code = $('#forgotCode')?.value.trim();
     if (!code) return;
     verifyForgotCode(code)
-      .then(() => { closeSheet(); render(); toast('Listo: quitamos el código. Puedes crear uno nuevo en Ajustes.'); })
-      .catch(() => { sheetBody(forgotHTML(true, 'El código no es válido o ya venció. Revisa el correo más reciente.')); });
+      .then(() => { closeSheet(); render(); toast(tr('Listo: quitamos el código. Puedes crear uno nuevo en Ajustes.', 'Done: the code was removed. You can create a new one in Settings.')); })
+      .catch(() => { sheetBody(forgotHTML(true, tr('El código no es válido o ya venció. Revisa el correo más reciente.', 'The code is invalid or expired. Check the most recent email.'))); });
     return;
   }
   const input = form.querySelector('input'), value = input.value.trim();
@@ -153,7 +156,7 @@ function onSubmit(e) {
   if (form.dataset.form === 'addtask') {
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
-    if (focusFirst) toast('Tu primera tarea quedó en foco ★');
+    if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
   } else {
     const r = addWeekTask(U.week, form.dataset.list, value);
     if (r.error) { toast(r.error); return; }

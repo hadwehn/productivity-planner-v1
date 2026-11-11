@@ -2,13 +2,14 @@
 import { get } from '../state.js';
 import { esc } from '../util.js';
 import { icon } from '../icons.js';
+import { tr } from '../i18n.js';
 
 /** Campo de texto que crece con el contenido y se guarda solo (data-p = ruta en el estado). */
 export const field = (path, placeholder = '', cls = '', extra = '') =>
   `<textarea data-p="${path}" rows="1" enterkeyhint="next" class="${cls}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}"${extra}>${esc(get(path))}</textarea>`;
 
 export const settingsButton = () =>
-  `<button class="icon-btn" data-a="settings" aria-label="Ajustes y cuenta" title="Ajustes y cuenta">${icon('settings')}<span class="sync-dot" aria-hidden="true"></span></button>`;
+  `<button class="icon-btn" data-a="settings" aria-label="${tr('Ajustes y cuenta', 'Settings and account')}" title="${tr('Ajustes y cuenta', 'Settings and account')}">${icon('settings')}<span class="sync-dot" aria-hidden="true"></span></button>`;
 
 export const pageHead = ({ eyebrow = '', title, subtitle = '', side = settingsButton() }) =>
   `<header class="page-head"><div>${eyebrow ? `<p class="eyebrow">${eyebrow}</p>` : ''}<h1 class="title">${title}</h1>${subtitle ? `<p class="subtitle">${subtitle}</p>` : ''}</div>${side}</header>`;

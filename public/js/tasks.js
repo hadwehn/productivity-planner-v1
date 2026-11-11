@@ -6,6 +6,7 @@
 //   Una tarea del día traída de la semana guarda source = 'w.LUNES.a|b.i'.
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
+import { tr } from './i18n.js';
 
 export const FOCUS_KEYS = [0, 501, 502];
 export const MAX_FOCUS = 3;
@@ -78,13 +79,13 @@ export function renameTask(date, key, value) {
 /** Pone o quita una tarea del foco. Devuelve { key } o { error }. */
 export function toggleFocus(date, key) {
   const row = getTask(date, key);
-  if (!row) return { error: 'La tarea ya no existe.' };
+  if (!row) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
   const { focus, rest } = rowsOf(date);
   if (isFocusKey(key)) {
     focus.splice(focus.indexOf(row), 1);
     rest.unshift(row);
   } else {
-    if (focus.length >= MAX_FOCUS) return { error: 'Ya tienes tres tareas en foco. Quita una para elegir otra.' };
+    if (focus.length >= MAX_FOCUS) return { error: tr('Ya tienes tres tareas en foco. Quita una para elegir otra.', 'You already have three tasks in focus. Remove one to pick another.') };
     rest.splice(rest.indexOf(row), 1);
     focus.push(row);
   }
@@ -136,8 +137,8 @@ export function restore(snap) {
 /** Mueve una tarea pendiente a otro día (conserva foco si hay espacio). Devuelve { undo } o { error }. */
 export function moveTask(date, key, target) {
   const row = getTask(date, key);
-  if (!row || !text(row)) return { error: 'Escribe una tarea antes de moverla.' };
-  if (target === date) return { error: 'La tarea ya está en ese día.' };
+  if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
+  if (target === date) return { error: tr('La tarea ya está en ese día.', 'The task is already on that day.') };
   const undo = snapshot([date, target]);
   const copy = { ...row, c: false };
   delete copy.drop;
@@ -223,9 +224,9 @@ function rewriteWeek(week, list, rows) {
 
 export function addWeekTask(week, list, value) {
   const t = String(value || '').trim();
-  if (!t) return { error: 'Escribe una tarea.' };
+  if (!t) return { error: tr('Escribe una tarea.', 'Write a task.') };
   const rows = weekTasks(week, list).map(x => x.row);
-  if (rows.length >= WEEK_SLOTS) return { error: list === 'a' ? 'El foco de la semana tiene cinco tareas. Menos es más.' : 'Ya tienes cinco tareas más esta semana.' };
+  if (rows.length >= WEEK_SLOTS) return { error: list === 'a' ? tr('El foco de la semana tiene cinco tareas. Menos es más.', 'Your weekly focus already has five tasks. Less is more.') : tr('Ya tienes cinco tareas más esta semana.', 'You already have five more tasks this week.') };
   rows.push({ t, c: false });
   rewriteWeek(week, list, rows);
   save();
@@ -259,9 +260,9 @@ export function removeWeekTask(week, list, i) {
 /** Pasa una tarea entre «foco» (a) y «otras» (b). */
 export function toggleWeekFocus(week, list, i) {
   const row = weekList(week, list)[i], other = list === 'a' ? 'b' : 'a';
-  if (!row) return { error: 'La tarea ya no existe.' };
+  if (!row) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
   const dest = weekTasks(week, other).map(x => x.row);
-  if (dest.length >= WEEK_SLOTS) return { error: 'Esa lista ya tiene cinco tareas.' };
+  if (dest.length >= WEEK_SLOTS) return { error: tr('Esa lista ya tiene cinco tareas.', 'That list already has five tasks.') };
   // Los días vinculados se marcan con una ruta temporal y luego reciben la ruta nueva.
   const moving = `tmp.${week}.move`;
   relink(weekPath(week, list, i), moving);
@@ -276,7 +277,7 @@ export function toggleWeekFocus(week, list, i) {
 /** Programa o desprograma una tarea semanal en un día (alterna). */
 export function toggleWeekDay(week, list, i, date) {
   const path = weekPath(week, list, i), row = weekList(week, list)[i];
-  if (!row || !text(row)) return { error: 'Escribe la tarea primero.' };
+  if (!row || !text(row)) return { error: tr('Escribe la tarea primero.', 'Write the task first.') };
   const existing = Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path);
   if (existing) { removeTask(date, +existing[0]); return { removed: true }; }
   addTask(date, row.t, { focus: list === 'a', source: path });

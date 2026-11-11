@@ -2,13 +2,14 @@
 import { U } from './ui.js';
 import { $, $$ } from './util.js';
 import { icon } from './icons.js';
+import { tr } from './i18n.js';
 import { todayView } from './views/today.js';
 import { planView } from './views/week.js';
 import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
-export const TABS = [['journal', 'Diario'], ['habits', 'Hábitos'], ['week', 'Semana'], ['today', 'Hoy']];
+export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Semana', 'Week')], ['today', tr('Hoy', 'Today')]];
 
 // Los campos crecen con su texto. Si cambia el ancho (rotación, barra de desplazamiento, ventana),
 // el texto vuelve a repartirse en líneas y hay que recalcular la altura.
@@ -24,12 +25,19 @@ addEventListener('scroll', markScrolled, { passive: true });
 
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
-  $('#nav').innerHTML = TABS.map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');
+  $('#nav').innerHTML = TABS().map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');
 }
 
 export function autosize(el) {
   if (!(el instanceof HTMLTextAreaElement)) return;
   el.style.height = 'auto';
+  // Vacío, se mide con el texto de ayuda: si ocupa dos líneas, el recuadro también.
+  if (!el.value && el.placeholder) {
+    el.value = el.placeholder;
+    el.style.height = el.scrollHeight + 'px';
+    el.value = '';
+    return;
+  }
   el.style.height = el.scrollHeight + 'px';
 }
 

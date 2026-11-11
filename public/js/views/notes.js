@@ -1,6 +1,7 @@
 // Notas del día: editor con formato breve. Se guarda HTML saneado (nRich) y texto plano (n).
 import { get, setPath } from '../state.js';
 import { $, esc } from '../util.js';
+import { tr } from '../i18n.js';
 
 const ALLOWED = new Set(['B', 'STRONG', 'I', 'EM', 'UL', 'OL', 'LI', 'H3', 'P', 'DIV', 'BR']);
 const DROPPED = ['SCRIPT', 'STYLE', 'SVG', 'IFRAME', 'OBJECT', 'IMG', 'FORM'];
@@ -22,13 +23,13 @@ export function cleanNote(html) {
   return safe.innerHTML;
 }
 
-const BUTTONS = [['bold', 'B', 'Negrita'], ['italic', 'I', 'Cursiva'], ['title', 'T', 'Título'], ['bullet', '•', 'Lista con viñetas'], ['number', '1.', 'Lista numerada']];
+const BUTTONS = () => [['bold', 'B', tr('Negrita', 'Bold')], ['italic', 'I', tr('Cursiva', 'Italic')], ['title', 'T', tr('Título', 'Heading')], ['bullet', '•', tr('Lista con viñetas', 'Bulleted list')], ['number', '1.', tr('Lista numerada', 'Numbered list')]];
 
 export function notesEditor(date) {
   const base = `d.${date}.`, rich = get(base + 'nRich', null);
   const content = typeof rich === 'string' ? cleanNote(rich) : esc(get(base + 'n', '')).replace(/\n/g, '<br>');
-  return `<div class="notes"><div class="notes-toolbar" role="toolbar" aria-label="Formato de notas">${BUTTONS.map(([action, label, title]) => `<button type="button" data-note-format="${action}" aria-label="${title}" title="${title}">${label}</button>`).join('')}</div>
-    <div id="notesEditor" class="notes-editable" contenteditable="true" role="textbox" aria-label="Notas del día" aria-multiline="true" data-note-date="${date}" data-placeholder="Escribe tus notas…" spellcheck="true">${content}</div></div>`;
+  return `<div class="notes"><div class="notes-toolbar" role="toolbar" aria-label="${tr('Formato de notas', 'Note formatting')}">${BUTTONS().map(([action, label, title]) => `<button type="button" data-note-format="${action}" aria-label="${title}" title="${title}">${label}</button>`).join('')}</div>
+    <div id="notesEditor" class="notes-editable" contenteditable="true" role="textbox" aria-label="${tr('Notas del día', 'Notes for the day')}" aria-multiline="true" data-note-date="${date}" data-placeholder="${tr('Escribe tus notas…', 'Write your notes…')}" spellcheck="true">${content}</div></div>`;
 }
 
 let lastSelection = null;

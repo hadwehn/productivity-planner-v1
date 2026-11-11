@@ -5,6 +5,7 @@
   try { pref = localStorage.getItem('diario-apariencia') || 'auto'; } catch (e) { /* almacenamiento bloqueado */ }
   var dark = pref === 'dark' || (pref === 'auto' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.setAttribute('data-appearance', dark ? 'dark' : 'light');
+  try { if (localStorage.getItem('diario-idioma') === 'en') document.documentElement.lang = 'en'; } catch (e) { /* almacenamiento bloqueado */ }
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', dark ? '#111413' : '#F4F1EB');
 })();

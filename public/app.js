@@ -8,6 +8,7 @@ import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
 import { relock, setAuth } from './js/lock.js';
+import { setLang, storedLang, tr } from './js/i18n.js';
 import { initNotes } from './js/views/notes.js';
 import { $, $$, today } from './js/util.js';
 
@@ -32,15 +33,15 @@ async function importBackup(e) {
   e.target.value = '';
   if (!file || !ready) return;
   try {
-    if (file.size > 10 * 1024 * 1024) throw Error('El archivo supera 10 MiB.');
+    if (file.size > 10 * 1024 * 1024) throw Error(tr('El archivo supera 10 MiB.', 'The file is larger than 10 MiB.'));
     const json = JSON.parse(await file.text());
-    if (json?.format === 'con-intencion' && json.version !== 2) throw Error('Versión no compatible.');
+    if (json?.format === 'con-intencion' && json.version !== 2) throw Error(tr('Versión no compatible.', 'Unsupported version.'));
     const next = checkedState(json?.format === 'con-intencion' ? json.data : json), info = summary(next);
-    if (info.origenesAusentes) throw Error(`Hay ${info.origenesAusentes} tareas cuyo origen semanal falta. Repara el respaldo o conserva el original; no se importó nada.`);
+    if (info.origenesAusentes) throw Error(tr(`Hay ${info.origenesAusentes} tareas cuyo origen semanal falta. Repara el respaldo o conserva el original; no se importó nada.`, `${info.origenesAusentes} tasks are missing their weekly origin. Repair the backup or keep the original; nothing was imported.`));
     await cloud.flush();
-    if (!confirm(`Cuenta destino: ${sessionUser.email}\n${JSON.stringify(info, null, 2)}\n`
-      + (json.ownerId && json.ownerId !== sessionUser.id ? 'El respaldo pertenece a otra cuenta. ' : '')
-      + 'REEMPLAZARÁ todo este diario, no mezclará ni añadirá duplicados. Descargaremos primero la versión actual. ¿Continuar?')) return;
+    if (!confirm(`${tr('Cuenta destino', 'Target account')}: ${sessionUser.email}\n${JSON.stringify(info, null, 2)}\n`
+      + (json.ownerId && json.ownerId !== sessionUser.id ? tr('El respaldo pertenece a otra cuenta. ', 'This backup belongs to another account. ') : '')
+      + tr('REEMPLAZARÁ todo este diario, no mezclará ni añadirá duplicados. Descargaremos primero la versión actual. ¿Continuar?', 'This will REPLACE your whole journal; nothing is merged or duplicated. We will download the current version first. Continue?'))) return;
     downloadCurrent();
     setState(next);
     migrate();
@@ -50,8 +51,8 @@ async function importBackup(e) {
     await cloud.flush();
     closeDialogs();
     render(true);
-    toast('Importación guardada. Comprueba el resumen y el contenido.');
-  } catch (error) { alert('No se completó la importación: ' + error.message); }
+    toast(tr('Importación guardada. Comprueba el resumen y el contenido.', 'Import saved. Check the summary and content.'));
+  } catch (error) { alert(tr('No se completó la importación: ', 'The import did not complete: ') + error.message); }
 }
 
 // ——— Estado de sincronización ———
@@ -63,17 +64,20 @@ function setSyncFeedback(kind, message) {
   document.documentElement.dataset.sync = kind;
 }
 
-const SYNC_LABELS = { pending: 'Cambios pendientes…', saving: 'Guardando…', saved: 'Guardado en la nube', error: 'No se pudo guardar', conflict: 'Hay cambios en otro dispositivo' };
+const SYNC_LABELS = () => ({
+  pending: tr('Cambios pendientes…', 'Pending changes…'), saving: tr('Guardando…', 'Saving…'), saved: tr('Guardado en la nube', 'Saved to the cloud'),
+  error: tr('No se pudo guardar', 'Couldn’t save'), conflict: tr('Hay cambios en otro dispositivo', 'There are changes on another device'),
+});
 function cloudStatus(kind, error) {
-  setSyncFeedback(kind, SYNC_LABELS[kind] || kind);
+  setSyncFeedback(kind, SYNC_LABELS()[kind] || kind);
   if (kind === 'error' || kind === 'conflict') {
     setReady(false);
     closeDialogs();
     $('#cloud-error').hidden = false;
     $('#retry-save').hidden = kind === 'conflict';
     $('#cloud-error-text').textContent = kind === 'conflict'
-      ? 'Tu borrador sigue en esta pestaña. Descárgalo antes de cargar la versión de la nube. No se fusionarán automáticamente.'
-      : 'Tus cambios siguen en esta pestaña. Reintenta o descarga un respaldo antes de salir. Detalle: ' + (error?.message || 'Error de conexión.');
+      ? tr('Tu borrador sigue en esta pestaña. Descárgalo antes de cargar la versión de la nube. No se fusionarán automáticamente.', 'Your draft is still in this tab. Download it before loading the cloud version. They won’t be merged automatically.')
+      : tr('Tus cambios siguen en esta pestaña. Reintenta o descarga un respaldo antes de salir. Detalle: ', 'Your changes are still in this tab. Retry or download a backup before leaving. Detail: ') + (error?.message || tr('Error de conexión.', 'Connection error.'));
   } else if (kind === 'saved') {
     $('#cloud-error').hidden = true;
     setReady(true);
@@ -84,10 +88,10 @@ function cloudStatus(kind, error) {
 function setAccessStage(stage) {
   $('#access').dataset.error = 'false';
   const code = stage === 'code', loading = stage === 'loading';
-  $('#access-title').textContent = loading ? 'Recuperando tu diario…' : code ? 'Revisa tu correo.' : 'Tu diario te espera.';
-  $('#access-description').textContent = loading ? 'Un momento, estamos buscando tu espacio.'
-    : code ? 'Introduce el código en esta pantalla. Puedes leer el correo desde otro dispositivo.'
-      : 'Entra para continuar con tus planes, tus hábitos y tus ideas.';
+  $('#access-title').textContent = loading ? tr('Recuperando tu diario…', 'Getting your journal…') : code ? tr('Revisa tu correo.', 'Check your email.') : tr('Tu diario te espera.', 'Your journal is waiting.');
+  $('#access-description').textContent = loading ? tr('Un momento, estamos buscando tu espacio.', 'One moment, we’re finding your space.')
+    : code ? tr('Introduce el código en esta pantalla. Puedes leer el correo desde otro dispositivo.', 'Enter the code on this screen. You can read the email on another device.')
+      : tr('Entra para continuar con tus planes, tus hábitos y tus ideas.', 'Sign in to continue with your plans, habits and ideas.');
 }
 
 async function updateAccountRole(uid, generation) {
@@ -118,14 +122,14 @@ async function loadUser(user) {
   $('#metrics-result').hidden = true;
   $('#otp-email').textContent = '';
   setAccessStage(user ? 'loading' : 'email');
-  setSyncFeedback('loading', 'Cargando diario…');
+  setSyncFeedback('loading', tr('Cargando diario…', 'Loading journal…'));
   applyTheme(storedAppearance()); // aún no hay datos: se usa la última apariencia de este dispositivo
   $('#access').hidden = false;
   $('#login-form').hidden = true;
   $('#code-form').hidden = true;
   $('#retry-load').hidden = true;
   if (!user) { $('#auth-status').textContent = ''; $('#login-form').hidden = false; return; }
-  $('#auth-status').textContent = 'Cargando tus datos…';
+  $('#auth-status').textContent = tr('Cargando tus datos…', 'Loading your data…');
   const store = new CloudStore(client, user.id, (kind, error) => { if (cloud === store) cloudStatus(kind, error); });
   cloud = store;
   try {
@@ -137,6 +141,8 @@ async function loadUser(user) {
     const before = JSON.stringify(S);
     migrate();
     applyTheme();
+    setLang(S.cfg.lang || 'es'); // español es el idioma base
+    renderNav();
     $('#access').hidden = true;
     $('#planner').hidden = false;
     setReady(true);
@@ -152,7 +158,7 @@ async function loadUser(user) {
     $('#access').hidden = false;
     $('#planner').hidden = true;
     $('#access').dataset.error = 'true';
-    $('#auth-status').textContent = 'No se pudo cargar: ' + error.message + ' No se reemplazaron los datos de la nube.';
+    $('#auth-status').textContent = tr('No se pudo cargar: ', 'Couldn’t load: ') + error.message + tr(' No se reemplazaron los datos de la nube.', ' Your cloud data was not replaced.');
     $('#retry-load').hidden = false;
   }
 }
@@ -170,20 +176,22 @@ async function poll() {
     if (stale() || (meta?.revision || null) === store.revision) return;
     const row = await store.read();
     if (stale() || editing()) return;
-    if (!row) throw Error('El diario ya no existe. Vuelve a iniciar sesión.');
+    if (!row) throw Error(tr('El diario ya no existe. Vuelve a iniciar sesión.', 'The journal no longer exists. Sign in again.'));
     setState(checkedState(row.data));
     store.revision = row.revision;
     migrate();
     applyTheme();
+    setLang(S.cfg.lang || 'es');
+    renderNav();
     render();
-    setSyncFeedback('saved', 'Actualizado desde otro dispositivo');
-  } catch { setSyncFeedback('warning', 'No se pudo comprobar la sincronización. Reintenta con conexión.'); }
+    setSyncFeedback('saved', tr('Actualizado desde otro dispositivo', 'Updated from another device'));
+  } catch { setSyncFeedback('warning', tr('No se pudo comprobar la sincronización. Reintenta con conexión.', 'Couldn’t check sync. Try again when online.')); }
   finally { polling = false; }
 }
 
 let lastSent = 0, otpEmail = '';
 async function sendCode() {
-  if (Date.now() - lastSent < 60000) throw Error('Espera 60 segundos antes de solicitar otro código.');
+  if (Date.now() - lastSent < 60000) throw Error(tr('Espera 60 segundos antes de solicitar otro código.', 'Wait 60 seconds before requesting another code.'));
   otpEmail = $('#email').value.trim().toLowerCase();
   const { error } = await client.auth.signInWithOtp({ email: otpEmail, options: { shouldCreateUser: true } });
   if (error) throw error;
@@ -193,7 +201,7 @@ async function sendCode() {
   $('#code').value = '';
   setAccessStage('code');
   $('#otp-email').textContent = otpEmail;
-  $('#auth-status').textContent = 'Si no lo ves, revisa también la carpeta de spam.';
+  $('#auth-status').textContent = tr('Si no lo ves, revisa también la carpeta de spam.', 'If you don’t see it, check your spam folder too.');
   $('#code').focus();
 }
 async function authAction(form, action) {
@@ -202,7 +210,7 @@ async function authAction(form, action) {
   const buttons = $$('button', form);
   buttons.forEach(b => { b.disabled = true; });
   try { await action(); }
-  catch (error) { $('#access').dataset.error = 'true'; $('#auth-status').textContent = 'No pudimos continuar: ' + error.message; }
+  catch (error) { $('#access').dataset.error = 'true'; $('#auth-status').textContent = tr('No pudimos continuar: ', 'We couldn’t continue: ') + error.message; }
   finally { form.setAttribute('aria-busy', 'false'); buttons.forEach(b => { b.disabled = false; }); }
 }
 
@@ -211,7 +219,7 @@ async function logout() {
   closeDialogs();
   if (cloud?.unsaved) {
     try { await cloud.flush(); }
-    catch { if (!confirm('Hay cambios sin guardar. Descárgalos primero si quieres conservarlos. ¿Cerrar sesión y descartarlos?')) { setReady(true); return; } }
+    catch { if (!confirm(tr('Hay cambios sin guardar. Descárgalos primero si quieres conservarlos. ¿Cerrar sesión y descartarlos?', 'There are unsaved changes. Download them first if you want to keep them. Sign out and discard them?'))) { setReady(true); return; } }
   }
   try {
     const { error } = await client.auth.signOut({ scope: 'local' });
@@ -221,7 +229,7 @@ async function logout() {
     $('#email').value = '';
   } catch (error) {
     if (cloud && !cloud.error) setReady(true);
-    alert('No se pudo cerrar sesión: ' + error.message);
+    alert(tr('No se pudo cerrar sesión: ', 'Couldn’t sign out: ') + error.message);
   }
 }
 
@@ -237,7 +245,7 @@ function wire() {
   $('#retry-save').onclick = async () => { try { await cloud.retry(); render(); } catch { /* el estado ya se muestra */ } };
   $('#rescue').onclick = downloadCurrent;
   $('#load-cloud').onclick = async () => {
-    if (cloud?.unsaved && !confirm('¿Ya descargaste tus cambios? Cargar la nube descartará el borrador de esta pestaña.')) return;
+    if (cloud?.unsaved && !confirm(tr('¿Ya descargaste tus cambios? Cargar la nube descartará el borrador de esta pestaña.', 'Did you download your changes? Loading the cloud will discard this tab’s draft.'))) return;
     await loadUser(sessionUser);
   };
   $('#retry-load').onclick = () => loadUser(sessionUser);
@@ -245,12 +253,12 @@ function wire() {
   $('#access-logout').onclick = logout;
   $('#metrics').onclick = async () => {
     $('#metrics-result').hidden = false;
-    $('#metrics-result').textContent = 'Consultando…';
+    $('#metrics-result').textContent = tr('Consultando…', 'Checking…');
     try {
       const { data, error } = await client.rpc('operational_metrics');
       if (error) throw error;
-      $('#metrics-result').textContent = `Agendas creadas: ${data.cuentas_con_agenda} · Actualizadas en los últimos 7 días: ${data.agendas_actualizadas_7_dias}`;
-    } catch { $('#metrics-result').textContent = 'No disponible: necesitas el rol de administrador o revisar tu conexión.'; }
+      $('#metrics-result').textContent = tr(`Agendas creadas: ${data.cuentas_con_agenda} · Actualizadas en los últimos 7 días: ${data.agendas_actualizadas_7_dias}`, `Journals created: ${data.cuentas_con_agenda} · Updated in the last 7 days: ${data.agendas_actualizadas_7_dias}`);
+    } catch { $('#metrics-result').textContent = tr('No disponible: necesitas el rol de administrador o revisar tu conexión.', 'Not available: you need the admin role or a connection.'); }
   };
   $('#login-form').onsubmit = e => { e.preventDefault(); authAction(e.target, sendCode); };
   $('#code-form').onsubmit = e => {
@@ -287,7 +295,7 @@ function wire() {
     verify: async token => {
       const { data, error } = await client.auth.verifyOtp({ email: sessionUser.email, token, type: 'email' });
       if (error) throw error;
-      if (data.user?.id !== sessionUser.id) throw Error('La cuenta no coincide.');
+      if (data.user?.id !== sessionUser.id) throw Error(tr('La cuenta no coincide.', 'The account doesn’t match.'));
     },
   });
   setInterval(poll, 60000);
@@ -305,12 +313,16 @@ async function boot() {
     if (error) throw error;
     await loadUser(data.session?.user || null);
   } catch (error) {
-    $('#auth-status').textContent = 'No se pudo iniciar: ' + error.message;
+    $('#auth-status').textContent = tr('No se pudo iniciar: ', 'Couldn’t start: ') + error.message;
     $('#retry-load').hidden = false;
     $('#retry-load').onclick = boot;
   }
 }
 
+// Antes de tener datos: idioma y apariencia que este dispositivo usó por última vez.
+setLang(storedLang(), false);
 applyTheme(storedAppearance());
+setAccessStage('loading');
+$('#auth-status').textContent = tr('Recuperando sesión…', 'Restoring your session…');
 wire();
 boot();
