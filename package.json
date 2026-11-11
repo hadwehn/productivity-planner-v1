@@ -1,1 +1,1 @@
-{"name":"planner-cloud","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.js"}}
+{"name":"planner-cloud","private":true,"type":"module","scripts":{"test":"node tests/unit.mjs && node --test tests/store.test.js","dev":"python3 tests/dev-server.py"}}

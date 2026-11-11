@@ -15,17 +15,35 @@ No hay credenciales reales ni publicación realizada. El SDK se distribuye desde
 jsDelivr y sigue la rama mayor @2; consulta el manual para fijar una versión
 resuelta y probarla antes de estabilizar el despliegue.
 
+## Estructura
+
+```
+public/
+  index.html      marcado (sin estilos ni lógica)
+  styles.css      todos los estilos, con tokens para claro/oscuro y las dos paletas
+  app.js          entrada: sesión, sincronización con Supabase, respaldo e importación
+  client.js       cliente de Supabase  ·  store.js  guardado en la nube (CAS)
+  js/
+    state.js      forma de los datos, validación y acceso por rutas
+    migrate.js    actualiza datos guardados por versiones anteriores
+    tasks.js      reglas de tareas: prioridades, secundarias, traslados y vínculo con la semana
+    prefs.js      qué espacios se muestran (por grupo o por día) y configuraciones rápidas
+    quotes.js     frases del día · categories.js  colores y nombres de categorías
+    ui.js         estado de la interfaz, avisos y tema · render.js  dibujo de la vista
+    interactions.js  clics, escritura, Enter entre campos y arrastrar para ordenar
+    dialogs.js    hábito, evento, llevar tarea al día y bienvenida
+    views/        day, week, calendar, habits, notes
+```
+
 ## Verificación
 
-`npm test` usa únicamente Node.js y ejecuta 13 pruebas de lógica con DOM/backend
-simulados. No prueba la seguridad real de Supabase ni entrega de correos.
+- `tests/unit.mjs`: pruebas de lógica (datos, migraciones, tareas, vínculos, vistas).
+  Con Node: `npm test`. Sin Node: abre `tests/run.html` con el servidor local.
+- `python3 tests/dev-server.py` y abre `http://localhost:8765/public/index.html`
+  para usar la app con un backend simulado (guarda en el navegador, sin Supabase).
+- `tests/store.test.js` prueba el guardado en la nube con un cliente simulado.
 
-`tests/browser.mjs` es una prueba adicional de navegador con backend simulado.
-Las instrucciones están en el archivo. No se pudo ejecutar en el entorno de
-preparación por fallo de descarga del navegador. La revisión visual, el SQL
-real, RLS, SMTP y el despliegue deben verificarse en el proyecto configurado.
-
-`tests/compare-backups.mjs` compara respaldos sin imprimir su contenido privado.
+Las pruebas no verifican la seguridad real de Supabase (RLS), el correo ni el despliegue.
 
 ## Límites del alcance
 

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pruebas del diario</title>
+<style>body{font:15px/1.6 system-ui,sans-serif;margin:24px;color:#182536;background:#fff}li.fail{color:#b8431f}li.ok{color:#247759}#summary{font-weight:700}</style></head>
+<body>
+<h1>Pruebas de lógica</h1>
+<p id="summary">Ejecutando…</p>
+<ul id="results"></ul>
+<script type="module">
+import { run } from './unit.mjs';
+const results = run(), failed = results.filter(r => !r.ok);
+document.querySelector('#results').innerHTML = results.map(r => `<li class="${r.ok ? 'ok' : 'fail'}">${r.ok ? '✓' : '✗'} ${r.name}${r.ok ? '' : ' — ' + r.error}</li>`).join('');
+document.querySelector('#summary').textContent = `${results.length - failed.length}/${results.length} pruebas aprobadas`;
+window.testResults = results;
+</script>
+</body>
+</html>
