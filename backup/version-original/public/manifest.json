@@ -1,0 +1,17 @@
+{
+  "short_name": "productividad.",
+  "name": "productividad.",
+  "icons": [
+    {
+      "src": "icons/estoico-productivity-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#f6f1e7",
+  "theme_color": "#f6f1e7",
+  "display": "standalone",
+  "orientation": "portrait"
+}
