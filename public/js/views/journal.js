@@ -4,23 +4,41 @@ import { U } from '../ui.js';
 import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
-import { DAYS, DAY_SHORT, daysInMonth, esc, p2, parseDate, shiftDate, today, weekday } from '../util.js';
+import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { pageHead, sectionHead, stickyHead } from './common.js';
 import { isUnlocked, showUnlock } from '../lock.js';
 
 const clean = v => String(v || '').trim();
 const hasEntry = d => d && (clean(d.i) || clean(d.g) || clean(d.r) || clean(d.n) || d.mood);
 
-/** Un recuerdo estable por día: gratitud o reflexión de hace al menos una semana. */
+const written = d => clean(d?.g) || clean(d?.r);
+/** El mismo día de hace `n` meses, si ese día existe (el 31 no existe en todos los meses). */
+function monthsAgo(T, n) {
+  const [y, m, d] = T.split('-').map(Number), x = new Date(y, m - 1 - n, d);
+  return x.getDate() === d ? iso(x) : '';
+}
+/** Número estable a partir de un texto (FNV-1a), para elegir lo mismo todo el día. */
+const hash = str => [...str].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0, 2166136261);
+
+/**
+ * Un recuerdo por día. Primero los aniversarios: lo escrito hace un año, hace un mes o hace una
+ * semana (en ese orden). Si esos días están vacíos, uno al azar de hace más de una semana,
+ * estable durante el día.
+ */
 function memory(T) {
-  const limit = shiftDate(T, -7);
-  const pool = Object.entries(S.d).filter(([date, d]) => date <= limit && (clean(d.g) || clean(d.r))).sort(([a], [b]) => a.localeCompare(b));
-  if (!pool.length) return '';
-  const seed = [...T].reduce((n, ch) => n + ch.charCodeAt(0), 0);
-  const [date, d] = pool[seed % pool.length], text = clean(d.g) || clean(d.r), grateful = !!clean(d.g);
-  const when = dayMonth(parseDate(date));
+  const anniversaries = [[monthsAgo(T, 12), tr('Hace un año', 'One year ago')], [monthsAgo(T, 1), tr('Hace un mes', 'One month ago')], [shiftDate(T, -7), tr('Hace una semana', 'One week ago')]];
+  let [date, label] = anniversaries.find(([day]) => day && written(S.d[day])) || [];
+  if (!date) {
+    const limit = shiftDate(T, -7);
+    const pool = Object.keys(S.d).filter(day => day < limit && written(S.d[day])).sort();
+    if (!pool.length) return '';
+    date = pool[hash(T) % pool.length];
+    label = tr('Un recuerdo', 'A memory');
+  }
+  const d = S.d[date], text = written(d), grateful = !!clean(d.g);
+  const when = dayMonth(parseDate(date)) + (date.slice(0, 4) !== T.slice(0, 4) ? tr(` de ${date.slice(0, 4)}`, `, ${date.slice(0, 4)}`) : '');
   const caption = grateful ? tr(`El ${when} agradeciste esto`, `On ${when} you were grateful for this`) : tr(`El ${when} escribiste esto`, `On ${when} you wrote this`);
-  return `<section class="section"><div class="card memory"><p class="label">${icon('leaf')}${tr('Un recuerdo', 'A memory')}</p><p>“${esc(text.length > 220 ? text.slice(0, 219) + '…' : text)}”</p>
+  return `<section class="section"><div class="card memory"><p class="label">${icon('leaf')}${label}</p><p>“${esc(text.length > 220 ? text.slice(0, 219) + '…' : text)}”</p>
     <button class="link" data-a="openday" data-k="${date}">${caption}</button></div></section>`;
 }
 
