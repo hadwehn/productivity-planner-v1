@@ -94,6 +94,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 :root[data-sync=error] .sync-dot, :root[data-sync=conflict] .sync-dot, :root[data-sync=warning] .sync-dot { background: var(--danger); }
 @keyframes breathe { 50% { opacity: .3; } }
 
+/* Acciones pequeñas y separadas (p. ej., «Abrir día» y «+ Evento» en el mes). */
+.pill-actions { display: flex; gap: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 6px 12px; border-radius: 999px; background: var(--sunken); color: var(--acc); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.pill .icon { width: 15px; height: 15px; }
+.pill:active { transform: scale(.97); }
 .range { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .mini { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); background: var(--sunken); }
 .mini .icon { width: 16px; height: 16px; }
