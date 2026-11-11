@@ -3,7 +3,7 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
-import { U, applyTheme, toast } from './js/ui.js';
+import { U, applyTheme, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
@@ -117,7 +117,7 @@ async function loadUser(user) {
   $('#otp-email').textContent = '';
   setAccessStage(user ? 'loading' : 'email');
   setSyncFeedback('loading', 'Cargando diario…');
-  applyTheme();
+  applyTheme(storedAppearance()); // aún no hay datos: se usa la última apariencia de este dispositivo
   $('#access').hidden = false;
   $('#login-form').hidden = true;
   $('#code-form').hidden = true;
@@ -294,6 +294,6 @@ async function boot() {
   }
 }
 
-applyTheme();
+applyTheme(storedAppearance());
 wire();
 boot();
