@@ -295,3 +295,21 @@ export function finishName(value) {
   closeSheet();
   if (name) toast(tr(`Hola, ${name}. Qué bueno verte por aquí.`, `Hi, ${name}. Good to see you here.`));
 }
+
+// ——— Cambiar el nombre (desde Ajustes) ———
+export function nameEditor() {
+  openSheet(tr('Tu nombre', 'Your name'), `<p style="margin:0 0 16px;color:var(--ink-2)">${tr('Es como te saludamos en Hoy.', 'It’s how we greet you in Today.')}</p>
+    <form data-form="rename"><input class="input" id="renameInput" name="name" maxlength="${NAME_MAX}" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" value="${esc(S.cfg.name || '')}" placeholder="${tr('Tu nombre', 'Your name')}" aria-label="${tr('Tu nombre', 'Your name')}">
+    <div class="row-actions"><button type="button" class="btn quiet" data-a="dismiss">${tr('Cancelar', 'Cancel')}</button><button class="btn">${tr('Guardar', 'Save')}</button></div></form>`,
+  dlg => setTimeout(() => { const i = $('#renameInput', dlg); i?.focus(); i?.select(); }, 50));
+}
+export function saveName(value) {
+  const before = S.cfg.name || '', name = String(value || '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
+  closeSheet();
+  if (name === before) return;
+  if (name) S.cfg.name = name; else delete S.cfg.name;
+  S.cfg.nameAsked = true;
+  save();
+  render();
+  toast(name ? tr('Nombre actualizado', 'Name updated') : tr('Quitamos tu nombre del saludo', 'Your name was removed from the greeting'));
+}

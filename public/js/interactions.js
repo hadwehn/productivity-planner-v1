@@ -8,7 +8,7 @@ import {
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  finishName, habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
+  finishName, habitEditor, nameEditor, saveName, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
 import { openSheet } from './sheets.js';
 import {
@@ -16,15 +16,15 @@ import {
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
 import { getLang, setLang, tr } from './i18n.js';
-import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
+import { $, $$, esc, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
 let canEdit = () => false;
 
 // ——— Ajustes ———
 const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')]];
 export function drawSettings() {
-  const nameField = $('#settings-name');
-  if (nameField && document.activeElement !== nameField) nameField.value = S.cfg.name || '';
+  // El nombre se muestra como texto; cambiarlo pide un paso más (hoja con Guardar).
+  $('#name-pref').innerHTML = `<div class="toggle-row"><span class="${S.cfg.name ? '' : 'muted'}">${S.cfg.name ? esc(S.cfg.name) : tr('Sin nombre', 'No name')}</span><button type="button" class="link" data-a="namechange">${S.cfg.name ? tr('Cambiar', 'Change') : tr('Añadir', 'Add')}</button></div>`;
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
@@ -62,6 +62,7 @@ const ACTIONS = {
   settings: () => openSettings(),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
   nameskip: () => finishName(''),
+  namechange: () => nameEditor(),
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 
   // Código del Diario
@@ -162,6 +163,7 @@ function onSubmit(e) {
     return;
   }
   if (form.dataset.form === 'name') { finishName(form.querySelector('input').value); return; }
+  if (form.dataset.form === 'rename') { saveName(form.querySelector('input').value); drawSettings(); return; }
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return;
   if (form.dataset.form === 'addtask') {
@@ -183,14 +185,6 @@ function onInput(e) {
   const el = e.target;
   autosize(el);
   if (!canEdit()) return;
-  if (el.id === 'settings-name') {
-    const name = el.value.replace(/\s+/g, ' ').trim().slice(0, 40);
-    if (name) S.cfg.name = name; else delete S.cfg.name;
-    S.cfg.nameAsked = true;
-    save();
-    if (U.tab === 'today') render();
-    return;
-  }
   if (el.dataset.p) setPath(el.dataset.p, el.value);
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
   else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
