@@ -150,6 +150,7 @@ export function checkedState(raw) {
   if (!Number.isInteger(o.cfg.acc) || o.cfg.acc < 0 || o.cfg.acc >= LEGACY_ACCENTS) fail('Color anterior incorrecto.');
   if (!['modern', 'soft'].includes(o.cfg.theme)) fail('Estilo incorrecto.');
   for (const v of Object.values(o.cfg.hide)) if (typeof v !== 'boolean') fail('Visibilidad incorrecta.');
+  if (o.cfg.journalLock !== undefined && (!plain(o.cfg.journalLock) || !/^[0-9a-f]{64}$/.test(o.cfg.journalLock.hash) || !/^[0-9a-f]{32}$/.test(o.cfg.journalLock.salt))) fail('Código del Diario incorrecto.');
   if (o.cfg.today !== undefined && (!plain(o.cfg.today) || Object.values(o.cfg.today).some(x => typeof x !== 'boolean'))) fail('Preferencias de Hoy incorrectas.');
   for (const [k, v] of Object.entries(o.cfg.days)) {
     if (!/^[0-6]$/.test(k) || Object.values(v).some(x => typeof x !== 'boolean')) fail('Día personalizado incorrecto.');

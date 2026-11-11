@@ -20,6 +20,7 @@ function habitCard(h, week, T) {
       <span class="handle" data-habit-drag="${esc(h.id)}" aria-hidden="true" style="color:var(--line-strong);touch-action:none;cursor:grab">${icon('grip')}</span>
       <button class="name" data-a="habitopen" data-id="${esc(h.id)}"><strong>${esc(h.name)}</strong><small>${sub}</small></button>
       <div class="habit-stat"><b>${s.n}</b><small>${s.unit} de racha</small></div>
+      <button class="task-btn" data-a="habitmenu" data-id="${esc(h.id)}" aria-label="Opciones de ${esc(h.name)}" title="Editar o eliminar">${icon('more')}</button>
     </div>
     <div class="week-dots">${dots}</div>
     ${weekly !== null ? `<div class="habit-progress"><i style="width:${Math.min(100, Math.round(weekly / h.perWeek * 100))}%"></i></div>`
@@ -35,6 +36,6 @@ export function habitsView() {
   return `<div class="view">${stickyHead(pageHead({ title: 'Hábitos', subtitle }))}
     ${cards ? `<div style="display:grid;gap:12px">${cards}</div>` : `<div class="card"><p class="empty-note">Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}Nuevo hábito</button>
-    ${S.h.length ? '<p class="muted small" style="text-align:center;margin:14px 8px 0">Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial.</p>' : ''}
+    ${S.h.length ? '<p class="muted small" style="text-align:center;margin:14px 8px 0">Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial, o ⋯ para editarlo o eliminarlo.</p>' : ''}
   </div>`;
 }

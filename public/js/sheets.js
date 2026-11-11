@@ -188,13 +188,24 @@ export function habitDayToggle(id, date, month) {
   habitDetail(id, month);
   render();
 }
+/** Opciones de un hábito: historial, editar o eliminar. */
+export function habitMenu(id) {
+  const h = S.h.find(x => x.id === id);
+  if (!h) return;
+  openSheet(`<span class="caps">${esc(h.name)}</span>`, `<p class="muted small" style="margin:-4px 0 12px">${frequencyLabel(h)} · ${categoryName(h.color ?? 0)}</p><div class="menu">
+    <button data-a="habitopen" data-id="${esc(id)}">${icon('calendar')}Ver historial</button>
+    <button data-a="habitedit" data-id="${esc(id)}">${icon('edit')}Editar</button>
+    <button class="danger" data-a="habitdelete" data-id="${esc(id)}">${icon('trash')}Eliminar</button></div>`);
+}
+/** Elimina el hábito y su historial, con opción de deshacer. */
 export function confirmDeleteHabit(id) {
   const h = S.h.find(x => x.id === id);
-  if (!h || !confirm(`¿Eliminar «${h.name}» y todo su historial? Esta acción no se puede deshacer.`)) return;
+  if (!h) return;
+  const undo = { h: structuredClone(S.h), hl: structuredClone(S.hl) };
   deleteHabit(id);
   closeSheet();
   render();
-  toast('Hábito eliminado');
+  toastUndo(`«${h.name}» eliminado`, () => { S.h = undo.h; S.hl = undo.hl; save(); render(); });
 }
 
 // ——— Eventos ———

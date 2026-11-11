@@ -7,9 +7,13 @@ import {
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail,
+  closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
+import { openSheet } from './sheets.js';
+import {
+  forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
+} from './lock.js';
 import { autosize, focusEnd, render } from './render.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -22,10 +26,29 @@ export function drawSettings() {
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+  const locked = lockEnabled();
+  $('#privacy-prefs').innerHTML = `<label class="toggle-row"><span>Proteger el Diario con código</span><span class="switch"><input type="checkbox" data-a="journallock"${locked ? ' checked' : ''}><i></i></span></label>`
+    + (locked ? '<div class="toggle-row"><button type="button" class="link" data-a="pinchange">Cambiar código</button></div>' : '');
 }
 function openSettings() { drawSettings(); $('#settings').showModal(); }
 
-const navigate = fn => (d, b) => { fn(d, b); render(true); };
+// ——— Código del Diario ———
+const lockSheet = html => openSheet('Código del Diario', html);
+const sheetBody = html => { const body = $('#sheet .sheet-body'); if (body) body.innerHTML = html; };
+document.addEventListener('planner:lock', () => {
+  const body = $('#sheet[open] .sheet-body');
+  if (body?.querySelector('[data-keypad]')) body.innerHTML = keypad();
+  else if (U.tab === 'journal') render();
+});
+document.addEventListener('planner:settings', () => { if ($('#settings').open) drawSettings(); if (U.tab === 'journal') render(); });
+document.addEventListener('planner:closesheet', () => closeSheet());
+// Si se cierra la hoja a mitad de crear, cambiar o quitar el código, el teclado vuelve a «desbloquear».
+function watchSheetClose() {
+  $('#sheet').addEventListener('close', () => { if (lockMode() !== 'unlock') { relock(); if (U.tab === 'journal') render(); } });
+}
+
+// Al salir del Diario (o de la app) vuelve a quedar protegido.
+const navigate = fn => (d, b) => { fn(d, b); if (U.tab !== 'journal') relock(); render(true); };
 const update = fn => (d, b) => { fn(d, b); render(); };
 const openDay = date => { U.date = date; U.tab = 'today'; };
 
@@ -35,6 +58,17 @@ const ACTIONS = {
   settings: () => openSettings(),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
+
+  // Código del Diario
+  journallock: (d, b) => { b.checked = lockEnabled(); lockSheet(startFlow(lockEnabled() ? 'disable' : 'create')); },
+  pinchange: () => lockSheet(startFlow('change')),
+  pin: d => pressDigit(d.k),
+  pindel: () => pressDelete(),
+  pinforgot: () => lockSheet(forgotHTML()),
+  forgotsend: async () => {
+    try { await sendForgotCode(); sheetBody(forgotHTML(true)); setTimeout(() => $('#forgotCode')?.focus(), 50); }
+    catch (error) { sheetBody(forgotHTML(false, 'No pudimos enviar el código: ' + error.message)); }
+  },
 
   // Navegación
   go: navigate(d => { U.tab = d.k; if (d.k === 'today' && U.tab === 'today') U.date = U.date; }),
@@ -66,6 +100,7 @@ const ACTIONS = {
   habittoggle: update(d => { const h = S.h.find(x => x.id === d.id); if (h) toggleHabit(h, d.date); }),
   habitnew: () => habitEditor(),
   habitopen: d => habitDetail(d.id),
+  habitmenu: d => habitMenu(d.id),
   habitedit: d => habitEditor(d.id),
   habitdelete: d => confirmDeleteHabit(d.id),
   habitday: d => habitDayToggle(d.id, d.date, d.month),
@@ -105,6 +140,14 @@ function onSubmit(e) {
   if (!form) return;
   e.preventDefault();
   if (!canEdit()) return;
+  if (form.dataset.form === 'forgotverify') {
+    const code = $('#forgotCode')?.value.trim();
+    if (!code) return;
+    verifyForgotCode(code)
+      .then(() => { closeSheet(); render(); toast('Listo: quitamos el código. Puedes crear uno nuevo en Ajustes.'); })
+      .catch(() => { sheetBody(forgotHTML(true, 'El código no es válido o ya venció. Revisa el correo más reciente.')); });
+    return;
+  }
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return;
   if (form.dataset.form === 'addtask') {
@@ -148,6 +191,12 @@ function nextField(el) {
 function onKeydown(e) {
   const el = e.target;
   if (e.key === 'Enter' && el.matches?.('[role=link][data-a]')) { e.preventDefault(); el.click(); return; }
+  // Teclado físico sobre el teclado numérico del código.
+  const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el.isContentEditable;
+  if (!typing && $('[data-keypad]') && canEdit()) {
+    if (/^\d$/.test(e.key)) { e.preventDefault(); pressDigit(e.key); return; }
+    if (e.key === 'Backspace') { e.preventDefault(); pressDelete(); return; }
+  }
   if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !(el instanceof HTMLTextAreaElement)) return;
   if (!(el.dataset.p || el.dataset.taskText || el.dataset.weekText)) return;
   e.preventDefault();
@@ -206,6 +255,7 @@ function sortable({ handle, item, key, onDrop }) {
 
 export function initInteractions(isReady) {
   canEdit = isReady;
+  watchSheetClose();
   document.addEventListener('click', onClick);
   document.addEventListener('submit', onSubmit);
   document.addEventListener('input', onInput);

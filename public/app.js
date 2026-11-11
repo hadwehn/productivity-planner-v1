@@ -7,6 +7,7 @@ import { U, applyTheme, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
+import { relock, setAuth } from './js/lock.js';
 import { initNotes } from './js/views/notes.js';
 import { $, $$, today } from './js/util.js';
 
@@ -99,6 +100,7 @@ async function updateAccountRole(uid, generation) {
 
 async function loadUser(user) {
   const generation = ++authGeneration;
+  relock();
   cloud?.stop();
   cloud = null;
   sessionUser = user;
@@ -272,7 +274,22 @@ function wire() {
   window.addEventListener('beforeunload', e => { if (cloud?.unsaved) { e.preventDefault(); e.returnValue = ''; } });
   window.addEventListener('online', poll);
   window.addEventListener('focus', poll);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { relock(); if (U.tab === 'journal' && ready) render(); } // el Diario se vuelve a proteger al salir de la app
+    else poll();
+  });
+  setAuth({
+    email: () => sessionUser?.email,
+    send: async () => {
+      const { error } = await client.auth.signInWithOtp({ email: sessionUser.email, options: { shouldCreateUser: false } });
+      if (error) throw error;
+    },
+    verify: async token => {
+      const { data, error } = await client.auth.verifyOtp({ email: sessionUser.email, token, type: 'email' });
+      if (error) throw error;
+      if (data.user?.id !== sessionUser.id) throw Error('La cuenta no coincide.');
+    },
+  });
   setInterval(poll, 60000);
 }
 
