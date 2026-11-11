@@ -177,10 +177,12 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 
 /* Lo accionable (tareas, foco de la semana y hábitos) va en versalitas; lo escrito para uno mismo
    (intención, gratitud, reflexión, revisión, notas) queda en texto corrido. */
+/* all-small-caps: mayúsculas y minúsculas se ven iguales, así el texto queda uniforme. */
 .task textarea, .add-row input, .task-main > span:not(.task-meta),
-.habit-chip > span:not(.dot), .habit-top strong {
-  font-variant-caps: small-caps; letter-spacing: .03em;
+.habit-chip > span:not(.dot), .habit-top strong, .caps, #habitName {
+  font-variant-caps: all-small-caps; letter-spacing: .04em;
 }
+#habitName::placeholder { font-variant-caps: normal; letter-spacing: 0; }
 .add-row input::placeholder { font-variant-caps: normal; letter-spacing: 0; }
 
 /* Arrastrar */

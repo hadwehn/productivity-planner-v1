@@ -29,14 +29,14 @@ function weekList(week, list, title, hint) {
     }).join('');
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`)}
-      <div class="task-main"><textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" aria-label="Tarea de la semana">${esc(row.t)}</textarea></div>
+      <div class="task-main"><textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="Tarea de la semana">${esc(row.t)}</textarea></div>
       <button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="Más opciones">${icon('more')}</button>
     </div><div class="day-toggles" aria-label="Días">${toggles}</div></div>`;
   }).join('');
   const full = items.length >= 5;
   return `<section class="section">${sectionHead(title, `<span class="muted small">${items.length}/5</span>`, list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${hint}</p>`}
-      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}">${icon('plus')}<input name="task" autocomplete="off" enterkeyhint="done" placeholder="${list === 'a' ? 'Añadir al foco de la semana' : 'Añadir otra tarea'}" aria-label="Añadir tarea a la semana"></form>`}
+      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}">${icon('plus')}<input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${list === 'a' ? 'Añadir al foco de la semana' : 'Añadir otra tarea'}" aria-label="Añadir tarea a la semana"></form>`}
     </div></section>`;
 }
 

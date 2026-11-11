@@ -36,7 +36,7 @@ export function taskMenu(date, key) {
   const row = getTask(date, key);
   if (!row) return;
   const focus = isFocusKey(key), tomorrow = shiftDate(date, 1);
-  openSheet(esc(row.t), `<div class="menu">
+  openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     <button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}Pasar a mañana</button>
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}Elegir otro día</button>
     <button data-a="taskfocus" data-k="${key}" data-close="1">${icon('star')}${focus ? 'Quitar del foco' : 'Poner en foco'}</button>
@@ -100,7 +100,7 @@ export function overdueAction(kind, date, key) {
 export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
-  openSheet(esc(row.t), `<div class="menu">
+  openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon('star')}${list === 'a' ? 'Pasar a «También esta semana»' : 'Pasar al foco de la semana'}</button>
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}Eliminar</button></div>
     <p class="muted small" style="margin:14px 2px 0">Eliminarla de la semana deja sus copias en los días, sin vínculo.</p>`);
@@ -123,7 +123,7 @@ export function habitEditor(id) {
     const days = DAY_SHORT.map((d, i) => `<button type="button" class="choice${draft.days.includes(i) ? ' on' : ''}" data-day="${i}" aria-pressed="${draft.days.includes(i)}">${d.slice(0, 1)}</button>`).join('');
     const presets = FREQ_PRESETS.map(([k, label, list]) => `<button type="button" class="choice${draft.days.join() === list.join() ? ' on' : ''}" data-preset="${k}">${label}</button>`).join('');
     openSheet(h ? 'Editar hábito' : 'Nuevo hábito', `<form id="habitForm">
-      <div class="field"><label for="habitName">¿Qué quieres hacer?</label><input id="habitName" class="input" required maxlength="100" placeholder="Leer 10 páginas, caminar, meditar…" value="${esc(draft.name)}"></div>
+      <div class="field"><label for="habitName">¿Qué quieres hacer?</label><input id="habitName" class="input" required maxlength="100" autocapitalize="none" placeholder="Leer 10 páginas, caminar, meditar…" value="${esc(draft.name)}"></div>
       <div class="field"><span class="field-label">Frecuencia</span><div class="seg" style="margin-bottom:10px"><button type="button" class="${draft.mode === 'days' ? 'on' : ''}" data-mode="days">Días fijos</button><button type="button" class="${draft.mode === 'week' ? 'on' : ''}" data-mode="week">Veces por semana</button></div>
         ${draft.mode === 'days' ? `<div class="choices" style="margin-bottom:8px">${presets}</div><div class="day-choices">${days}</div>`
           : `<div class="stepper"><button type="button" data-step="-1" aria-label="Menos">−</button><b>${draft.perWeek}</b><button type="button" data-step="1" aria-label="Más">+</button><span class="muted">${draft.perWeek === 1 ? 'vez' : 'veces'} por semana, cualquier día</span></div>`}</div>
@@ -174,7 +174,7 @@ export function habitDetail(id, month = today().slice(0, 7)) {
     cells += `<button class="${on ? 'on' : ''}${k === T ? ' today' : ''}${future ? ' off' : ''}" data-a="habitday" data-id="${esc(id)}" data-date="${k}" data-month="${month}"${future ? ' disabled' : ''} aria-pressed="${on}" aria-label="${d}"${before && !on ? ' style="opacity:.5"' : ''}>${d}</button>`;
   }
   const s = streak(h, T), pct = consistency(h, T);
-  openSheet(esc(h.name), `<p class="muted small" style="margin:-4px 0 14px">${frequencyLabel(h)} · ${categoryName(h.color ?? 0)}</p>
+  openSheet(`<span class="caps">${esc(h.name)}</span>`, `<p class="muted small" style="margin:-4px 0 14px">${frequencyLabel(h)} · ${categoryName(h.color ?? 0)}</p>
     <div class="stats"><div class="stat"><b>${s.n}</b><small>${s.unit} de racha</small></div><div class="stat"><b>${pct ?? '—'}${pct !== null ? '%' : ''}</b><small>constancia, 4 sem.</small></div><div class="stat"><b>${monthDone}</b><small>este mes</small></div></div>
     <div class="week-strip" style="margin:0 0 10px"><button class="nav" data-a="habitmonth" data-id="${esc(id)}" data-month="${shiftMonth(month, -1)}" aria-label="Mes anterior">${icon('left')}</button><div style="flex:1;text-align:center;font-weight:600;text-transform:capitalize">${monthTitle(month)}</div><button class="nav" data-a="habitmonth" data-id="${esc(id)}" data-month="${shiftMonth(month, 1)}" aria-label="Mes siguiente"${month >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></div>
     <div class="heat" style="--c:${categoryColor(h.color ?? 0)}">${cells}</div>

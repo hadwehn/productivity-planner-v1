@@ -29,7 +29,7 @@ function taskItem(date, { key, row }, focus) {
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}">
     ${focus ? '' : `<span class="handle" data-drag="${key}" aria-hidden="true">${icon('grip')}</span>`}
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`)}
-    <div class="task-main"><textarea data-task-text="${key}" rows="1" enterkeyhint="done" aria-label="Tarea">${esc(row.t)}</textarea>${linked}</div>
+    <div class="task-main"><textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="Tarea">${esc(row.t)}</textarea>${linked}</div>
     <button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${focus ? 'Quitar del foco' : 'Poner en foco'}" title="${focus ? 'Quitar del foco' : 'Poner en foco'}">${icon('star')}</button>
     <button class="task-btn" data-a="taskmenu" data-k="${key}" aria-label="Más opciones" title="Más opciones">${icon('more')}</button>
   </div>`;
@@ -45,7 +45,7 @@ function tasksSection(date) {
   const restBlock = rest.length ? `<div class="divider"></div>${rest.map(t => taskItem(date, t, false)).join('')}` : '';
   return `<section class="section">${banner}${sectionHead('Tareas', total ? `<span class="muted small">${doneCount} de ${total}</span>` : '')}
     <div class="card tasks">${focusBlock}${restBlock}
-      <form class="add-row" data-form="addtask">${icon('plus')}<input name="task" autocomplete="off" enterkeyhint="done" placeholder="Añadir tarea" aria-label="Añadir tarea"></form>
+      <form class="add-row" data-form="addtask">${icon('plus')}<input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="Añadir tarea" aria-label="Añadir tarea"></form>
     </div></section>`;
 }
 
