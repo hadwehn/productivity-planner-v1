@@ -9,7 +9,7 @@ import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
-export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Semana', 'Week')], ['today', tr('Hoy', 'Today')]];
+export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Plan', 'Plan')], ['today', tr('Hoy', 'Today')]];
 
 // Los campos crecen con su texto. Si cambia el ancho (rotación, barra de desplazamiento, ventana),
 // el texto vuelve a repartirse en líneas y hay que recalcular la altura.
