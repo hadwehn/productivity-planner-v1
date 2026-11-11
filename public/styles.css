@@ -38,7 +38,8 @@
 :root[data-appearance="dark"] .today-tag { background: var(--acc); color: var(--acc-ink); }
 :root[data-appearance="dark"] .day-pill.on span, :root[data-appearance="dark"] .day-pill.on b { color: var(--acc-ink); }
 :root[data-appearance="dark"] .day-pill.on i, :root[data-appearance="dark"] .cal-day.on .marks u { background: var(--acc-ink); }
-:root[data-appearance="dark"] .day-pill.today b, :root[data-appearance="dark"] .cal-day.today { color: var(--acc); }
+/* Hoy en amarillo, salvo cuando además está seleccionado (fondo amarillo): ahí va en tinta oscura. */
+:root[data-appearance="dark"] .day-pill.today:not(.on) b, :root[data-appearance="dark"] .cal-day.today:not(.on) { color: var(--acc); }
 :root[data-appearance="dark"] .week-dot.today span { color: var(--acc); }
 :root[data-appearance="dark"] .week-dot.today i { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
 :root[data-appearance="dark"] .heat button.today { box-shadow: inset 0 0 0 2px var(--acc); }
