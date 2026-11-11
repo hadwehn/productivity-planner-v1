@@ -15,25 +15,47 @@ No hay credenciales reales ni publicación realizada. El SDK se distribuye desde
 jsDelivr y sigue la rama mayor @2; consulta el manual para fijar una versión
 resuelta y probarla antes de estabilizar el despliegue.
 
+## Producto (v2)
+
+Un diario que integra organización, hábitos y conciencia en cuatro pantallas:
+
+| Pestaña | Para qué sirve |
+|---|---|
+| **Hoy** | Empieza tu día (intención y gratitud) · tareas con hasta 3 en foco ★ · agenda · hábitos con un toque · Cierra tu día (ánimo y reflexión) · notas. Las tareas sin terminar de días anteriores aparecen para traerlas o soltarlas. |
+| **Semana** | Intención, foco de la semana (5) y otras tareas (5), cada una con días L–D para llevarla a un día con un toque; vista de la semana día a día; revisión semanal. Incluye **Mes**: calendario con eventos, foco y lo mejor del mes. |
+| **Hábitos** | La semana de cada hábito a la vista (se pueden marcar días ya vividos), frecuencia por días o «N veces por semana», racha amable y constancia de 4 semanas. Historial mensual al tocar un hábito. |
+| **Diario** | Un recuerdo de días anteriores, el ánimo del mes y todo lo escrito, día por día. |
+
+La versión anterior al rediseño está en `backup/version-original/` (ver su README) y en la etiqueta git `version-original`.
+
 ## Estructura
 
 ```
 public/
-  index.html      marcado (sin estilos ni lógica)
-  styles.css      todos los estilos, con tokens para claro/oscuro y las dos paletas
+  index.html      marcado: acceso, hoja de ajustes y contenedores
+  styles.css      sistema visual (tokens claro/oscuro, componentes)
   app.js          entrada: sesión, sincronización con Supabase, respaldo e importación
   client.js       cliente de Supabase  ·  store.js  guardado en la nube (CAS)
   js/
     state.js      forma de los datos, validación y acceso por rutas
-    migrate.js    actualiza datos guardados por versiones anteriores
-    tasks.js      reglas de tareas: prioridades, secundarias, traslados y vínculo con la semana
-    prefs.js      qué espacios se muestran (por grupo o por día) y configuraciones rápidas
-    quotes.js     frases del día · categories.js  colores y nombres de categorías
-    ui.js         estado de la interfaz, avisos y tema · render.js  dibujo de la vista
-    interactions.js  clics, escritura, Enter entre campos y arrastrar para ordenar
-    dialogs.js    hábito, evento, llevar tarea al día y bienvenida
-    views/        day, week, calendar, habits, notes
+    migrate.js    actualiza datos de versiones anteriores (idempotente)
+    tasks.js      tareas del día y de la semana: foco, mover, pendientes, vínculos
+    habits.js     frecuencia, rachas y constancia de hábitos
+    prefs.js      visibilidad heredada de v1 (solo para migrar) y preguntas de revisión
+    quotes.js · categories.js · icons.js
+    ui.js         estado de interfaz, avisos y tema · render.js  dibujo de la vista
+    interactions.js  toques, escritura, Enter entre campos y arrastrar
+    sheets.js     hojas: opciones de tarea, pendientes, hábito, evento, bienvenida
+    views/        today, week (y mes), habits, journal, notes
+backup/version-original/   copia íntegra de la versión anterior
 ```
+
+### Compatibilidad de datos
+
+v2 usa la misma fila de Supabase y el mismo formato que v1; solo agrega campos
+(`d.mood`, `h.perWeek`, `fila.drop`, `cfg.today`) que v1 ignora y conserva. Las
+tareas siguen en `d.k` (0/501/502 = foco; 1…500 = resto) y la semana en índices 0–4.
+No hay cambios en el esquema SQL.
 
 ## Verificación
 

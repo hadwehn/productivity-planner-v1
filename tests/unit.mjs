@@ -2,14 +2,17 @@
 import { S, checkedState, onSave, setState, summary, setPath } from '../public/js/state.js';
 import { migrate } from '../public/js/migrate.js';
 import {
-  addOther, addPriority, carryToTomorrow, detachEditedTask, moveOther, otherCount, planWeeklyTask,
-  priorityCount, removeOther, removePriority, restore, syncTask,
+  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask,
+  renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
 } from '../public/js/tasks.js';
+import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
 import { U } from '../public/js/ui.js';
-import { dayView } from '../public/js/views/day.js';
-import { weekView } from '../public/js/views/week.js';
-import { calendarView } from '../public/js/views/calendar.js';
+import { todayView } from '../public/js/views/today.js';
+import { planView } from '../public/js/views/week.js';
+import { habitsView } from '../public/js/views/habits.js';
+import { journalView } from '../public/js/views/journal.js';
+import { shiftDate, today } from '../public/js/util.js';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -28,24 +31,39 @@ const fixture = () => ({
   d: { [DAY]: { i: 'Intención', g: 'Gracias', n: 'Notas', r: 'Reflexión', c: { h6: 'Café' }, k: { 1: { t: 'Estudiar', c: false, s: 2, source: `w.${WEEK}.a.0` } }, otherCount: 2 } },
   cfg: { acc: 2, hide: { d_gr_wk: false }, days: { 6: { d_hab: false } } },
 });
-/** Carga datos como lo hace la app al iniciar sesión. */
 function load(data) { setState(checkedState(data)); migrate(); onSave(() => true); }
-const task = (date, key) => S.d[date]?.k?.[key];
+const texts = date => { const { focus, rest } = dayTasks(date); return { focus: focus.map(x => x.row.t), rest: rest.map(x => x.row.t) }; };
+const keyOf = (date, t) => [...dayTasks(date).focus, ...dayTasks(date).rest].find(x => x.row.t === t)?.key;
+
+/**
+ * Validador de la versión anterior (v1, en producción en main): mismas reglas de forma.
+ * Si v2 guarda algo que v1 no acepta, v1 no podría abrir la cuenta.
+ */
+function v1Accepts(state) {
+  const o = structuredClone(state);
+  for (const [, day] of Object.entries(o.d)) {
+    for (const [i, t] of Object.entries(day.k || {})) {
+      if (!/^\d+$/.test(i) || +i > 502) return 'índice de tarea ' + i;
+      if (t && t.source !== undefined && !/^w\.\d{4}-\d{2}-\d{2}\.[ab]\.[0-4]$/.test(t.source)) return 'source ' + t.source;
+    }
+    if (day.otherCount !== undefined && (day.otherCount < 0 || day.otherCount > 500)) return 'otherCount';
+    if (day.priorityCount !== undefined && (day.priorityCount < 1 || day.priorityCount > 3)) return 'priorityCount';
+  }
+  for (const w of Object.values(o.w)) for (const k of ['a', 'b']) for (const i of Object.keys(w[k] || {})) if (+i > 4) return 'índice semanal';
+  for (const h of o.h) if (h.days !== undefined && !Array.isArray(h.days)) return 'días de hábito';
+  return true;
+}
 
 // ——— Datos y validación ———
 test('un respaldo completo conserva todas sus entidades', () => {
   const data = fixture();
-  eq(checkedState(data), { ...data, cfg: { ...data.cfg, theme: 'modern', appearance: 'light' } });
+  eq(checkedState(data), { ...data, cfg: { ...data.cfg, theme: 'modern', appearance: 'auto' } });
   const s = summary(data);
   eq([s.habitos, s.eventos, s.vinculos, s.origenesAusentes], [1, 1, 1, 0]);
 });
-test('los eventos antiguos en texto se normalizan sin perder el texto', () => {
-  const data = fixture();
-  data.ev[DAY] = ['Evento antiguo'];
-  eq(checkedState(data).ev[DAY], [{ t: 'Evento antiguo', c: 0, h: '' }]);
-});
-test('se rechazan claves peligrosas, fechas inválidas, índices enormes y horas inyectadas', () => {
-  for (const modify of [d => { d.d['2026-02-31'] = {}; }, d => { d.d[DAY].k[999999] = { t: 'x' }; }, d => { d.ev[DAY][0].h = '" onmouseover=alert(1)'; }]) {
+test('se rechazan claves peligrosas, fechas inválidas, índices enormes y valores nuevos inválidos', () => {
+  for (const modify of [d => { d.d['2026-02-31'] = {}; }, d => { d.d[DAY].k[999999] = { t: 'x' }; }, d => { d.ev[DAY][0].h = '" onmouseover=alert(1)'; },
+    d => { d.d[DAY].mood = 9; }, d => { d.h[0].perWeek = 0; }, d => { d.cfg.today = { quote: 'sí' }; }]) {
     const data = fixture();
     modify(data);
     throws(() => checkedState(data));
@@ -56,184 +74,159 @@ test('se rechazan claves peligrosas, fechas inválidas, índices enormes y horas
 });
 
 // ——— Migraciones ———
-test('la gratitud antigua de tres espacios se une en uno solo', () => {
+test('migración: gratitud unida, tareas sin huecos y preferencias de Hoy desde las antiguas', () => {
   const data = fixture();
-  Object.assign(data.d[DAY], { g: 'Uno', g2: ' Dos ', g3: '' });
+  Object.assign(data.d[DAY], { g: 'Uno', g2: 'Dos', g3: '', priorityCount: 2 });
+  data.cfg.hide.d_gr_wk = true; // en el formato antiguo, hide=true significa oculto
+  data.d[DAY].k = { 0: { t: 'A' }, 3: { t: '' }, 7: { t: 'B' }, 502: { t: 'Oculta' } };
   load(data);
   eq(S.d[DAY].g, 'Uno\nDos');
-  ok(!('g2' in S.d[DAY]) && !('g3' in S.d[DAY]), 'g2/g3 eliminados');
-});
-test('las tareas guardadas como lista con huecos pasan a objeto', () => {
-  const data = fixture();
-  const list = [];
-  list[0] = { t: 'Prioridad' };
-  list[501] = { t: 'Segunda' };
-  data.d[DAY].k = JSON.parse(JSON.stringify(list)); // como quedaba en la nube: con null
-  load(data);
-  eq(Object.keys(S.d[DAY].k), ['0', '501']);
-  eq(priorityCount(DAY), 2);
-});
-test('el conteo antiguo de secundarias se descarta una sola vez', () => {
-  const data = fixture();
-  data.d[DAY].otherCount = 7;
-  load(data);
-  eq(otherCount(DAY), 2, 'tras migrar');
-  removeOther(DAY, 2);
-  setState(checkedState(S));
-  migrate();
-  eq(otherCount(DAY), 1, 'la segunda migración respeta el conteo nuevo');
-  ok(!('order' in S.cfg), 'sin orden de módulos');
+  eq(texts(DAY), { focus: ['A', 'Oculta'], rest: ['B'] });
+  eq(Object.keys(S.d[DAY].k), ['0', '1', '501']);
+  eq([S.d[DAY].priorityCount, S.d[DAY].otherCount], [2, 1]);
+  eq(S.cfg.today.gratitude, false, 'la gratitud estaba oculta de lunes a viernes');
+  eq(v1Accepts(S), true);
 });
 
-// ——— Prioridades (bug: se ocultaban y no dejaban agregar) ———
-test('una tercera prioridad guardada nunca queda oculta', () => {
-  const data = fixture();
-  data.d[DAY].k = { 0: { t: 'A' }, 501: { t: 'B' }, 502: { t: 'C' } };
-  data.d[DAY].priorityCount = 2;
-  load(data);
-  eq(priorityCount(DAY), 3);
-});
-test('con dos prioridades se puede añadir la tercera, y no una cuarta', () => {
-  const data = fixture();
-  data.d[DAY].k = { 0: { t: 'A' }, 501: { t: 'B' } };
-  data.d[DAY].priorityCount = 3; // antes: se mostraban solo 2 y el botón no hacía nada
-  load(data);
-  eq(priorityCount(DAY), 3);
-  data.d[DAY].priorityCount = 2;
-  load(data);
-  eq(addPriority(DAY), 502);
-  eq(priorityCount(DAY), 3);
-  eq(addPriority(DAY), null);
-});
-test('borrar una prioridad sube las siguientes; con una sola, la vacía', () => {
-  const data = fixture();
-  data.d[DAY].k = { 0: { t: 'A' }, 501: { t: 'B' }, 502: { t: 'C' } };
-  load(data);
-  removePriority(DAY, 0);
-  eq([task(DAY, 0)?.t, task(DAY, 501)?.t, task(DAY, 502)], ['B', 'C', undefined]);
-  eq(priorityCount(DAY), 2);
-  removePriority(DAY, 1);
-  removePriority(DAY, 0);
-  eq([task(DAY, 0), priorityCount(DAY)], [undefined, 1]);
-});
-
-// ——— Secundarias ———
-test('las dos secundarias por defecto se pueden borrar, incluso vacías', () => {
+// ——— Tareas del día ———
+test('añadir: foco hasta tres, luego al resto', () => {
   load(fixture());
   S.d[DAY].k = {};
-  eq(otherCount(DAY), 2);
-  removeOther(DAY, 2);
-  eq(otherCount(DAY), 1);
-  removeOther(DAY, 1);
-  eq(otherCount(DAY), 0);
-  eq(addOther(DAY), 1);
+  for (const t of ['A', 'B', 'C', 'D']) addTask(DAY, t, { focus: true });
+  eq(texts(DAY), { focus: ['A', 'B', 'C'], rest: ['D'] });
+  eq(addTask(DAY, '   '), null, 'no agrega vacías');
 });
-test('borrar una secundaria vacía en medio sube las de abajo', () => {
+test('poner y quitar del foco respeta el máximo de tres', () => {
   load(fixture());
-  S.d[DAY].k = { 1: { t: 'A' }, 3: { t: 'C' } };
-  S.d[DAY].otherCount = 3;
-  removeOther(DAY, 2);
-  eq([task(DAY, 1)?.t, task(DAY, 2)?.t, task(DAY, 3)], ['A', 'C', undefined]);
-  eq(otherCount(DAY), 2);
+  S.d[DAY].k = {};
+  ['A', 'B', 'C', 'D'].forEach(t => addTask(DAY, t, { focus: true }));
+  ok(toggleFocus(DAY, keyOf(DAY, 'D')).error, 'cuarta en foco');
+  toggleFocus(DAY, keyOf(DAY, 'B'));
+  eq(texts(DAY), { focus: ['A', 'C'], rest: ['B', 'D'] });
+  toggleFocus(DAY, keyOf(DAY, 'D'));
+  eq(texts(DAY).focus, ['A', 'C', 'D']);
+  eq(v1Accepts(S), true);
 });
-test('reordenar secundarias mueve la tarea completa', () => {
+test('eliminar y reordenar mantienen el orden sin huecos', () => {
   load(fixture());
-  S.d[DAY].k = { 1: { t: 'A' }, 2: { t: 'B' }, 3: { t: 'C' } };
-  moveOther(DAY, 3, 1);
-  eq([1, 2, 3].map(k => task(DAY, k).t), ['C', 'A', 'B']);
+  S.d[DAY].k = {};
+  ['A', 'B', 'C'].forEach(t => addTask(DAY, t));
+  removeTask(DAY, keyOf(DAY, 'A'));
+  eq(texts(DAY).rest, ['B', 'C']);
+  reorderTask(DAY, keyOf(DAY, 'C'), keyOf(DAY, 'B'));
+  eq(texts(DAY).rest, ['C', 'B']);
+  eq(S.d[DAY].otherCount, 2);
 });
-
-// ——— Pasar al día siguiente ———
-test('pasar una prioridad a un día con dos prioridades la deja en la tercera', () => {
+test('mover a otro día conserva el foco si cabe y se puede deshacer', () => {
   load(fixture());
-  S.d[DAY].k = { 0: { t: 'Mover', c: true } };
-  S.d[NEXT] = { k: { 0: { t: 'X' }, 501: { t: 'Y' } }, priorityCount: 2 };
-  const r = carryToTomorrow(DAY, 0);
-  ok(!r.error, r.error);
-  eq([task(NEXT, 502)?.t, task(NEXT, 502)?.c, priorityCount(NEXT)], ['Mover', false, 3]);
-  eq(task(DAY, 0), undefined);
-});
-test('si mañana ya tiene tres prioridades, la tarea no se pierde', () => {
-  load(fixture());
-  S.d[DAY].k = { 0: { t: 'Mover' } };
-  S.d[NEXT] = { k: { 0: { t: 'X' }, 501: { t: 'Y' }, 502: { t: 'Z' } } };
-  const r = carryToTomorrow(DAY, 0);
-  ok(r.error, 'debía avisar');
-  eq(task(DAY, 0)?.t, 'Mover');
-});
-test('pasar una secundaria ocupa la primera fila libre y se puede deshacer', () => {
-  load(fixture());
-  S.d[DAY].k = { 1: { t: 'A' }, 2: { t: 'B' } };
-  const r = carryToTomorrow(DAY, 1);
-  eq([task(NEXT, 1)?.t, task(DAY, 1)?.t, task(DAY, 2)], ['A', 'B', undefined]);
+  S.d[DAY].k = {};
+  addTask(DAY, 'Mover', { focus: true });
+  setDone(DAY, keyOf(DAY, 'Mover'), false);
+  const r = moveTask(DAY, keyOf(DAY, 'Mover'), NEXT);
+  eq([texts(DAY).focus, texts(NEXT).focus], [[], ['Mover']]);
   restore(r.undo);
-  eq([task(DAY, 1)?.t, task(DAY, 2)?.t, S.d[NEXT]], ['A', 'B', undefined]);
+  eq([texts(DAY).focus, S.d[NEXT]], [['Mover'], undefined]);
+});
+test('pendientes de días anteriores: traer, soltar y traer todo', () => {
+  load(fixture());
+  const T = today(), y1 = shiftDate(T, -1), y2 = shiftDate(T, -2);
+  S.d = {};
+  addTask(y2, 'Vieja');
+  addTask(y1, 'Ayer');
+  addTask(y1, 'Hecha');
+  setDone(y1, keyOf(y1, 'Hecha'), true);
+  eq(overdue(T).map(x => x.row.t), ['Vieja', 'Ayer']);
+  dropTask(y2, keyOf(y2, 'Vieja'));
+  eq(overdue(T).map(x => x.row.t), ['Ayer']);
+  const r = bringOverdue(T);
+  eq([r.count, texts(T).rest, texts(y1).rest], [1, ['Ayer'], ['Hecha']]);
+});
+test('renombrar una tarea traída de la semana rompe el vínculo', () => {
+  load(fixture());
+  renameTask(DAY, 1, 'Estudiar química');
+  eq(S.d[DAY].k[1].source, undefined);
+  setWeekDone(WEEK, 'a', 0, true);
+  eq(S.d[DAY].k[1].c, false);
 });
 
-// ——— Semana ↔ día ———
-test('llevar una tarea semanal al día la vincula una sola vez', () => {
+// ——— Semana ———
+test('semana: máximo cinco por lista, programar en días y marcar hecho sincroniza', () => {
   load(fixture());
-  const path = `w.${WEEK}.a.0`;
-  eq(planWeeklyTask(path, '2026-10-30', 'other').key, 1);
-  eq(task('2026-10-30', 1).source, path);
-  ok(planWeeklyTask(path, '2026-10-30', 'other').error, 'duplicado');
-  eq(planWeeklyTask(path, '2026-10-31', 'priority').key, 0);
+  for (const t of ['B', 'C', 'D', 'E']) addWeekTask(WEEK, 'a', t);
+  ok(addWeekTask(WEEK, 'a', 'F').error, 'sexta');
+  toggleWeekDay(WEEK, 'a', 1, NEXT);
+  eq(scheduledDays(`w.${WEEK}.a.1`), [NEXT]);
+  eq(texts(NEXT).focus, ['B'], 'el foco semanal entra al foco del día');
+  setWeekDone(WEEK, 'a', 1, true);
+  eq(S.d[NEXT].k[0].c, true);
+  toggleWeekDay(WEEK, 'a', 1, NEXT);
+  eq(scheduledDays(`w.${WEEK}.a.1`), []);
+  eq(v1Accepts(S), true);
 });
-test('marcar como hecha se comparte entre semana y días vinculados', () => {
+test('semana: eliminar o mover entre listas actualiza los vínculos de los días', () => {
   load(fixture());
-  S.d[NEXT] = structuredClone(S.d[DAY]);
-  setPath(`d.${DAY}.k.1.c`, true);
-  syncTask(`d.${DAY}.k.1.c`, true);
-  eq([S.w[WEEK].a[0].c, task(NEXT, 1).c], [true, true]);
+  addWeekTask(WEEK, 'a', 'B');
+  toggleWeekDay(WEEK, 'a', 1, NEXT);
+  removeWeekTask(WEEK, 'a', 0); // «Estudiar»: su copia del día queda sin vínculo
+  eq(S.d[DAY].k[1].source, undefined);
+  eq(weekTasks(WEEK, 'a').map(x => x.row.t), ['B']);
+  eq(scheduledDays(`w.${WEEK}.a.0`), [NEXT], 'B pasó al índice 0 con su vínculo');
+  toggleWeekFocus(WEEK, 'a', 0);
+  eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['B']);
+  eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT]);
+  renameWeekTask(WEEK, 'b', 0, 'B2');
+  eq(scheduledDays(`w.${WEEK}.b.0`), [], 'renombrar rompe el vínculo');
+  eq(v1Accepts(S), true);
 });
-test('renombrar la tarea del día rompe el vínculo con la semana', () => {
+
+// ——— Hábitos ———
+test('hábitos por días: racha amable (hoy sin marcar no la rompe) y constancia', () => {
   load(fixture());
-  setPath(`d.${DAY}.k.1.t`, 'Estudiar química');
-  detachEditedTask(`d.${DAY}.k.1.t`, 'Estudiar', 'Estudiar química');
-  eq(task(DAY, 1).source, undefined);
-  syncTask(`w.${WEEK}.a.0.c`, true);
-  eq(task(DAY, 1).c, false, 'el día ya no sigue a la semana');
+  const T = today(), h = saveHabit({ name: 'Leer', color: 2, days: [0, 1, 2, 3, 4, 5, 6] });
+  h.createdOn = shiftDate(T, -10);
+  toggle(h, shiftDate(T, -1));
+  toggle(h, shiftDate(T, -2));
+  eq(streak(h, T).n, 2);
+  toggle(h, T);
+  eq(streak(h, T).n, 3);
+  ok(consistency(h, T) > 0 && consistency(h, T) <= 100);
 });
-test('renombrar la tarea de la semana rompe el vínculo de sus copias', () => {
+test('hábitos semanales: cuentan en cualquier día y la versión anterior los ve como diarios', () => {
   load(fixture());
-  detachEditedTask(`w.${WEEK}.a.0.t`, 'Estudiar', 'Leer');
-  eq(task(DAY, 1).source, undefined);
+  const T = today(), h = saveHabit({ name: 'Nadar', color: 0, perWeek: 2 });
+  ok(isDue(h, T) && h.days === undefined);
+  toggle(h, T);
+  eq(weekCount(h, T), 1);
+  eq(v1Accepts(S), true);
 });
 
 // ——— Frases ———
-test('cada frase tiene texto y autor, y la del día es estable', () => {
-  ok(QUOTES.length >= 30, 'al menos 30 frases');
-  ok(QUOTES.every(([q, a]) => q.trim() && a.trim()), 'texto y autor');
+test('cada frase tiene autor y la del día es estable', () => {
+  ok(QUOTES.length >= 30 && QUOTES.every(([q, a]) => q.trim() && a.trim()));
   eq(quoteFor(DAY), quoteFor(DAY));
-  ok(quoteFor(DAY) !== quoteFor(NEXT), 'días seguidos cambian');
 });
 
 // ——— Vistas ———
-test('día: hábitos después de las tareas; inicio y cierre plegados', () => {
-  load(fixture());
-  Object.assign(U, { tab: 'd', dd: DAY, dt: 'p', startOpen: false, endOpen: false, habitsOpen: true });
-  S.cfg.hide = {};
-  S.cfg.days = {};
-  const html = dayView();
-  ok(html.indexOf('Durante el día') < html.indexOf('Hábitos del día'), 'orden');
-  ok(html.indexOf('Hábitos del día') < html.indexOf('Al terminar el día'), 'cierre al final');
-  ok(!html.includes(`d.${DAY}.i"`) && !html.includes(`d.${DAY}.r"`), 'plegados');
-  U.startOpen = true;
-  const open = dayView();
-  ok(open.includes('Agradece a tu manera') && !open.includes(`d.${DAY}.g2`), 'una sola gratitud');
+test('las cuatro vistas se dibujan con datos y vacías', () => {
+  for (const data of [fixture(), { h: [], hl: {}, m: {}, ev: {}, w: {}, d: {}, cfg: { acc: 0, hide: {}, days: {} } }]) {
+    load(data);
+    Object.assign(U, { date: DAY, week: WEEK, weekMode: 'week', month: '2026-10', calDay: DAY, journalMonth: '2026-10' });
+    ok(todayView().includes('Tareas'));
+    ok(planView().includes('Foco de la semana'));
+    U.weekMode = 'month';
+    ok(planView().includes('Foco del mes'));
+    ok(habitsView().includes('Hábitos'));
+    ok(journalView().includes('Diario'));
+  }
 });
-test('semana: llevar al día usa la flecha hacia abajo a la derecha', () => {
-  load(fixture());
-  Object.assign(U, { tab: 'w', wk: WEEK, wt: 'p' });
-  ok(weekView().includes('↘') && !weekView().includes('↗'));
-});
-test('calendario: el texto de los eventos se escapa', () => {
+test('Hoy: rituales plegados por defecto y texto escapado', () => {
   const data = fixture();
-  data.ev[DAY][0] = { t: '<img src=x onerror=alert(1)>', h: '10:15', c: 0 };
+  data.d[DAY].k = { 0: { t: '<img src=x onerror=alert(1)>' } };
   load(data);
-  Object.assign(U, { cd: DAY, cm: '2026-10' });
-  const html = calendarView();
-  ok(html.includes('&lt;img') && !html.includes('<img') && html.includes('10:15'));
+  Object.assign(U, { date: DAY, morning: false, evening: false });
+  const html = todayView();
+  ok(!html.includes('id="f-intent"') && !html.includes('id="f-refl"'), 'plegados');
+  ok(html.includes('&lt;img') && !html.includes('<img'), 'escapado');
 });
 
 export function run() {

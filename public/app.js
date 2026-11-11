@@ -3,10 +3,10 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
-import { applyTheme, toast } from './js/ui.js';
+import { U, applyTheme, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
-import { initDialogs, showWelcome } from './js/dialogs.js';
+import { welcome } from './js/sheets.js';
 import { initNotes } from './js/views/notes.js';
 import { $, $$, today } from './js/util.js';
 
@@ -47,7 +47,7 @@ async function importBackup(e) {
     cloud.schedule(() => checkedState(S));
     setReady(false);
     await cloud.flush();
-    $('#dlg').close();
+    closeDialogs();
     render(true);
     toast('Importación guardada. Comprueba el resumen y el contenido.');
   } catch (error) { alert('No se completó la importación: ' + error.message); }
@@ -59,9 +59,7 @@ const closeDialogs = () => $$('dialog[open]').forEach(d => d.close());
 
 function setSyncFeedback(kind, message) {
   $('#cloud-status').textContent = message;
-  $('#sync-indicator').dataset.state = kind;
-  $('#dbt').title = 'Opciones y cuenta · ' + message;
-  $('#dbt').setAttribute('aria-label', 'Opciones y cuenta. ' + message);
+  document.documentElement.dataset.sync = kind;
 }
 
 const SYNC_LABELS = { pending: 'Cambios pendientes…', saving: 'Guardando…', saved: 'Guardado en la nube', error: 'No se pudo guardar', conflict: 'Hay cambios en otro dispositivo' };
@@ -108,7 +106,6 @@ async function loadUser(user) {
   closeDialogs();
   setState(normalize(blank()));
   $('#v').innerHTML = '';
-  $('#pers').innerHTML = '';
   $('#planner').hidden = true;
   $('#cloud-error').hidden = true;
   $('#metrics-result').textContent = '';
@@ -133,6 +130,7 @@ async function loadUser(user) {
     const row = await store.read();
     if (generation !== authGeneration) return;
     setState(row ? checkedState(row.data) : normalize(blank()));
+    U.date = today();
     store.revision = row?.revision || null;
     const before = JSON.stringify(S);
     migrate();
@@ -144,7 +142,7 @@ async function loadUser(user) {
     cloudStatus('saved');
     if (!row || JSON.stringify(S) !== before) { store.schedule(() => checkedState(S)); await store.flush(); }
     if (generation !== authGeneration) return;
-    showWelcome();
+    welcome();
     void updateAccountRole(user.id, generation);
   } catch (error) {
     if (generation !== authGeneration) return;
@@ -228,7 +226,8 @@ async function logout() {
 function wire() {
   renderNav();
   initInteractions(() => ready);
-  initDialogs();
+  // Cerrar una hoja tocando fuera de ella.
+  for (const dialog of $$('dialog.sheet')) dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
   initNotes();
   document.addEventListener('planner:download', downloadCurrent);
   $('#imp').onchange = importBackup;

@@ -1,37 +1,34 @@
-// Piezas de interfaz compartidas por las vistas.
+// Piezas compartidas por las vistas.
 import { get } from '../state.js';
-import { esc, monthTitle, today } from '../util.js';
+import { esc } from '../util.js';
+import { icon } from '../icons.js';
 
-/** Campo de texto que crece con el contenido. Enter pasa al siguiente; Mayús+Enter salta línea. */
-export const field = (path, placeholder = '', rows = 1, id = '') =>
-  `<textarea data-p="${path}"${id ? ` id="${id}"` : ''} rows="${rows}" enterkeyhint="next" aria-label="${esc(placeholder || path)}" placeholder="${esc(placeholder)}">${esc(get(path))}</textarea>`;
+/** Campo de texto que crece con el contenido y se guarda solo (data-p = ruta en el estado). */
+export const field = (path, placeholder = '', cls = '', extra = '') =>
+  `<textarea data-p="${path}" rows="1" enterkeyhint="next" class="${cls}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}"${extra}>${esc(get(path))}</textarea>`;
 
-export const check = path => {
-  const on = !!get(path, false);
-  return `<button class="chk${on ? ' on' : ''}" data-a="tog" data-p="${path}" aria-label="Marcar como hecha" aria-pressed="${on}">${on ? '✓' : ''}</button>`;
-};
+export const settingsButton = () =>
+  `<button class="icon-btn" data-a="settings" aria-label="Ajustes y cuenta" title="Ajustes y cuenta">${icon('settings')}<span class="sync-dot" aria-hidden="true"></span></button>`;
 
-export const segmented = (action, options, current) => `<div class="seg">${options.map(([k, label]) =>
-  `<button class="${k === current ? 'on' : ''}" data-a="${action}" data-k="${k}" aria-pressed="${k === current}">${label}</button>`).join('')}</div>`;
+export const pageHead = ({ eyebrow = '', title, subtitle = '', side = settingsButton() }) =>
+  `<header class="page-head"><div>${eyebrow ? `<p class="eyebrow">${eyebrow}</p>` : ''}<h1 class="title">${title}</h1>${subtitle ? `<p class="subtitle">${subtitle}</p>` : ''}</div>${side}</header>`;
 
-/**
- * Cabecera con flechas anterior/siguiente y, si corresponde, un enlace para volver al presente.
- * `nav` y `reset` son atributos data-* de los botones.
- */
-export const pagerHeader = ({ nav, title, subtitle = '', prev, next, reset = '', resetLabel = '', h1 = true }) =>
-  `<div class="top"><button class="ib" ${nav} data-n="-1" aria-label="${prev}">‹</button>`
-  + `<div>${h1 ? `<h1>${title}</h1>` : `<b class="month-name">${title}</b>`}`
-  + `<div class="sub">${subtitle}${reset ? `${subtitle ? ' · ' : ''}<button class="link-inline" ${reset}>${resetLabel}</button>` : ''}</div></div>`
-  + `<button class="ib" ${nav} data-n="1" aria-label="${next}">›</button></div>`;
+export const sectionHead = (label, right = '', cls = '') =>
+  `<div class="section-head"><h2 class="label ${cls}">${label}</h2>${right}</div>`;
 
-export const pageTitle = (title, subtitle = '') => `<div class="top"><div><h1>${title}</h1><div class="sub">${subtitle}</div></div></div>`;
+export const checkButton = (on, attrs, label = 'Marcar como hecha') =>
+  `<button class="check${on ? ' on' : ''}" ${attrs} aria-pressed="${!!on}" aria-label="${esc(label)}">${icon('check')}</button>`;
 
-export const monthNav = (key, ym) => pagerHeader({
-  nav: `data-a="m" data-k="${key}"`, title: monthTitle(ym), h1: false, prev: 'Mes anterior', next: 'Mes siguiente',
-  reset: ym !== today().slice(0, 7) ? `data-a="hoy" data-k="${key}"` : '', resetLabel: 'Ir a hoy',
-});
+export const segmented = (action, options, current) => `<div class="seg" role="tablist">${options.map(([k, label]) =>
+  `<button role="tab" class="${k === current ? 'on' : ''}" data-a="${action}" data-k="${k}" aria-selected="${k === current}">${label}</button>`).join('')}</div>`;
 
-export const emptyState = () => '<p class="sub empty">Tienes todo oculto. Actívalo desde el botón ⋯.</p>';
-
-export const ring = (percent, label, big = false, id = '') =>
-  `<div${id ? ` id="${id}"` : ''} class="ring${big ? ' big' : ''}" style="--p:${percent}"><span>${label}</span></div>`;
+/** Bloque plegable con cabecera (rituales, revisión, notas). */
+export const foldable = ({ key, open, iconName, iconCls = '', title, summary, written = false, body }) =>
+  `<section class="card ritual${open ? ' open' : ''}">
+    <button class="ritual-head" data-a="fold" data-k="${key}" aria-expanded="${open}">
+      <span class="ritual-icon ${iconCls}">${icon(iconName)}</span>
+      <span class="ritual-text"><strong>${title}</strong><small class="${written ? 'written' : ''}">${summary}</small></span>
+      <span class="chev">${icon('down')}</span>
+    </button>
+    ${open ? `<div class="ritual-body">${body}</div>` : ''}
+  </section>`;

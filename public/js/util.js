@@ -1,5 +1,5 @@
 // Utilidades sin estado: DOM, fechas y texto seguro.
-export const $ = s => document.querySelector(s);
+export const $ = (s, root = document) => root.querySelector(s);
 export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 
 export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];

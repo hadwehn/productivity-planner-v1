@@ -1,61 +1,61 @@
-// Dibuja la pestaña activa conservando scroll y paneles abiertos.
+// Dibuja la pestaña activa conservando scroll y foco.
 import { U } from './ui.js';
 import { $, $$ } from './util.js';
+import { icon } from './icons.js';
+import { todayView } from './views/today.js';
+import { planView } from './views/week.js';
 import { habitsView } from './views/habits.js';
-import { calendarView } from './views/calendar.js';
-import { weekView } from './views/week.js';
-import { dayView } from './views/day.js';
+import { journalView } from './views/journal.js';
 
-const VIEWS = { h: habitsView, c: calendarView, w: weekView, d: dayView };
-export const TABS = [['h', 'Hábitos'], ['c', 'Calendario'], ['w', 'Semana'], ['d', 'Día']];
-const ICONS = {
-  h: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
-  c: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-  w: '<path d="M4 7h16M4 12h16M4 17h10"/>',
-  d: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>',
-};
+const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
+export const TABS = [['today', 'Hoy'], ['week', 'Semana'], ['habits', 'Hábitos'], ['journal', 'Diario']];
+
+// Los campos crecen con su texto. Si cambia el ancho (rotación, barra de desplazamiento, ventana),
+// el texto vuelve a repartirse en líneas y hay que recalcular la altura.
+let lastWidth = 0;
+const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entry]) => {
+  const width = Math.round(entry.contentRect.width);
+  if (width !== lastWidth) { lastWidth = width; $$('#v textarea').forEach(autosize); }
+}) : null;
 
 export function renderNav() {
-  $('#nav').innerHTML = TABS.map(([k, label]) => `<button data-a="go" data-k="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>${label}</button>`).join('');
+  if (resizer && $('#v')) resizer.observe($('#v'));
+  $('#nav').innerHTML = TABS.map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');
 }
 
-export function expandTextArea(el) {
+export function autosize(el) {
   if (!(el instanceof HTMLTextAreaElement)) return;
   el.style.height = 'auto';
-  el.style.height = Math.max(el.scrollHeight, el.rows === 1 ? 43 : 0) + 'px';
+  el.style.height = el.scrollHeight + 'px';
 }
 
-/** Vuelve a dibujar la vista. `toTop` lleva el scroll arriba (cambios de página). */
+/** Vuelve a dibujar. `toTop` lleva el scroll arriba (cambio de pantalla). Conserva el campo enfocado. */
 export function render(toTop = false) {
-  const y = scrollY, opened = $$('#v .effort').map(x => x.open);
+  const y = scrollY, active = document.activeElement;
+  const focusKey = active?.dataset?.p || active?.dataset?.taskText || active?.dataset?.weekText;
+  const caret = active?.selectionStart;
   const view = $('#v');
   view.innerHTML = VIEWS[U.tab]();
-  $$('#v .effort').forEach((x, i) => { x.open = !!opened[i]; });
+  if (!toTop) view.firstElementChild?.classList.remove('view');
   $$('#nav button').forEach(b => {
-    b.classList.toggle('on', b.dataset.k === U.tab);
-    b.setAttribute('aria-current', b.dataset.k === U.tab ? 'page' : 'false');
+    const on = b.dataset.k === U.tab;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-current', on ? 'page' : 'false');
   });
-  // Los campos sin texto de ayuda toman su nombre accesible del título de la tarjeta.
-  for (const card of $$('#v .card')) {
-    const label = card.querySelector('.q,h2');
-    if (label) card.querySelectorAll('textarea:not([placeholder]),textarea[placeholder=""]').forEach((f, i) => f.setAttribute('aria-label', label.textContent + (i ? ' ' + (i + 1) : '')));
-  }
-  $$('textarea[data-p]', view).forEach(expandTextArea);
-  const chip = $('.chip.on');
-  if (chip) chip.parentNode.scrollLeft = chip.offsetLeft - chip.parentNode.clientWidth / 2 + 23;
+  $$('textarea', view).forEach(autosize);
+  requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   scrollTo(0, toTop ? 0 : y);
+  if (focusKey && !toTop) {
+    const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
+    if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }
+  }
 }
 
-/** Enfoca el campo de una ruta y deja el cursor al final. */
-export function focusPath(path) {
-  const el = document.querySelector(`textarea[data-p="${path}"]`);
+export function focusEnd(el) {
   if (!el) return false;
-  focusField(el);
-  return true;
-}
-export function focusField(el) {
   el.focus({ preventScroll: true });
-  const end = el.value.length;
+  const end = el.value?.length ?? 0;
   el.setSelectionRange?.(end, end);
   el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  return true;
 }

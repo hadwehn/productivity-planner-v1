@@ -1,5 +1,19 @@
 # Registro de validación
 
+## 2026-11-10 · Rediseño v2 (rama redesign-v2)
+
+- 16/16 pruebas de `tests/unit.mjs` aprobadas en el navegador (tests/run.html), incluida
+  la compatibilidad con el validador de la versión anterior.
+- Validador real de v1 (`backup/version-original/public/js/state.js`) acepta un estado guardado
+  por v2 y conserva los campos nuevos.
+- Prueba manual con backend simulado, móvil (375 px) y escritorio, claro y oscuro: migración de datos
+  antiguos; añadir tareas con Enter; completar; foco ★; pasar a mañana y deshacer; pendientes de ayer;
+  vaciar una tarea la elimina; ánimo, reflexión, intención y gratitud; hábitos (marcar, crear semanal,
+  historial); semana (añadir, llevar a un día, marcar hecho sincroniza con el día); mes y eventos;
+  diario; ajustes (apariencia, qué ver en Hoy); cerrar e iniciar sesión; bienvenida en cuenta nueva;
+  persistencia tras recargar. Sin errores de consola.
+- No verificado: Supabase real (RLS, correo), despliegue de Vercel con sesión real, Safari/iOS físico.
+
 ## 2026-11-10 · Reorganización y correcciones de tareas
 
 - 23/23 pruebas de `tests/unit.mjs` aprobadas en el navegador (tests/run.html).

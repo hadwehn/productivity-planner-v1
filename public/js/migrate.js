@@ -2,6 +2,7 @@
 import { S } from './state.js';
 import { visible, dayVisible, dayGroup } from './prefs.js';
 import { DAYS, plain } from './util.js';
+import { compactDay } from './tasks.js';
 
 // Claves de visibilidad antiguas (sin _wk/_we) pasan a días de semana y fin de semana.
 function splitLegacyVisibility() {
@@ -47,7 +48,7 @@ function mergeGratitude() {
 // Las tareas del día se guardan como objeto (antes a veces como lista con huecos).
 // En el modelo 2, «otherCount» es la cantidad exacta de filas secundarias visibles.
 function tidyTasks() {
-  const firstRun = S.cfg.tasks !== 2;
+  const firstRun = !(S.cfg.tasks >= 2);
   for (const day of Object.values(S.d)) {
     if (Array.isArray(day.k)) {
       const rows = {};
@@ -59,7 +60,23 @@ function tidyTasks() {
     }
     if (firstRun) delete day.otherCount;
   }
-  S.cfg.tasks = 2;
+  S.cfg.tasks = Math.max(S.cfg.tasks || 0, 2);
+}
+
+// v2: las tareas del día se guardan sin huecos ni filas vacías. Se revisa en cada carga
+// (es idempotente) por si quedó una tarea vacía o se editó desde la versión anterior.
+function compactTasks() {
+  for (const date of Object.keys(S.d)) compactDay(date);
+  S.cfg.tasks = 3;
+}
+
+// v2: «Hoy» tiene interruptores simples. Se parte de lo que la persona veía de lunes a viernes.
+function todayPreferences() {
+  if (S.cfg.today) return;
+  S.cfg.today = {
+    intention: visible('d_int_wk'), gratitude: visible('d_gr_wk'), habits: visible('d_hab_wk'),
+    reflection: visible('d_rf_wk'), mood: true, quote: true,
+  };
 }
 
 export function migrate() {
@@ -67,5 +84,7 @@ export function migrate() {
   unifyClosure();
   mergeGratitude();
   tidyTasks();
+  compactTasks();
+  todayPreferences();
   delete S.cfg.order; // El orden de los espacios ya no es configurable.
 }

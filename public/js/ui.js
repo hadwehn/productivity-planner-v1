@@ -1,20 +1,23 @@
 // Estado de la interfaz (no se guarda en la nube), avisos y tema visual.
 import { S } from './state.js';
-import { $, $$, esc, iso, monday, today, weekdayOf } from './util.js';
+import { $, esc, today, iso, monday } from './util.js';
 
 export const U = {
-  tab: 'd',
-  // Día
-  dd: today(), dt: 'p', startOpen: false, endOpen: false, habitsOpen: true, agendaOpen: false,
-  // Semana
-  wk: iso(monday(new Date())), wt: 'p',
-  // Calendario
-  cm: today().slice(0, 7), cd: today(),
-  // Hábitos
-  hm: today().slice(0, 7), hd: today(),
-  // Preferencias
-  pm: 'group', pday: weekdayOf(today()),
+  tab: 'today',          // today · week · habits · journal
+  date: today(),         // día abierto en «Hoy»
+  morning: false,        // rituales plegados por defecto
+  evening: false,
+  notes: false,
+  week: iso(monday(new Date())),
+  weekMode: 'week',      // week · month
+  review: false,
+  month: today().slice(0, 7),
+  calDay: today(),
+  journalMonth: today().slice(0, 7),
 };
+
+/** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */
+export const showToday = key => S.cfg.today?.[key] !== false;
 
 let toastTimer, undoAction = null;
 function showStatus(ms) {
@@ -26,9 +29,9 @@ function showStatus(ms) {
 export function toast(message) {
   undoAction = null;
   $('#status').textContent = message;
-  showStatus(3200);
+  showStatus(2800);
 }
-/** Aviso con botón «Deshacer». `restore` se ejecuta si la persona lo pulsa. */
+/** Aviso con «Deshacer». */
 export function toastUndo(message, restore) {
   undoAction = restore;
   $('#status').innerHTML = `<span>${esc(message)}</span><button type="button" data-a="undo" class="toast-undo">Deshacer</button>`;
@@ -42,19 +45,14 @@ export function runUndo() {
   fn?.();
 }
 
-const THEME_COLOR = { dark: '#121923', soft: '#F8F7F4', modern: '#F5F6F8' };
+// ——— Tema: automático (sigue al sistema), claro u oscuro ———
+const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
 export function applyTheme() {
+  const pref = S.cfg.appearance || 'auto';
+  const dark = pref === 'dark' || (pref === 'auto' && !!media?.matches);
   const root = document.documentElement;
-  const appearance = S.cfg.appearance === 'dark' ? 'dark' : 'light';
-  const theme = S.cfg.theme === 'soft' ? 'soft' : 'modern';
-  root.dataset.theme = theme;
-  root.dataset.appearance = appearance;
-  root.style.colorScheme = appearance;
+  root.dataset.appearance = dark ? 'dark' : 'light';
   const meta = $('meta[name="theme-color"]');
-  if (meta) meta.content = appearance === 'dark' ? THEME_COLOR.dark : THEME_COLOR[theme];
-  $$('[data-a=theme],[data-a=appearance]').forEach(b => {
-    const on = b.dataset.k === (b.dataset.a === 'appearance' ? appearance : theme);
-    b.classList.toggle('selected', on);
-    b.setAttribute('aria-pressed', String(on));
-  });
+  if (meta) meta.content = dark ? '#111413' : '#F4F1EB';
 }
+media?.addEventListener?.('change', () => { if ((S.cfg.appearance || 'auto') === 'auto') applyTheme(); });
