@@ -127,6 +127,7 @@ const ACTIONS = {
   weekday: update(d => { const r = toggleWeekDay(U.week, d.list, +d.i, d.k); if (r.error) toast(r.error); }),
   weekmenu: d => weekMenu(d.list, +d.i),
   weekmove: d => weekAction('move', d.list, +d.i),
+  weeknext: d => weekAction('next', d.list, +d.i),
   weekdelete: d => weekAction('delete', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
   shiftmonth: update(d => { U.month = shiftMonth(U.month, +d.n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }),

@@ -3,7 +3,7 @@
 import { S, save } from './state.js';
 import { U, toast, toastUndo } from './ui.js';
 import {
-  bringOverdue, dropTask, getTask, isFocusKey, moveTask, overdue, removeTask, removeWeekTask, restore,
+  bringOverdue, dropTask, getTask, isFocusKey, moveTask, moveWeekTaskToNext, overdue, removeTask, removeWeekTask, restore,
   snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
@@ -103,6 +103,7 @@ export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+    ${row.c ? '' : `<button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('right')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>`}
     <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon('star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
     <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
@@ -110,6 +111,14 @@ export function weekMenu(list, i) {
 export function weekAction(kind, list, i) {
   const undo = snapshot(Object.keys(S.d));
   if (kind === 'move') { const r = toggleWeekFocus(U.week, list, i); if (r.error) toast(r.error); closeSheet(); render(); return; }
+  if (kind === 'next') {
+    const r = moveWeekTaskToNext(U.week, list, i);
+    closeSheet();
+    if (r.error) { toast(r.error); return; }
+    render();
+    toastUndo(tr('Pasó a la próxima semana', 'Moved to next week'), () => { restore(undo); render(); });
+    return;
+  }
   removeWeekTask(U.week, list, i);
   closeSheet();
   render();

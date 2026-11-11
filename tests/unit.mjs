@@ -2,7 +2,7 @@
 import { S, checkedState, onSave, setState, summary, setPath } from '../public/js/state.js';
 import { migrate } from '../public/js/migrate.js';
 import {
-  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask,
+  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
@@ -176,6 +176,33 @@ test('semana: eliminar o mover entre listas actualiza los vínculos de los días
   eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT]);
   renameWeekTask(WEEK, 'b', 0, 'B2');
   eq(scheduledDays(`w.${WEEK}.b.0`), [], 'renombrar rompe el vínculo');
+  eq(v1Accepts(S), true);
+});
+
+test('semana: pasar a la próxima semana quita las copias pendientes y se puede deshacer', () => {
+  load(fixture());
+  const NEXT_WEEK = shiftDate(WEEK, 7), FRI = shiftDate(WEEK, 4);
+  addWeekTask(WEEK, 'b', 'Llamar al banco');
+  addWeekTask(WEEK, 'b', 'Otra');
+  toggleWeekDay(WEEK, 'b', 0, NEXT);
+  toggleWeekDay(WEEK, 'b', 0, FRI);
+  const doneCopy = Object.values(S.d[FRI].k).find(r => r.source === `w.${WEEK}.b.0`);
+  doneCopy.c = true; // copia ya hecha ese día: se conserva
+  const undo = snapshot(Object.keys(S.d));
+  eq(moveWeekTaskToNext(WEEK, 'b', 0).week, NEXT_WEEK);
+  eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['Otra']);
+  eq(weekTasks(NEXT_WEEK, 'b').map(x => [x.row.t, x.days]), [['Llamar al banco', []]], 'llega sin día asignado');
+  eq(Object.values(S.d[NEXT]?.k || {}).some(r => r.t === 'Llamar al banco'), false, 'copia pendiente quitada');
+  const kept = Object.values(S.d[FRI].k).find(r => r.t === 'Llamar al banco');
+  eq([kept?.c, kept?.source], [true, undefined], 'copia hecha queda sin vínculo');
+  eq(scheduledDays(`w.${WEEK}.b.0`), [], '«Otra» no hereda vínculos');
+  for (let n = 0; n < 5; n++) addWeekTask(NEXT_WEEK, 'a', `F${n}`);
+  addWeekTask(WEEK, 'a', 'Sin espacio');
+  const i = weekTasks(WEEK, 'a').find(x => x.row.t === 'Sin espacio').i;
+  eq(!!moveWeekTaskToNext(WEEK, 'a', i).error, true, 'la próxima semana llena no la recibe');
+  restore(undo);
+  eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['Llamar al banco', 'Otra'], 'deshacer');
+  eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT, FRI]);
   eq(v1Accepts(S), true);
 });
 
