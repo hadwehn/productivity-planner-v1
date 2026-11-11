@@ -18,6 +18,10 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
   if (width !== lastWidth) { lastWidth = width; $$('#v textarea').forEach(autosize); }
 }) : null;
 
+// La cabecera fija muestra una línea suave solo cuando hay contenido pasando por debajo.
+const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
+addEventListener('scroll', markScrolled, { passive: true });
+
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
   $('#nav').innerHTML = TABS.map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');
@@ -45,6 +49,7 @@ export function render(toTop = false) {
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   scrollTo(0, toTop ? 0 : y);
+  markScrolled();
   if (focusKey && !toTop) {
     const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
     if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }

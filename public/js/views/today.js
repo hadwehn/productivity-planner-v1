@@ -8,7 +8,7 @@ import { categoryColor, MOODS, moodColor } from '../categories.js';
 import { quoteFor } from '../quotes.js';
 import { icon } from '../icons.js';
 import { DAYS, MONTHS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
-import { checkButton, field, foldable, pageHead, sectionHead } from './common.js';
+import { checkButton, field, foldable, pageHead, sectionHead, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
 
 const greeting = () => { const h = new Date().getHours(); return h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches'; };
@@ -106,8 +106,7 @@ export function todayView() {
   const back = isToday ? '' : ` · <button class="link" data-a="date" data-k="${T}" style="min-height:0">Volver a hoy</button>`;
   const [q, author] = quoteFor(date);
   const rituals = [morning(date), evening(date), notes(date)];
-  return `<div class="view">${pageHead({ eyebrow: eyebrow, title, subtitle: back ? back.slice(3) : '' })}
-    ${weekStrip(date)}
+  return `<div class="view">${stickyHead(pageHead({ eyebrow: eyebrow, title, subtitle: back ? back.slice(3) : '' }) + weekStrip(date))}
     ${showToday('quote') ? `<blockquote class="quote">“${q}”<cite>${author}</cite></blockquote>` : ''}
     ${rituals[0] ? `<div class="section">${rituals[0]}</div>` : ''}
     ${tasksSection(date)}

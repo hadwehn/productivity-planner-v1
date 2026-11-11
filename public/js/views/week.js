@@ -6,7 +6,7 @@ import { categoryColor } from '../categories.js';
 import { WEEK_QUESTIONS } from '../prefs.js';
 import { icon } from '../icons.js';
 import { DAYS, DAY_SHORT, MONTHS, daysInMonth, esc, iso, monday, monthTitle, p2, parseDate, shiftDate, today, weekday } from '../util.js';
-import { checkButton, field, foldable, pageHead, sectionHead, segmented } from './common.js';
+import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 const short = d => `${parseDate(d).getDate()} ${MONTHS[parseDate(d).getMonth()].slice(0, 3)}`;
 
@@ -89,7 +89,6 @@ export function planView() {
   const subtitle = isWeek
     ? `<span class="range"><button class="mini" data-a="shiftplan" data-n="-1" aria-label="Semana anterior">${icon('left')}</button>${short(U.week)} – ${short(shiftDate(U.week, 6))}<button class="mini" data-a="shiftplan" data-n="1" aria-label="Semana siguiente">${icon('right')}</button>${U.week !== thisWeek ? '<button class="link" data-a="thisweek">Esta semana</button>' : ''}</span>`
     : 'Lo que viene, de un vistazo';
-  return `<div class="view">${pageHead({ title: isWeek ? 'Semana' : 'Mes', subtitle })}
-    ${segmented('planmode', [['week', 'Semana'], ['month', 'Mes']], U.weekMode)}
+  return `<div class="view">${stickyHead(pageHead({ title: isWeek ? 'Semana' : 'Mes', subtitle }) + segmented('planmode', [['week', 'Semana'], ['month', 'Mes']], U.weekMode))}
     ${isWeek ? weekView() : monthView()}</div>`;
 }

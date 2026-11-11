@@ -5,7 +5,7 @@ import { consistency, frequencyLabel, isDone, isDue, isWeekly, streak, weekCount
 import { categoryColor } from '../categories.js';
 import { icon } from '../icons.js';
 import { DAY_SHORT, esc, iso, monday, shiftDate, today } from '../util.js';
-import { pageHead } from './common.js';
+import { pageHead, stickyHead } from './common.js';
 
 function habitCard(h, week, T) {
   const c = categoryColor(h.color ?? 0), s = streak(h, T), pct = consistency(h, T);
@@ -32,7 +32,7 @@ export function habitsView() {
   const cards = S.h.map(h => habitCard(h, week, T)).join('');
   const dueToday = S.h.filter(h => isDue(h, T)), doneToday = dueToday.filter(h => isDone(h, T)).length;
   const subtitle = S.h.length ? (dueToday.length ? `Hoy: ${doneToday} de ${dueToday.length}. Constancia, no perfección.` : 'Hoy no hay hábitos previstos.') : 'Constancia, no perfección.';
-  return `<div class="view">${pageHead({ title: 'Hábitos', subtitle })}
+  return `<div class="view">${stickyHead(pageHead({ title: 'Hábitos', subtitle }))}
     ${cards ? `<div style="display:grid;gap:12px">${cards}</div>` : `<div class="card"><p class="empty-note">Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}Nuevo hábito</button>
     ${S.h.length ? '<p class="muted small" style="text-align:center;margin:14px 8px 0">Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial.</p>' : ''}

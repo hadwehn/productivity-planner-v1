@@ -4,7 +4,7 @@ import { U } from '../ui.js';
 import { MOODS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { DAYS, DAY_SHORT, MONTHS, daysInMonth, esc, monthTitle, p2, parseDate, shiftDate, today, weekday } from '../util.js';
-import { pageHead, sectionHead } from './common.js';
+import { pageHead, sectionHead, stickyHead } from './common.js';
 
 const clean = v => String(v || '').trim();
 const hasEntry = d => d && (clean(d.i) || clean(d.g) || clean(d.r) || clean(d.n) || d.mood);
@@ -50,7 +50,7 @@ export function journalView() {
   const m = U.journalMonth, T = today();
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
   const nav = `<span class="range"><button class="mini" data-a="shiftjournal" data-n="-1" aria-label="Mes anterior">${icon('left')}</button><span style="text-transform:capitalize">${monthTitle(m)}</span><button class="mini" data-a="shiftjournal" data-n="1" aria-label="Mes siguiente"${m >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></span>`;
-  return `<div class="view">${pageHead({ title: 'Diario', subtitle: nav })}
+  return `<div class="view">${stickyHead(pageHead({ title: 'Diario', subtitle: nav }))}
     ${m === T.slice(0, 7) ? memory(T) : ''}
     ${moodMonth(m)}
     <section class="section">${sectionHead('Lo que escribiste')}

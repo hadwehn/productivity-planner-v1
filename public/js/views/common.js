@@ -13,6 +13,9 @@ export const settingsButton = () =>
 export const pageHead = ({ eyebrow = '', title, subtitle = '', side = settingsButton() }) =>
   `<header class="page-head"><div>${eyebrow ? `<p class="eyebrow">${eyebrow}</p>` : ''}<h1 class="title">${title}</h1>${subtitle ? `<p class="subtitle">${subtitle}</p>` : ''}</div>${side}</header>`;
 
+/** Cabecera que queda fija arriba al desplazarse (título y controles de navegación). */
+export const stickyHead = inner => `<div class="sticky-head">${inner}</div>`;
+
 export const sectionHead = (label, right = '', cls = '') =>
   `<div class="section-head"><h2 class="label ${cls}">${label}</h2>${right}</div>`;
 
