@@ -200,6 +200,10 @@ test('semana: pasar a la próxima semana quita las copias pendientes y se puede 
   addWeekTask(WEEK, 'a', 'Sin espacio');
   const i = weekTasks(WEEK, 'a').find(x => x.row.t === 'Sin espacio').i;
   eq(!!moveWeekTaskToNext(WEEK, 'a', i).error, true, 'la próxima semana llena no la recibe');
+  setWeekDone(WEEK, 'b', 0, true); // «Otra», ya hecha, también se puede pasar
+  eq(!!moveWeekTaskToNext(WEEK, 'b', 0).error, false);
+  const D = weekTasks(shiftDate(WEEK, 7), 'b').find(x => x.row.t === 'Otra');
+  eq(D?.row.c, false, 'llega pendiente');
   restore(undo);
   eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['Llamar al banco', 'Otra'], 'deshacer');
   eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT, FRI]);

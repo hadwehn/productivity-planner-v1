@@ -297,7 +297,8 @@ function syncLinked(source, value) {
 }
 
 /**
- * Lleva una tarea semanal pendiente a la misma lista de la semana siguiente, sin día asignado.
+ * Lleva una tarea semanal a la misma lista de la semana siguiente, sin día asignado.
+ * Llega pendiente (aunque estuviera hecha: se sigue trabajando en ella).
  * Sus copias pendientes en los días de esta semana se quitan; las ya hechas quedan, sin vínculo.
  */
 export function moveWeekTaskToNext(week, list, i) {

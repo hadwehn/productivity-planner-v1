@@ -103,8 +103,8 @@ export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
-    ${row.c ? '' : `<button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('right')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>`}
     <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon('star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
+    <button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
     <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
 }
