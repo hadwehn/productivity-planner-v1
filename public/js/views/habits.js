@@ -12,7 +12,7 @@ function habitCard(h, week, T) {
   const c = categoryColor(h.color ?? 0), s = streak(h, T), pct = consistency(h, T), name = esc(h.name);
   const dots = DAY_SHORT.map((label, i) => {
     const d = shiftDate(week, i), on = isDone(h, d), due = isDue(h, d), future = d > T, isToday = d === T;
-    return `<button class="week-dot${on ? ' on' : ''}${due ? ' due' : ''}${isToday ? ' today' : ''}" data-a="habittoggle" data-id="${esc(h.id)}" data-date="${d}" aria-pressed="${on}" aria-label="${name}, ${label}${isToday ? ` (${tr('hoy', 'today')})` : ''}"${future ? ' disabled' : ''}><i>${icon('check')}</i><span>${isToday ? tr('Hoy', 'Today') : label.slice(0, 1)}</span></button>`;
+    return `<button class="week-dot${on ? ' on' : ''}${due ? ' due' : ''}${isToday ? ' today' : ''}" data-a="habittoggle" data-id="${esc(h.id)}" data-date="${d}" aria-pressed="${on}" aria-label="${name}, ${label}${isToday ? ` (${tr('hoy', 'today')})` : ''}"${future ? ' disabled' : ''}><i>${icon('check')}</i><span>${label.slice(0, 1)}</span>${isToday ? `<em class="today-tag">${tr('hoy', 'today')}</em>` : ''}</button>`;
   }).join('');
   const weekly = isWeekly(h) ? weekCount(h, T) : null;
   const sub = isWeekly(h) ? `${frequencyLabel(h)} · ${weekly} ${tr('de', 'of')} ${h.perWeek} ${tr('esta semana', 'this week')}` : frequencyLabel(h);
