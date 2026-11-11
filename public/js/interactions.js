@@ -73,14 +73,21 @@ const ACTIONS = {
   },
 
   // Navegación
-  go: navigate(d => { U.tab = d.k; if (d.k === 'today' && U.tab === 'today') U.date = U.date; }),
+  // Tocar «Hoy» estando en Hoy vuelve al día de hoy.
+  go: navigate(d => { if (d.k === 'today' && U.tab === 'today') U.date = today(); U.tab = d.k; }),
   date: update(d => { U.date = d.k; }),
   openday: navigate(d => openDay(d.k)),
   shiftweek: update(d => { U.date = shiftDate(U.date, 7 * d.n); }),
   fold: update(d => { U[d.k] = !U[d.k]; }),
 
   // Tareas del día
-  taskdone: update(d => { const row = getTask(U.date, +d.k); if (row) setDone(U.date, +d.k, !row.c); }),
+  taskdone: update(d => {
+    const row = getTask(U.date, +d.k);
+    if (!row) return;
+    setDone(U.date, +d.k, !row.c);
+    const { focus } = dayTasks(U.date);
+    if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
+  }),
   taskfocus: d => { doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),

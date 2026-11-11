@@ -1,5 +1,6 @@
 // Estado de la interfaz (no se guarda en la nube), avisos y tema visual.
-import { S } from './state.js';
+import { S, get } from './state.js';
+import { tr } from './i18n.js';
 import { $, esc, today, iso, monday } from './util.js';
 
 export const U = {
@@ -15,6 +16,43 @@ export const U = {
   calDay: today(),
   journalMonth: today().slice(0, 7),
 };
+
+// ——— Cambio de día ———
+// En el celular la app queda abierta en segundo plano: al volver después de medianoche,
+// lo que mostraba «hoy» pasa al día nuevo (si estabas mirando otra fecha, no se toca).
+let seenToday = today();
+/** Devuelve true si cambió el día desde la última vez. */
+export function rollDay() {
+  const T = today(), old = seenToday;
+  if (T === old) return false;
+  seenToday = T;
+  if (U.date === old) U.date = T;
+  if (U.calDay === old) U.calDay = T;
+  if (U.week === iso(monday(new Date(`${old}T12:00`)))) U.week = iso(monday(new Date()));
+  if (U.month === old.slice(0, 7)) U.month = T.slice(0, 7);
+  if (U.journalMonth === old.slice(0, 7)) U.journalMonth = T.slice(0, 7);
+  openRitualForNow();
+  return true;
+}
+
+// ——— Rituales según la hora ———
+// En la mañana se abre «Empieza tu día» y en la noche «Cierra tu día», una sola vez por día
+// en cada dispositivo y solo si aún no escribiste nada. Si lo cierras, no vuelve a abrirse.
+const RITUAL_KEY = 'diario-ritual-abierto';
+export function openRitualForNow() {
+  const T = today(), h = new Date().getHours(), Z = `d.${T}.`;
+  const which = h >= 5 && h < 12 ? 'morning' : h >= 19 ? 'evening' : '';
+  if (!which) return;
+  const empty = which === 'morning'
+    ? showToday('intention') && !String(get(Z + 'i')).trim() && !String(get(Z + 'g')).trim()
+    : (showToday('reflection') || showToday('mood')) && !String(get(Z + 'r')).trim() && !S.d[T]?.mood;
+  if (!empty) return;
+  let last = '';
+  try { last = localStorage.getItem(RITUAL_KEY) || ''; } catch { /* almacenamiento bloqueado */ }
+  if (last === `${T}:${which}`) return;
+  try { localStorage.setItem(RITUAL_KEY, `${T}:${which}`); } catch { /* almacenamiento bloqueado */ }
+  U[which] = true;
+}
 
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */
 export const showToday = key => S.cfg.today?.[key] !== false;
@@ -34,7 +72,7 @@ export function toast(message) {
 /** Aviso con «Deshacer». */
 export function toastUndo(message, restore) {
   undoAction = restore;
-  $('#status').innerHTML = `<span>${esc(message)}</span><button type="button" data-a="undo" class="toast-undo">Deshacer</button>`;
+  $('#status').innerHTML = `<span>${esc(message)}</span><button type="button" data-a="undo" class="toast-undo">${tr('Deshacer', 'Undo')}</button>`;
   showStatus(6000);
 }
 export function runUndo() {

@@ -47,7 +47,7 @@ function tasksSection(date) {
     : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`);
   const banner = late.length ? `<div class="banner">${icon('inbox')}<p>${lateText}</p><button class="btn small" data-a="overdue">${tr('Revisar', 'Review')}</button></div>` : '';
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
-  const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length}/3</span></div>`
+  const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`
     + (focus.length ? focus.map(t => taskItem(date, t, true)).join('')
       : `<p class="empty-note" style="padding:0 8px 6px">${tr('Marca con ★ hasta tres tareas que harían de este un buen día.', 'Star up to three tasks that would make this a good day.')}</p>`);
   const restBlock = rest.length ? `<div class="divider"></div>${rest.map(t => taskItem(date, t, false)).join('')}` : '';

@@ -3,7 +3,7 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
-import { U, applyTheme, storedAppearance, toast } from './js/ui.js';
+import { U, applyTheme, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
@@ -146,6 +146,7 @@ async function loadUser(user) {
     $('#access').hidden = true;
     $('#planner').hidden = false;
     setReady(true);
+    openRitualForNow();
     render(true);
     cloudStatus('saved');
     if (!row || JSON.stringify(S) !== before) { store.schedule(() => checkedState(S)); await store.flush(); }
@@ -284,7 +285,7 @@ function wire() {
   window.addEventListener('focus', poll);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { relock(); if (U.tab === 'journal' && ready) render(); } // el Diario se vuelve a proteger al salir de la app
-    else poll();
+    else { if (ready && rollDay()) render(); poll(); }
   });
   setAuth({
     email: () => sessionUser?.email,
@@ -298,7 +299,7 @@ function wire() {
       if (data.user?.id !== sessionUser.id) throw Error(tr('La cuenta no coincide.', 'The account doesn’t match.'));
     },
   });
-  setInterval(poll, 60000);
+  setInterval(() => { if (ready && !document.hidden && !editing() && rollDay()) render(); poll(); }, 60000);
 }
 
 // Las llamadas de Auth se difieren fuera del callback para no bloquear el SDK.
