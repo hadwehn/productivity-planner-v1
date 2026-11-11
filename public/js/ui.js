@@ -104,5 +104,8 @@ export function applyTheme(pref) {
   root.dataset.appearance = dark ? 'dark' : 'light';
   const meta = $('meta[name="theme-color"]');
   if (meta) meta.content = dark ? '#111413' : '#F4F1EB';
+  // Mismo cambio de ícono que hace theme-init.js al cargar (pestaña del navegador y «Añadir a inicio»).
+  const icon = dark ? 'icons/estoico-productivity-icon-dark.png?v=1' : 'icons/estoico-productivity-icon.png?v=3';
+  document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(l => { if (l.getAttribute('href') !== icon) l.setAttribute('href', icon); });
 }
 media?.addEventListener?.('change', () => { if (currentPref === 'auto') applyTheme('auto'); });
