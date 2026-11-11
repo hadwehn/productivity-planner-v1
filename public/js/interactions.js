@@ -8,7 +8,7 @@ import {
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
+  finishName, habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
 import { openSheet } from './sheets.js';
 import {
@@ -23,6 +23,8 @@ let canEdit = () => false;
 // ——— Ajustes ———
 const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')]];
 export function drawSettings() {
+  const nameField = $('#settings-name');
+  if (nameField && document.activeElement !== nameField) nameField.value = S.cfg.name || '';
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
@@ -59,6 +61,7 @@ const ACTIONS = {
   undo: () => runUndo(),
   settings: () => openSettings(),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
+  nameskip: () => finishName(''),
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 
   // Código del Diario
@@ -158,6 +161,7 @@ function onSubmit(e) {
       .catch(() => { sheetBody(forgotHTML(true, tr('El código no es válido o ya venció. Revisa el correo más reciente.', 'The code is invalid or expired. Check the most recent email.'))); });
     return;
   }
+  if (form.dataset.form === 'name') { finishName(form.querySelector('input').value); return; }
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return;
   if (form.dataset.form === 'addtask') {
@@ -179,6 +183,14 @@ function onInput(e) {
   const el = e.target;
   autosize(el);
   if (!canEdit()) return;
+  if (el.id === 'settings-name') {
+    const name = el.value.replace(/\s+/g, ' ').trim().slice(0, 40);
+    if (name) S.cfg.name = name; else delete S.cfg.name;
+    S.cfg.nameAsked = true;
+    save();
+    if (U.tab === 'today') render();
+    return;
+  }
   if (el.dataset.p) setPath(el.dataset.p, el.value);
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
   else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
