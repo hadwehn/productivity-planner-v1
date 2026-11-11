@@ -22,15 +22,32 @@
 :root[data-appearance="dark"] {
   --bg: #111413; --surface: #191D1B; --sunken: #222724; --line: #2A302D; --line-strong: #39413D;
   --ink: #ECE8E1; --ink-2: #C3C1B9; --mute: #8C908A;
-  --acc: #8CC2AA; --acc-ink: #0E1A15; --acc-soft: #1F302A; --acc-line: #36574A;
-  --gold: #D9A866; --gold-soft: #33291B;
+  /* Modo oscuro: negro con amarillo. Un solo acento (amarillo) para acción, foco y detalles. */
+  --acc: #F2C94C; --acc-ink: #17140A; --acc-soft: #2A2511; --acc-line: #5C4C1C;
+  --gold: #F2C94C; --gold-soft: #221F12;
   --danger: #E08A72;
   --cat0: #86A6CC; --cat1: #CF9C7E; --cat2: #84C29C; --cat3: #BFA0D2; --cat4: #A3A39B; --cat5: #E1939D;
-  --mood1: #C98F7D; --mood2: #CFB27E; --mood3: #9C9B90; --mood4: #A3C7AE; --mood5: #4DB38A;
+  --mood1: #C98F7D; --mood2: #B9A27A; --mood3: #9C9B90; --mood4: #A3C7AE; --mood5: #F2C94C;
   --shadow: 0 1px 2px #0006, 0 8px 24px #0004;
   --shadow-up: 0 -1px 0 #0006, 0 10px 40px #0008;
   color-scheme: dark;
 }
+/* En oscuro, lo seleccionado se marca en amarillo (en claro se invierte a tinta). */
+:root[data-appearance="dark"] .day-pill.on, :root[data-appearance="dark"] .cal-day.on,
+:root[data-appearance="dark"] .choice.on, :root[data-appearance="dark"] .choice:has(input:checked),
+:root[data-appearance="dark"] .today-tag { background: var(--acc); color: var(--acc-ink); }
+:root[data-appearance="dark"] .day-pill.on span, :root[data-appearance="dark"] .day-pill.on b { color: var(--acc-ink); }
+:root[data-appearance="dark"] .day-pill.on i, :root[data-appearance="dark"] .cal-day.on .marks u { background: var(--acc-ink); }
+:root[data-appearance="dark"] .day-pill.today b, :root[data-appearance="dark"] .cal-day.today { color: var(--acc); }
+:root[data-appearance="dark"] .week-dot.today span { color: var(--acc); }
+:root[data-appearance="dark"] .week-dot.today i { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
+:root[data-appearance="dark"] .heat button.today { box-shadow: inset 0 0 0 2px var(--acc); }
+:root[data-appearance="dark"] nav.tabbar button.on { color: var(--acc); }
+:root[data-appearance="dark"] .seg button.on { color: var(--acc); }
+:root[data-appearance="dark"] .pin-dots i.on { background: var(--acc); border-color: var(--acc); }
+:root[data-appearance="dark"] .wo-day.today { border-color: var(--acc); }
+:root[data-appearance="dark"] .ritual-icon.evening { background: var(--acc-soft); color: var(--acc); }
+:root[data-appearance="dark"] .focus .check.on { color: var(--acc-ink); }
 
 /* ===== Base ===== */
 [hidden] { display: none !important; }
