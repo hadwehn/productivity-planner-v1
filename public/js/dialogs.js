@@ -5,7 +5,7 @@ import { categoryChoices } from './categories.js';
 import { modeCards } from './prefs.js';
 import { planWeeklyTask } from './tasks.js';
 import { render } from './render.js';
-import { $, $$, DAYS, esc, newId, today } from './util.js';
+import { $, $$, DAYS, DAY_SHORT, esc, newId, parseDate, shiftDate, today } from './util.js';
 
 const head = (title, closeAction = 'dismiss') => `<div class="modal-head"><h2>${title}</h2><button class="ib" type="button" data-a="${closeAction}" aria-label="Cerrar">×</button></div>`;
 
@@ -92,9 +92,17 @@ export function eventEditor(index = null) {
 }
 
 export function planTaskDialog(list, i) {
-  const path = `w.${U.wk}.${list}.${i}`, dlg = $('#moveDlg');
+  const path = `w.${U.wk}.${list}.${i}`, dlg = $('#moveDlg'), T = today();
+  // Los siete días de la semana que se está planificando. Los ya pasados no se pueden elegir,
+  // salvo que toda la semana haya pasado (para poder ordenar semanas anteriores).
+  const weekOver = shiftDate(U.wk, 6) < T;
+  const days = DAYS.map((name, w) => {
+    const date = shiftDate(U.wk, w), past = !weekOver && date < T;
+    return `<label class="move-day${past ? ' past' : ''}"><input type="radio" name="moveDate" value="${date}" required${past ? ' disabled' : ''}>`
+      + `<span>${DAY_SHORT[w]}</span><b>${parseDate(date).getDate()}</b>${date === T ? '<small>Hoy</small>' : ''}</label>`;
+  }).join('');
   dlg.innerHTML = head('Llevar al día') + `<form id="moveForm" class="modal-body"><p>${esc(get(path + '.t'))}</p>
-    <label class="q" for="moveDate">¿Cuándo quieres darle espacio?</label><input id="moveDate" type="date" required value="${today()}">
+    <fieldset class="move-day-group"><legend class="q">¿Qué día quieres darle espacio?</legend><div class="move-days">${days}</div></fieldset>
     <fieldset class="move-kind-group"><legend class="q">¿Dónde quieres ubicarla?</legend>
       <label class="move-kind-option"><input type="radio" name="moveKind" value="priority" required><span>Llevar a tareas más importantes</span></label>
       <label class="move-kind-option"><input type="radio" name="moveKind" value="secondary" required><span>Llevar a tareas secundarias</span></label></fieldset>
@@ -103,7 +111,7 @@ export function planTaskDialog(list, i) {
   dlg.showModal();
   $('#moveForm').onsubmit = e => {
     e.preventDefault();
-    const date = $('#moveDate').value, kind = $('#moveForm input[name=moveKind]:checked')?.value;
+    const date = $('#moveForm input[name=moveDate]:checked')?.value, kind = $('#moveForm input[name=moveKind]:checked')?.value;
     if (!date || !kind) return;
     const result = planWeeklyTask(path, date, kind === 'priority' ? 'priority' : 'other');
     if (result.error) { toast(result.error); return; }
