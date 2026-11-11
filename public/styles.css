@@ -434,7 +434,10 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .access-shell { min-height: 100svh; width: min(100%, 980px); margin: auto; padding: 56px 32px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 72px; align-items: center; }
 .access-brand { display: flex; flex-direction: column; gap: 6px; margin-bottom: 48px; }
 .access-wordmark { width: clamp(170px, 26vw, 230px); height: auto; aspect-ratio: 3 / 1; object-fit: contain; object-position: left center; transform: translateX(-9.6%); }
-:root[data-appearance="dark"] .access-wordmark { filter: invert(1) hue-rotate(180deg) brightness(1.1); }
+/* En oscuro, logo con letras claras y «co.» en amarillo (el color secundario de ese modo). */
+.wordmark-dark { display: none; }
+:root[data-appearance="dark"] .wordmark-light { display: none; }
+:root[data-appearance="dark"] .wordmark-dark { display: block; }
 .access-product-name { font-size: 11px; font-weight: 650; letter-spacing: .18em; color: var(--mute); }
 .access-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); margin: 0 0 14px; }
 .access-intro h1 { font: 400 60px/1.04 var(--serif); letter-spacing: -.02em; margin: 0 0 20px; }
