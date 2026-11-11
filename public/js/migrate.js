@@ -87,4 +87,5 @@ export function migrate() {
   compactTasks();
   todayPreferences();
   delete S.cfg.order; // El orden de los espacios ya no es configurable.
+  delete S.cfg.name; delete S.cfg.nameAsked; // La app ya no pide ni guarda el nombre.
 }

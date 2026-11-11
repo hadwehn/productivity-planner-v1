@@ -8,7 +8,7 @@ import {
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  finishName, habitEditor, nameEditor, saveName, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
+  habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
 import { openSheet } from './sheets.js';
 import {
@@ -16,15 +16,13 @@ import {
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
 import { getLang, setLang, tr } from './i18n.js';
-import { $, $$, esc, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
+import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
 let canEdit = () => false;
 
 // ——— Ajustes ———
 const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')]];
 export function drawSettings() {
-  // El nombre se muestra como texto; cambiarlo pide un paso más (hoja con Guardar).
-  $('#name-pref').innerHTML = `<div class="toggle-row"><span class="${S.cfg.name ? '' : 'muted'}">${S.cfg.name ? esc(S.cfg.name) : tr('Sin nombre', 'No name')}</span><button type="button" class="link" data-a="namechange">${S.cfg.name ? tr('Cambiar', 'Change') : tr('Añadir', 'Add')}</button></div>`;
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
@@ -61,8 +59,6 @@ const ACTIONS = {
   undo: () => runUndo(),
   settings: () => openSettings(),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
-  nameskip: () => finishName(''),
-  namechange: () => nameEditor(),
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 
   // Código del Diario
@@ -163,8 +159,6 @@ function onSubmit(e) {
       .catch(() => { sheetBody(forgotHTML(true, tr('El código no es válido o ya venció. Revisa el correo más reciente.', 'The code is invalid or expired. Check the most recent email.'))); });
     return;
   }
-  if (form.dataset.form === 'name') { finishName(form.querySelector('input').value); return; }
-  if (form.dataset.form === 'rename') { saveName(form.querySelector('input').value); drawSettings(); return; }
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return;
   if (form.dataset.form === 'addtask') {

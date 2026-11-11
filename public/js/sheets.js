@@ -260,65 +260,13 @@ export function eventEditor(date, index = null) {
 }
 
 // ——— Bienvenida (primera vez) ———
-// Primero se pregunta el nombre (para saludar en Hoy) y luego se presenta la app.
-// A quien ya usaba la app sin nombre se le pregunta una sola vez.
-const NAME_MAX = 40;
-const pillars = () => `<div class="pillars">
+export function welcome() {
+  if (S.cfg.welcomed) return;
+  openSheet(tr('Te damos la bienvenida', 'Welcome'), `<p style="margin:0 0 18px;color:var(--ink-2)">${tr('Un diario para organizar lo importante, sostener tus hábitos y darte un momento para pensar cómo estás viviendo.', 'A journal to organize what matters, keep your habits and give yourself a moment to think about how you are living.')}</p>
+    <div class="pillars">
       <div class="pillar"><span class="ritual-icon">${icon('today')}</span><div><strong>${tr('Hoy', 'Today')}</strong><p>${tr('Empieza con una intención, elige hasta tres tareas en foco y cierra el día con una línea.', 'Start with an intention, pick up to three focus tasks and close the day with one line.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon">${icon('week')}</span><div><strong>${tr('Plan', 'Plan')}</strong><p>${tr('Tu semana y tu mes: define lo que importa y repártelo en los días con un toque.', 'Your week and month: decide what matters and spread it across the days with a tap.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon">${icon('habits')}</span><div><strong>${tr('Hábitos', 'Habits')}</strong><p>${tr('Constancia, no perfección: si fallas un día, retomas al siguiente.', 'Consistency, not perfection: miss a day, pick it up the next.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon evening">${icon('journal')}</span><div><strong>${tr('Diario', 'Journal')}</strong><p>${tr('Todo lo que escribes queda aquí para volver a leerlo.', 'Everything you write stays here to read again.')}</p></div></div>
-    </div>`;
-
-function nameStep() {
-  return `<p style="margin:0 0 16px;color:var(--ink-2)">${tr('Antes de empezar, ¿cómo te gustaría que te llamemos?', 'Before we start, what should we call you?')}</p>
-    <form data-form="name"><input class="input" id="welcomeName" name="name" maxlength="${NAME_MAX}" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" placeholder="${tr('Tu nombre', 'Your name')}" aria-label="${tr('Tu nombre', 'Your name')}">
-    <button class="btn" style="margin-top:12px">${tr('Continuar', 'Continue')}</button></form>
-    <button type="button" class="link" data-a="nameskip" style="display:block;margin:10px auto 0">${tr('Prefiero no decirlo', 'I’d rather not say')}</button>`;
-}
-
-function introStep() {
-  const name = S.cfg.name;
-  const title = name ? tr(`Hola, ${esc(name)}`, `Hi, ${esc(name)}`) : tr('Te damos la bienvenida', 'Welcome');
-  const lead = name ? tr('Qué bueno tenerte aquí. Este es tu espacio para organizar lo importante, sostener tus hábitos y darte un momento para pensar cómo estás viviendo.', 'Glad to have you here. This is your space to organize what matters, keep your habits and give yourself a moment to think about how you are living.')
-    : tr('Un diario para organizar lo importante, sostener tus hábitos y darte un momento para pensar cómo estás viviendo.', 'A journal to organize what matters, keep your habits and give yourself a moment to think about how you are living.');
-  openSheet(title, `<p style="margin:0 0 18px;color:var(--ink-2)">${lead}</p>${pillars()}<button class="btn" data-a="welcomed">${tr('Empezar', 'Get started')}</button>`);
-}
-
-export function welcome() {
-  const askName = !S.cfg.name && !S.cfg.nameAsked;
-  if (S.cfg.welcomed && !askName) return;
-  if (!askName) { introStep(); return; }
-  openSheet(S.cfg.welcomed ? tr('¿Cómo te llamas?', 'What’s your name?') : tr('Te damos la bienvenida', 'Welcome'), nameStep(),
-    dlg => setTimeout(() => $('#welcomeName', dlg)?.focus(), 50));
-}
-
-/** Guarda el nombre (o la decisión de no darlo) y sigue con la bienvenida. */
-export function finishName(value) {
-  const name = String(value || '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
-  if (name) S.cfg.name = name; else delete S.cfg.name;
-  S.cfg.nameAsked = true;
-  save();
-  render();
-  if (!S.cfg.welcomed) { introStep(); return; }
-  closeSheet();
-  if (name) toast(tr(`Hola, ${name}. Qué bueno verte por aquí.`, `Hi, ${name}. Good to see you here.`));
-}
-
-// ——— Cambiar el nombre (desde Ajustes) ———
-export function nameEditor() {
-  openSheet(tr('Tu nombre', 'Your name'), `<p style="margin:0 0 16px;color:var(--ink-2)">${tr('Es como te saludamos en Hoy.', 'It’s how we greet you in Today.')}</p>
-    <form data-form="rename"><input class="input" id="renameInput" name="name" maxlength="${NAME_MAX}" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" value="${esc(S.cfg.name || '')}" placeholder="${tr('Tu nombre', 'Your name')}" aria-label="${tr('Tu nombre', 'Your name')}">
-    <div class="row-actions"><button type="button" class="btn quiet" data-a="dismiss">${tr('Cancelar', 'Cancel')}</button><button class="btn">${tr('Guardar', 'Save')}</button></div></form>`,
-  dlg => setTimeout(() => { const i = $('#renameInput', dlg); i?.focus(); i?.select(); }, 50));
-}
-export function saveName(value) {
-  const before = S.cfg.name || '', name = String(value || '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
-  closeSheet();
-  if (name === before) return;
-  if (name) S.cfg.name = name; else delete S.cfg.name;
-  S.cfg.nameAsked = true;
-  save();
-  render();
-  toast(name ? tr('Nombre actualizado', 'Name updated') : tr('Quitamos tu nombre del saludo', 'Your name was removed from the greeting'));
+    </div><button class="btn" data-a="welcomed">${tr('Empezar', 'Get started')}</button>`);
 }

@@ -10,7 +10,7 @@
 //              c (agenda por horas), k (tareas), priorityCount, otherCount } }
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
-//       cfg.today (qué se muestra en Hoy), cfg.name (cómo saludar). Las versiones anteriores ignoran estos campos.
+//       cfg.today (qué se muestra en Hoy). Las versiones anteriores ignoran estos campos.
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
 
@@ -152,8 +152,6 @@ export function checkedState(raw) {
   for (const v of Object.values(o.cfg.hide)) if (typeof v !== 'boolean') fail('Visibilidad incorrecta.');
   if (o.cfg.lang !== undefined && !['es', 'en'].includes(o.cfg.lang)) fail('Idioma incorrecto.');
   if (o.cfg.journalLock !== undefined && (!plain(o.cfg.journalLock) || !/^[0-9a-f]{64}$/.test(o.cfg.journalLock.hash) || !/^[0-9a-f]{32}$/.test(o.cfg.journalLock.salt))) fail('Código del Diario incorrecto.');
-  if (o.cfg.name !== undefined && (typeof o.cfg.name !== 'string' || o.cfg.name.length > 40)) fail('Nombre incorrecto.');
-  if (o.cfg.nameAsked !== undefined && typeof o.cfg.nameAsked !== 'boolean') fail('Preferencia de nombre incorrecta.');
   if (o.cfg.today !== undefined && (!plain(o.cfg.today) || Object.values(o.cfg.today).some(x => typeof x !== 'boolean'))) fail('Preferencias de Hoy incorrectas.');
   for (const [k, v] of Object.entries(o.cfg.days)) {
     if (!/^[0-6]$/.test(k) || Object.values(v).some(x => typeof x !== 'boolean')) fail('Día personalizado incorrecto.');

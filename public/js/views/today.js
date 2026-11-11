@@ -111,8 +111,7 @@ function notes(date) {
 export function todayView() {
   const date = U.date, d = parseDate(date), T = today(), isToday = date === T;
   const eyebrow = `${DAYS[(d.getDay() + 6) % 7]} · ${dayMonth(d)}`;
-  const name = S.cfg.name ? `, ${esc(S.cfg.name)}` : '';
-  const title = isToday ? greeting() + name : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
+  const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
   const back = isToday ? '' : `<button class="link" data-a="date" data-k="${T}" style="min-height:0">${tr('Volver a hoy', 'Back to today')}</button>`;
   const [q, author] = quoteFor(date);
   const rituals = [morning(date), evening(date), notes(date)];
