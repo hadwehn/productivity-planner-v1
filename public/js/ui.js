@@ -130,3 +130,14 @@ export function applyTheme(pref) {
   document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(l => { if (l.getAttribute('href') !== icon) l.setAttribute('href', icon); });
 }
 media?.addEventListener?.('change', () => { if (currentPref === 'auto') applyTheme('auto'); });
+
+// ——— Tamaño del texto: normal o «más grande» (se recuerda en el dispositivo para la pantalla de carga) ———
+const TEXT_KEY = 'diario-texto';
+export function applyTextSize(pref) {
+  if (pref === undefined) {
+    pref = S.cfg.textSize === 'large' ? 'large' : 'normal';
+    try { localStorage.setItem(TEXT_KEY, pref); } catch { /* almacenamiento bloqueado */ }
+  }
+  if (pref === 'large') document.documentElement.dataset.text = 'large';
+  else delete document.documentElement.dataset.text;
+}

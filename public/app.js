@@ -3,7 +3,7 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
-import { U, applyTheme, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
+import { U, applyTextSize, applyTheme, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
@@ -141,6 +141,7 @@ async function loadUser(user) {
     const before = JSON.stringify(S);
     migrate();
     applyTheme();
+    applyTextSize();
     setLang(S.cfg.lang || 'es'); // español es el idioma base
     renderNav();
     $('#access').hidden = true;

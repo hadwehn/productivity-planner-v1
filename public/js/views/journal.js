@@ -6,6 +6,8 @@ import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { pageHead, sectionHead, stickyHead } from './common.js';
+import { dayTasks } from '../tasks.js';
+import { isDone, isDue } from '../habits.js';
 import { isUnlocked, showUnlock } from '../lock.js';
 
 const clean = v => String(v || '').trim();
@@ -42,6 +44,43 @@ function memory(T) {
     <button class="link" data-a="openday" data-k="${date}">${caption}</button></div></section>`;
 }
 
+/**
+ * Resumen del mes: días cerrados, ánimo más frecuente, tareas hechas y el hábito más constante.
+ * En el mes en curso cuenta hasta hoy («hasta ahora»). No aparece si el mes no tiene nada.
+ */
+function monthSummary(m, T) {
+  const last = m === T.slice(0, 7) ? Number(T.slice(8)) : daysInMonth(m);
+  const dates = Array.from({ length: last }, (_, i) => `${m}-${p2(i + 1)}`);
+  let closed = 0, done = 0, total = 0;
+  const moods = {};
+  for (const date of dates) {
+    const d = S.d[date];
+    if (!d) continue;
+    if (d.closed?.e) closed++;
+    if (d.mood) moods[d.mood] = (moods[d.mood] || 0) + 1;
+    const { focus, rest } = dayTasks(date);
+    for (const t of [...focus, ...rest]) { total++; if (t.row.c) done++; }
+  }
+  const topMood = Object.entries(moods).sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0];
+  let best = null;
+  for (const h of S.h) {
+    const due = dates.filter(date => isDue(h, date));
+    if (due.length < 3) continue; // con muy pocos días no dice mucho
+    const pct = Math.round(due.filter(date => isDone(h, date)).length / due.length * 100);
+    if (!best || pct > best.pct) best = { name: h.name, pct };
+  }
+  if (!closed && !topMood && !total && !best?.pct) return '';
+  const stat = (value, label, extra = '') => `<div class="stat"><b${extra}>${value}</b><span>${label}</span></div>`;
+  const current = m === T.slice(0, 7);
+  return `<section class="section">${sectionHead(current ? tr('Tu mes hasta ahora', 'Your month so far') : tr('Tu mes', 'Your month'))}
+    <div class="card month-summary">
+      ${stat(closed, plural(closed, 'día cerrado', 'días cerrados', 'day closed', 'days closed'))}
+      ${stat(total ? `${done}<small>/${total}</small>` : '—', tr('tareas hechas', 'tasks done'))}
+      ${stat(topMood ? `${icon('mood' + topMood, 'icon face')}` : '—', topMood ? tr(`ánimo más frecuente: ${moodName(+topMood).toLowerCase()}`, `most frequent mood: ${moodName(+topMood).toLowerCase()}`) : tr('sin ánimo registrado', 'no mood logged'), topMood ? ` style="color:${moodColor(+topMood)}"` : '')}
+      ${stat(best ? `${best.pct}%` : '—', best ? tr(`constancia en «${esc(best.name)}»`, `consistency in “${esc(best.name)}”`) : tr('sin hábitos suficientes', 'not enough habit data'))}
+    </div></section>`;
+}
+
 function moodMonth(m) {
   const [y, mo] = m.split('-').map(Number), offset = weekday(new Date(y, mo - 1, 1)), n = daysInMonth(m);
   let cells = DAY_SHORT.map(d => `<span class="muted small" style="text-align:center;font-weight:600">${d.slice(0, 1)}</span>`).join('');
@@ -76,6 +115,7 @@ export function journalView() {
   const nav = `<span class="range"><button class="mini" data-a="shiftjournal" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><span style="text-transform:capitalize">${monthYear(m)}</span><button class="mini" data-a="shiftjournal" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}"${m >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></span>`;
   return `<div class="view">${stickyHead(pageHead({ title, subtitle: nav }))}
     ${m === T.slice(0, 7) ? memory(T) : ''}
+    ${monthSummary(m, T)}
     ${moodMonth(m)}
     <section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'))}
       ${days.length ? `<div style="display:grid;gap:12px">${days.map(([date, d]) => entry(date, d)).join('')}</div>`

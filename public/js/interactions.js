@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTheme, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
+import { U, applyTextSize, applyTheme, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -29,6 +29,8 @@ export function drawSettings() {
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+  const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
+  $$('[data-a=textsize]').forEach(b => { const on = b.dataset.k === size; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   for (const b of document.querySelectorAll('[data-a=lang]')) { const on = b.dataset.k === getLang(); b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
   const locked = lockEnabled();
   $('#privacy-prefs').innerHTML = `<label class="toggle-row"><span>${tr('Proteger el Diario con código', 'Lock the Journal with a code')}</span><span class="switch"><input type="checkbox" data-a="journallock"${locked ? ' checked' : ''}><i></i></span></label>`
@@ -168,6 +170,10 @@ const ACTIONS = {
     S.cfg.appearance = d.k; save(); applyTheme(); drawSettings();
     const picker = $('#sheet [data-looks]'); // la bienvenida también permite elegirla
     if (picker) picker.outerHTML = appearancePicker();
+  },
+  textsize: d => {
+    if (d.k === 'large') S.cfg.textSize = 'large'; else delete S.cfg.textSize;
+    save(); applyTextSize(); drawSettings(); render();
   },
   lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },
   todaypref: (d, b) => { S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked }; save(); render(); },
