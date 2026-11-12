@@ -6,6 +6,7 @@ import { $, esc, today, iso, monday } from './util.js';
 export const U = {
   tab: 'today',          // today · week · habits · journal
   date: today(),         // día abierto en «Hoy»
+  settling: null,        // tarea recién marcada como hecha que espera un momento antes de bajar
   morning: false,        // rituales plegados por defecto
   evening: false,
   notes: false,

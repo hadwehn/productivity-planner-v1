@@ -53,8 +53,14 @@ function taskItem(date, { key, row }, focus) {
   </div>`;
 }
 
+// Las tareas hechas se muestran al final de su grupo (sin cambiar el orden guardado: al desmarcar
+// una tarea vuelve a su lugar). La recién marcada espera un momento antes de bajar (U.settling).
+const pendingFirst = list => [...list].sort((a, b) => done(a) - done(b));
+const done = t => (t.row.c && t.key !== U.settling ? 1 : 0);
+
 function tasksSection(date) {
-  const { focus, rest } = dayTasks(date), T = today();
+  const { focus: focusRaw, rest: restRaw } = dayTasks(date), T = today();
+  const focus = pendingFirst(focusRaw), rest = pendingFirst(restRaw);
   const late = date === T ? overdue(T) : [];
   const lateText = late.length === 1 ? tr('Quedó 1 tarea pendiente de días anteriores.', '1 task left over from previous days.')
     : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`);
