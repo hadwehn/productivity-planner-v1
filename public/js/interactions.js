@@ -322,29 +322,61 @@ function sortable({ handle, item, key, onDrop }) {
 }
 
 // ——— Franja de días en Hoy: deslizar cambia de semana ———
-// Izquierda → semana siguiente; derecha → anterior (como pasar páginas). También con el
-// desplazamiento horizontal del trackpad o arrastrando con el mouse en el computador.
+// La franja tiene tres semanas (anterior, actual, siguiente) y sigue al dedo. Al soltar, si se
+// arrastró lo suficiente (o con un gesto rápido) termina de pasar a la semana vecina; si no,
+// vuelve a su lugar. Izquierda → siguiente; derecha → anterior. En el computador funciona
+// arrastrando con el mouse o deslizando con dos dedos en el trackpad.
+const reduceMotion = () => matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const track = () => $('[data-swipe="week"] .strip-track');
+const place = (el, px, animate) => {
+  el.style.transition = animate ? 'transform .26s cubic-bezier(.2,.7,.3,1)' : 'none';
+  el.style.transform = `translateX(calc(-100% + ${px}px))`;
+};
+/** Termina el paso a la semana vecina (con animación) y vuelve a dibujar centrado en ella. */
 function shiftWeek(n) {
   swipeLearned(); // ya lo descubrió: la pista no vuelve a aparecer
-  U.date = shiftDate(U.date, 7 * n);
-  U.stripSlide = n > 0 ? 'next' : 'prev';
-  render();
+  const el = track(), width = el?.parentElement.offsetWidth || 0;
+  const go = () => { U.date = shiftDate(U.date, 7 * n); render(); };
+  if (!el || reduceMotion()) { go(); return; }
+  let finished = false;
+  const done = () => { if (!finished) { finished = true; go(); } };
+  el.addEventListener('transitionend', done, { once: true });
+  setTimeout(done, 350); // por si el navegador no avisa del final de la transición
+  place(el, -n * width, true);
 }
 function weekSwipe() {
   const strip = e => e.target.closest?.('[data-swipe="week"]');
-  let start = null, swipedAt = 0, wheel = 0, wheelAt = 0;
+  let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
-    if (strip(e) && e.button <= 0) start = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    if (!strip(e) || e.button > 0 || !canEdit()) return;
+    drag = { x: e.clientX, y: e.clientY, id: e.pointerId, el: track(), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
-  document.addEventListener('pointerup', e => {
-    if (!start || e.pointerId !== start.id) return;
-    const dx = e.clientX - start.x, dy = e.clientY - start.y;
-    start = null;
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5 || !canEdit()) return;
+  document.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id || !drag.el?.isConnected) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moving) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dx) < Math.abs(dy)) { drag = null; return; } // es scroll vertical
+      drag.moving = true;
+      try { e.target.setPointerCapture?.(e.pointerId); } catch { /* el puntero ya no está activo */ }
+    }
+    drag.last = [...drag.last.slice(-4), [e.clientX, e.timeStamp]];
+    place(drag.el, dx, false);
+  }, { passive: true });
+  const end = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const { el, moving, x, last } = drag;
+    drag = null;
+    if (!moving || !el?.isConnected) return;
     swipedAt = Date.now();
-    shiftWeek(dx < 0 ? 1 : -1);
-  });
-  document.addEventListener('pointercancel', () => { start = null; });
+    const dx = e.clientX - x, width = el.parentElement.offsetWidth;
+    const [x0, t0] = last[0], speed = (e.clientX - x0) / Math.max(1, e.timeStamp - t0); // px por ms
+    const flick = Math.abs(speed) > 0.45 && Math.sign(speed) === Math.sign(dx);
+    if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftWeek(dx < 0 ? 1 : -1);
+    else place(el, 0, true); // no alcanzó: vuelve a su lugar
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
   // Un deslizamiento no debe contar además como toque sobre un día.
   document.addEventListener('click', e => {
     if (Date.now() - swipedAt < 450 && strip(e)) { e.preventDefault(); e.stopPropagation(); }

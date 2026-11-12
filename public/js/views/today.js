@@ -20,19 +20,25 @@ const greeting = () => {
 };
 const preview = (value, max = 90) => { const t = String(value || '').replace(/\s+/g, ' ').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
 
-function weekStrip(date) {
-  const mon = iso(monday(parseDate(date))), T = today();
+/** Una semana de la franja. `side` = true para las semanas vecinas (solo se ven al deslizar). */
+function weekPanel(mon, selected, side) {
+  const T = today();
   const days = DAY_SHORT.map((label, i) => {
     const d = shiftDate(mon, i), { focus, rest } = dayTasks(d), all = [...focus, ...rest];
     const mark = all.length ? `<i class="${all.every(x => x.row.c) ? 'full' : ''}"></i>` : '';
-    return `<button class="day-pill${d === date ? ' on' : ''}${d === T ? ' today' : ''}" data-a="date" data-k="${d}" aria-label="${DAYS[i]} ${parseDate(d).getDate()}" aria-current="${d === date ? 'date' : 'false'}"><span>${label.slice(0, 1)}</span><b>${parseDate(d).getDate()}</b>${mark}</button>`;
+    return `<button class="day-pill${d === selected ? ' on' : ''}${d === T ? ' today' : ''}" data-a="date" data-k="${d}"${side ? ' tabindex="-1"' : ` aria-label="${DAYS[i]} ${parseDate(d).getDate()}" aria-current="${d === selected ? 'date' : 'false'}"`}><span>${label.slice(0, 1)}</span><b>${parseDate(d).getDate()}</b>${mark}</button>`;
   }).join('');
-  // Sin flechas: se cambia de día tocándolo y de semana deslizando la franja (ver interactions.js).
-  const slide = U.stripSlide ? ` slide-${U.stripSlide}` : '';
-  U.stripSlide = '';
-  const nudge = !slide && nudgeOnce() ? ' nudge' : '';
+  return `<div class="days"${side ? ' aria-hidden="true"' : ''}>${days}</div>`;
+}
+
+// Sin flechas: se cambia de día tocándolo y de semana deslizando la franja, que sigue al dedo y
+// deja ver la semana anterior o la siguiente (ver interactions.js).
+function weekStrip(date) {
+  const mon = iso(monday(parseDate(date)));
+  const panels = [-1, 0, 1].map(o => weekPanel(shiftDate(mon, 7 * o), shiftDate(date, 7 * o), o !== 0)).join('');
+  const nudge = nudgeOnce() ? ' nudge' : '';
   const hint = swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '';
-  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="days${slide}${nudge}">${days}</div></div>${hint}`;
+  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${hint}`;
 }
 
 function taskItem(date, { key, row }, focus) {

@@ -6,7 +6,6 @@ import { $, esc, today, iso, monday } from './util.js';
 export const U = {
   tab: 'today',          // today · week · habits · journal
   date: today(),         // día abierto en «Hoy»
-  stripSlide: '',        // animación de la franja de días al cambiar de semana (next · prev)
   morning: false,        // rituales plegados por defecto
   evening: false,
   notes: false,
