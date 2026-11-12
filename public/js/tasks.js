@@ -150,6 +150,19 @@ export function moveTask(date, key, target) {
   return { undo };
 }
 
+/** Pasa todas las tareas sin terminar de `date` a `target` (las de foco, al foco si cabe). */
+export function movePendingTo(date, target) {
+  const undo = snapshot([date, target]);
+  let count = 0;
+  // Al mover una, el día se reescribe sin huecos: se busca la siguiente pendiente cada vez.
+  for (let next = pendingOf(date); next; next = pendingOf(date)) {
+    if (moveTask(date, next.key, target).error) break;
+    count++;
+  }
+  return { count, undo };
+}
+const pendingOf = date => { const { focus, rest } = dayTasks(date); return [...focus, ...rest].find(t => !t.row.c); };
+
 // ——— Pendientes de días anteriores ———
 const LOOKBACK_DAYS = 21;
 

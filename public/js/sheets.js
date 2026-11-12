@@ -3,7 +3,7 @@
 import { S, save } from './state.js';
 import { U, toast, toastUndo } from './ui.js';
 import {
-  bringOverdue, dropTask, getTask, isFocusKey, moveTask, moveWeekTaskToNext, overdue, removeTask, removeWeekTask, restore,
+  bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask, removeWeekTask, restore,
   snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
@@ -312,4 +312,31 @@ export function appearancePicker() {
     <div class="looks">${card('light', tr('Clara', 'Light'))}${card('dark', tr('Oscura', 'Dark'))}</div>
     <button type="button" class="link look-auto${pref === 'auto' ? ' on' : ''}" data-a="appearance" data-k="auto" aria-pressed="${pref === 'auto'}">${pref === 'auto' ? icon('check') : ''}${tr('Igual que mi celular', 'Same as my phone')}</button>
     <p class="prompt-hint" style="text-align:center;margin-top:2px">${tr('Puedes cambiarla cuando quieras en Ajustes.', 'You can change it anytime in Settings.')}</p></div>`;
+}
+
+// ——— Al cerrar el día: ¿pasar lo pendiente a mañana? ———
+let undoClose = null;
+/** Se abre al cerrar el día si quedaron tareas sin hacer. `undo` deshace el cierre. */
+export function carryOverSheet(date, undo) {
+  const { focus, rest } = dayTasks(date), pending = [...focus, ...rest].filter(t => !t.row.c);
+  if (!pending.length) return false;
+  undoClose = undo;
+  const n = pending.length;
+  openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr('Te quedó una tarea sin terminar. ¿La pasas a mañana?', 'One task is left. Move it to tomorrow?') : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas a mañana?`, `${n} tasks are left. Move them to tomorrow?`)}</p>
+    <ul class="carry-list">${pending.map(t => `<li>${isFocusKey(t.key) ? icon('star', 'icon star-fill') : '<i class="dot"></i>'}<span class="caps">${esc(t.row.t)}</span></li>`).join('')}</ul>
+    <button class="btn" data-a="carryover">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>
+    <button class="btn quiet" data-a="dismiss" style="margin-top:8px">${tr('Dejarlas aquí', 'Leave them here')}</button>
+    <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`);
+  return true;
+}
+export function doCarryOver(date) {
+  const { count, undo } = movePendingTo(date, shiftDate(date, 1));
+  closeSheet();
+  render();
+  if (count) toastUndo(count === 1 ? tr('1 tarea pasó a mañana', '1 task moved to tomorrow') : tr(`${count} tareas pasaron a mañana`, `${count} tasks moved to tomorrow`), () => { restore(undo); render(); });
+}
+export function undoDayClose() {
+  closeSheet();
+  undoClose?.();
+  undoClose = null;
 }

@@ -10,7 +10,7 @@ import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
-import { appearancePicker, openSheet } from './sheets.js';
+import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
@@ -126,8 +126,13 @@ const ACTIONS = {
     const undo = finishRitual(date, which);
     U[which === 'm' ? 'morning' : 'evening'] = false;
     render();
-    toastUndo(which === 'm' ? tr('Listo. Que tengas un buen día.', 'Done. Have a good day.') : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); });
+    const reopen = () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); };
+    // Al cerrar el día, si quedaron tareas, se ofrece pasarlas a mañana (la hoja trae su propio «deshacer»).
+    if (which === 'e' && carryOverSheet(date, reopen)) return;
+    toastUndo(which === 'm' ? tr('Listo. Que tengas un buen día.', 'Done. Have a good day.') : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
   },
+  carryover: () => doCarryOver(U.date),
+  closeundo: () => undoDayClose(),
 
   // Eventos
   eventnew: d => eventEditor(d.k || (U.tab === 'week' ? U.calDay : U.date)),

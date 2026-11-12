@@ -538,3 +538,19 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .look-auto { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 8px 0 0; color: var(--ink-2); }
 .look-auto.on { color: var(--acc); font-weight: 600; }
 .look-auto .icon { width: 15px; height: 15px; }
+
+/* Hoja «Día cerrado»: lista de lo que quedó pendiente. */
+.carry-list { list-style: none; margin: 0 0 16px; padding: 10px 12px; border-radius: var(--r-md); background: var(--sunken); display: grid; gap: 8px; }
+.carry-list li { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.carry-list .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mute); flex: none; margin: 0 4px; }
+.carry-list .star-fill { width: 14px; height: 14px; color: var(--gold); fill: currentColor; flex: none; }
+
+/* Ritual terminado y cerrado: una línea discreta «✓ Empieza tu día · Listo» (se abre para leerlo). */
+.ritual.compact { background: transparent; box-shadow: none; border: 1px dashed var(--line); }
+.ritual.compact .ritual-head { min-height: 0; padding: 8px 14px; gap: 10px; }
+.ritual.compact .ritual-icon { width: 24px; height: 24px; }
+.ritual.compact .ritual-icon .icon { width: 14px; height: 14px; }
+.ritual.compact .ritual-text { display: flex; align-items: baseline; gap: 8px; }
+.ritual.compact .ritual-text strong { font: 500 15px/1.3 var(--sans); color: var(--ink-2); }
+.ritual.compact .ritual-text small { margin: 0; font: 600 13px/1.3 var(--sans); color: var(--acc); font-style: normal; }
+.ritual.compact .chev .icon { width: 16px; height: 16px; }

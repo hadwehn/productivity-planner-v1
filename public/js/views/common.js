@@ -27,8 +27,9 @@ export const segmented = (action, options, current) => `<div class="seg" role="t
   `<button role="tab" class="${k === current ? 'on' : ''}" data-a="${action}" data-k="${k}" aria-selected="${k === current}">${label}</button>`).join('')}</div>`;
 
 /** Bloque plegable con cabecera (rituales, revisión, notas). */
-export const foldable = ({ key, open, iconName, iconCls = '', title, summary, written = false, body }) =>
-  `<section class="card ritual${open ? ' open' : ''}">
+/** `compact`: ya terminado y cerrado, se muestra como una sola línea discreta («✓ Listo»). */
+export const foldable = ({ key, open, iconName, iconCls = '', title, summary, written = false, body, compact = false }) =>
+  `<section class="card ritual${open ? ' open' : ''}${compact && !open ? ' compact' : ''}">
     <button class="ritual-head" data-a="fold" data-k="${key}" aria-expanded="${open}">
       <span class="ritual-icon ${iconCls}">${icon(iconName)}</span>
       <span class="ritual-text"><strong>${title}</strong><small class="${written ? 'written' : ''}">${summary}</small></span>
