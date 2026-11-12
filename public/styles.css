@@ -552,7 +552,7 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .ritual.compact .ritual-icon { width: 24px; height: 24px; }
 .ritual.compact .ritual-icon .icon { width: 14px; height: 14px; }
 .ritual.compact .ritual-text { display: flex; align-items: baseline; gap: 8px; }
-.ritual.compact .ritual-text strong { font: 500 calc(15px * var(--ts))/1.3 var(--sans); color: var(--ink-2); }
+.ritual.compact .ritual-text strong { color: var(--ink-2); } /* misma letra que el título del ritual abierto */
 .ritual.compact .ritual-text small { margin: 0; font: 600 calc(13px * var(--ts))/1.3 var(--sans); color: var(--acc); font-style: normal; }
 .ritual.compact .chev .icon { width: 16px; height: 16px; }
 
