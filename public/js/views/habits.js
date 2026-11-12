@@ -19,9 +19,9 @@ function habitCard(h, week, T) {
   const progress = weekly !== null
     ? `<div class="habit-progress"><i style="width:${Math.min(100, Math.round(weekly / h.perWeek * 100))}%"></i></div>`
     : pct !== null ? `<p class="muted small">${tr('Constancia en 4 semanas', 'Consistency, last 4 weeks')}: <b style="color:var(--ink)">${pct}%</b></p>` : '<span></span>';
+  // Se reordena manteniendo presionada la tarjeta (sin manija); un toque en el nombre abre el historial.
   return `<article class="card habit" style="--c:${c}" data-habit="${esc(h.id)}">
     <div class="habit-top">
-      <span class="handle" data-habit-drag="${esc(h.id)}" aria-hidden="true">${icon('grip')}</span>
       <button class="name" data-a="habitopen" data-id="${esc(h.id)}"><strong>${name}</strong><small>${sub}</small></button>
       <div class="habit-stat"><b>${s.n}</b><small>${s.unit} ${tr('de racha', 'streak')}</small></div>
     </div>
@@ -39,6 +39,6 @@ export function habitsView() {
   return `<div class="view">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }))}
     ${cards ? `<div style="display:grid;gap:12px">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>
-    ${S.h.length ? `<p class="muted small" style="text-align:center;margin:14px 8px 0">${tr('Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial, o ⋯ para editarlo o eliminarlo.', 'Missed a day? That’s fine: your streak picks up when you come back. Tap a habit to see its history, or ⋯ to edit or delete it.')}</p>` : ''}
+    ${S.h.length ? `<p class="muted small" style="text-align:center;margin:14px 8px 0">${tr('Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial, ⋯ para editarlo o mantenlo presionado para cambiarlo de lugar.', 'Missed a day? That’s fine: your streak picks up when you come back. Tap a habit to see its history, ⋯ to edit it, or press and hold to move it.')}</p>` : ''}
   </div>`;
 }

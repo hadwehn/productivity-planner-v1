@@ -299,7 +299,7 @@ function onKeydown(e) {
 // ——— Arrastrar para ordenar (pulsación sostenida en el asa) ———
 // Reordenar: se mantiene presionada la tarjeta (o la manija, en los hábitos) y se arrastra.
 // Al empezar a arrastrar se suelta el campo de texto, para que no aparezca el teclado ni la lupa.
-function sortable({ handle, item, key, onDrop }) {
+function sortable({ handle, item, key, onDrop, ignore = 'button, a, input, [contenteditable]' }) {
   let drag = null, timer = null;
   const clear = () => {
     clearTimeout(timer);
@@ -311,7 +311,7 @@ function sortable({ handle, item, key, onDrop }) {
   document.addEventListener('pointerdown', e => {
     const h = e.target.closest(handle);
     if (!h || !canEdit() || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    if (e.target.closest('button, a, input, [contenteditable]')) return; // los botones de la tarjeta siguen funcionando
+    if (e.target.closest(ignore)) return; // los botones de la tarjeta siguen funcionando
     const source = h.closest(item);
     if (!source) return;
     drag = { id: key(source), target: key(source), pointer: e.pointerId, x: e.clientX, y: e.clientY, active: false };
@@ -439,6 +439,6 @@ export function initInteractions(isReady) {
   document.addEventListener('keydown', onKeydown);
   weekSwipe();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
-  sortable({ handle: '[data-habit-drag]', item: '.habit[data-habit]', key: el => el.dataset.habit, onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
+  sortable({ handle: '.habit[data-habit]', item: '.habit[data-habit]', key: el => el.dataset.habit, ignore: '.week-dot, .task-btn, a, input', onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
 }
 export { openSettings };
