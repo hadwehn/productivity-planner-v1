@@ -12,7 +12,7 @@ import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '
 import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
-import { ritualState } from '../rituals.js';
+import { dayClosed, ritualState } from '../rituals.js';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -41,14 +41,18 @@ function weekStrip(date) {
   return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${hint}`;
 }
 
-function taskItem(date, { key, row }, focus) {
+function taskItem(date, { key, row }, focus, closed) {
   const linked = row.source ? `<span class="task-meta">${tr('De tu semana', 'From your week')}</span>` : '';
   const star = focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus');
+  // En un día ya pasado la tarea no se edita ni se reordena: solo se marca o se mueve (desde ⋯).
+  const text = closed ? `<span>${esc(row.t)}</span>` : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
+  const starBtn = closed ? (focus ? `<span class="task-btn star on" aria-hidden="true">${icon('star')}</span>` : '')
+    : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}">
-    ${focus ? '' : `<span class="handle" data-drag="${key}" aria-hidden="true">${icon('grip')}</span>`}
+    ${focus || closed ? '' : `<span class="handle" data-drag="${key}" aria-hidden="true">${icon('grip')}</span>`}
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
-    <div class="task-main"><textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>${linked}</div>
-    <button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>
+    <div class="task-main">${text}${linked}</div>
+    ${starBtn}
     <button class="task-btn" data-a="taskmenu" data-k="${key}" aria-label="${tr('Más opciones', 'More options')}" title="${tr('Más opciones', 'More options')}">${icon('more')}</button>
   </div>`;
 }
@@ -66,14 +70,17 @@ function tasksSection(date) {
     : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`);
   const banner = late.length ? `<div class="banner">${icon('inbox')}<p>${lateText}</p><button class="btn small" data-a="overdue">${tr('Revisar', 'Review')}</button></div>` : '';
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
-  const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`
-    + (focus.length ? focus.map(t => taskItem(date, t, true)).join('')
+  const closed = dayClosed(date);
+  const items = (list, focus) => list.map(t => taskItem(date, t, focus, closed)).join('');
+  const focusBlock = closed && !focus.length ? '' : `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`
+    + (focus.length ? items(focus, true)
       : `<p class="empty-note" style="padding:0 8px 6px">${tr('Marca con ★ hasta tres tareas que harían de este un buen día.', 'Star up to three tasks that would make this a good day.')}</p>`);
-  const restBlock = rest.length ? `<div class="divider"></div>${rest.map(t => taskItem(date, t, false)).join('')}` : '';
+  const restBlock = rest.length ? `${focusBlock ? '<div class="divider"></div>' : ''}${items(rest, false)}` : '';
+  const add = closed ? '' : `<form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>`;
+  const card = closed && !total ? `<p class="empty-note" style="margin-left:4px">${tr('No hubo tareas este día.', 'No tasks on this day.')}</p>`
+    : `<div class="card tasks">${focusBlock}${restBlock}${add}</div>${closed ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es un día pasado: puedes marcar sus tareas o moverlas a otro día desde ⋯.', 'This day has passed: you can check off its tasks or move them to another day from ⋯.')}</p>` : ''}`;
   return `<section class="section">${banner}${sectionHead(tr('Tareas', 'Tasks'), total ? `<span class="muted small">${doneCount} ${tr('de', 'of')} ${total}</span>` : '')}
-    <div class="card tasks">${focusBlock}${restBlock}
-      <form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>
-    </div></section>`;
+    ${card}</section>`;
 }
 
 function agendaSection(date) {

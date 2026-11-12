@@ -200,7 +200,9 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .focus .check { border-color: var(--gold); }
 .focus .check.on { background: var(--gold); border-color: var(--gold); color: #fff; }
 .task textarea { flex: none; padding: 9px 0 8px; min-height: 40px; line-height: 1.45; }
-.task.done textarea { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+/* Texto de solo lectura (días pasados): misma medida que el campo editable. */
+.task-main > span:not(.task-meta) { padding: 9px 0 8px; min-height: 40px; line-height: 1.45; overflow-wrap: anywhere; }
+.task.done textarea, .task.done .task-main > span:not(.task-meta) { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
 .task-meta { display: block; font-size: 12px; color: var(--mute); margin: -6px 0 6px; }
 .task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .task-btn { width: 36px; height: 40px; display: grid; place-items: center; color: var(--mute); flex: none; border-radius: 10px; }

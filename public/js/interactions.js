@@ -15,7 +15,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
-import { canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
+import { dayClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -96,11 +96,11 @@ const ACTIONS = {
     const { focus } = dayTasks(U.date);
     if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
   }),
-  taskfocus: d => { doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
+  taskfocus: d => { if (dayClosed(U.date)) return; doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
-  taskdelete: d => doDeleteTask(U.date, +d.k),
+  taskdelete: d => { if (!dayClosed(U.date)) doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
@@ -205,6 +205,7 @@ function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return false;
   if (form.dataset.form === 'addtask') {
+    if (dayClosed(U.date)) return false; // un día pasado no recibe tareas nuevas
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
@@ -243,7 +244,7 @@ function onInput(e) {
     if (w && !canEditReview(w[1])) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
-  else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
+  else if (el.dataset.taskText && !dayClosed(U.date)) renameTask(U.date, +el.dataset.taskText, el.value);
   else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
 }
 /** Una tarea que se queda sin texto al salir del campo se elimina. */

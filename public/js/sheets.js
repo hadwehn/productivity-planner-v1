@@ -11,6 +11,7 @@ import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
 import { MAX_EVENT_DAYS, rangeLabel } from './events.js';
+import { dayClosed } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
 import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
 
@@ -37,12 +38,16 @@ function datePicker(action, attrs, from = today()) {
 export function taskMenu(date, key) {
   const row = getTask(date, key);
   if (!row) return;
-  const focus = isFocusKey(key), tomorrow = shiftDate(date, 1);
+  const focus = isFocusKey(key), tomorrow = shiftDate(date, 1), closed = dayClosed(date), T = today();
+  // En un día pasado solo se puede mover la tarea (a hoy o a otro día); no se edita ni se borra.
+  const moveFirst = closed
+    ? `<button data-a="taskmove" data-k="${key}" data-date="${T}">${icon('tomorrow')}${tr('Pasar a hoy', 'Move to today')}</button>`
+    : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
-    <button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>
+    ${moveFirst}
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir otro día', 'Pick another day')}</button>
-    <button data-a="taskfocus" data-k="${key}" data-close="1">${icon(focus ? 'starOff' : 'star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
-    <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
+    ${closed ? '' : `<button data-a="taskfocus" data-k="${key}" data-close="1">${icon(focus ? 'starOff' : 'star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
+    <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>`}
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí. Si cambias su nombre, dejan de estar vinculadas.', 'This comes from your week: marking it done also marks it there. If you rename it, they are no longer linked.')}</p>` : ''}`);
 }
 export function taskPick(date, key) {

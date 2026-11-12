@@ -12,6 +12,12 @@ export function inWindow(date, now = new Date()) {
   end.setHours(LOCK_HOUR);
   return now >= parseDate(date) && now < end;
 }
+/** El día ya pasó (son más de las 3:00 del día siguiente): sus tareas solo se marcan o se mueven. */
+export function dayClosed(date, now = new Date()) {
+  const end = parseDate(shiftDate(date, 1));
+  end.setHours(LOCK_HOUR);
+  return now >= end;
+}
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
 export const canEditRitual = (date, which) => !isFinished(date, which) && inWindow(date);
 /** 'open' | 'done' | 'past' (ya cerró el plazo) | 'future' (todavía no llega el día) */
