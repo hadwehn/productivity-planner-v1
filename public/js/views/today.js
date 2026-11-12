@@ -48,8 +48,7 @@ function taskItem(date, { key, row }, focus, closed) {
   const text = closed ? `<span>${esc(row.t)}</span>` : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
   const starBtn = closed ? (focus ? `<span class="task-btn star on" aria-hidden="true">${icon('star')}</span>` : '')
     : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
-  return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}">
-    ${focus || closed ? '' : `<span class="handle" data-drag="${key}" aria-hidden="true">${icon('grip')}</span>`}
+  return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}"${closed ? '' : ' data-sort'}>
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>
     ${starBtn}

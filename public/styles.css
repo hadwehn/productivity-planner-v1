@@ -212,7 +212,10 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .task-btn.star.on .icon { fill: currentColor; }
 /* El título «En foco» lleva la misma estrella rellena que marca las tareas en foco. */
 .group-label .label.gold .icon, .section-head .label.gold .icon { fill: currentColor; }
-.task .handle { width: 18px; height: 40px; margin-left: -4px; display: grid; place-items: center; color: var(--line-strong); touch-action: none; cursor: grab; flex: none; }
+/* Las tareas se reordenan manteniendo presionada la tarjeta (sin manija). */
+.task[data-sort] { -webkit-touch-callout: none; }
+.task[data-sort] textarea:not(:focus) { -webkit-user-select: none; user-select: none; }
+.is-dragging .task textarea { pointer-events: none; }
 .add-row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 4px; margin-top: 2px; border-top: 1px dashed var(--line); }
 .add-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--acc); transition: background .15s; }
 .add-btn:hover, .add-btn:active { background: var(--sunken); }

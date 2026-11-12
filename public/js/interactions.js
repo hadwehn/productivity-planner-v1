@@ -297,6 +297,8 @@ function onKeydown(e) {
 }
 
 // ——— Arrastrar para ordenar (pulsación sostenida en el asa) ———
+// Reordenar: se mantiene presionada la tarjeta (o la manija, en los hábitos) y se arrastra.
+// Al empezar a arrastrar se suelta el campo de texto, para que no aparezca el teclado ni la lupa.
 function sortable({ handle, item, key, onDrop }) {
   let drag = null, timer = null;
   const clear = () => {
@@ -309,6 +311,7 @@ function sortable({ handle, item, key, onDrop }) {
   document.addEventListener('pointerdown', e => {
     const h = e.target.closest(handle);
     if (!h || !canEdit() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if (e.target.closest('button, a, input, [contenteditable]')) return; // los botones de la tarjeta siguen funcionando
     const source = h.closest(item);
     if (!source) return;
     drag = { id: key(source), target: key(source), pointer: e.pointerId, x: e.clientX, y: e.clientY, active: false };
@@ -322,8 +325,10 @@ function sortable({ handle, item, key, onDrop }) {
       document.body.append(clone);
       Object.assign(drag, { preview: clone, dx: drag.x - rect.left, dy: drag.y - rect.top });
       source.classList.add('dragging');
+      document.activeElement?.blur?.();
+      getSelection?.()?.removeAllRanges();
       navigator.vibrate?.(8);
-    }, e.pointerType === 'mouse' ? 150 : 320);
+    }, e.target.closest('textarea') ? 380 : e.pointerType === 'mouse' ? 150 : 320);
   });
   document.addEventListener('pointermove', e => {
     if (!drag || drag.pointer !== e.pointerId) return;
@@ -339,12 +344,18 @@ function sortable({ handle, item, key, onDrop }) {
   const finish = e => {
     if (!drag || drag.pointer !== e.pointerId) return;
     const { id, target, active } = drag;
+    if (active) droppedAt = Date.now();
     clear();
     if (active && e.type === 'pointerup' && id !== target) onDrop(id, target);
   };
   document.addEventListener('pointerup', finish);
   document.addEventListener('pointercancel', finish);
+  // Mientras se arrastra, el dedo mueve la tarjeta y no la página.
+  document.addEventListener('touchmove', e => { if (drag?.active) e.preventDefault(); }, { passive: false });
+  // Un arrastre no debe terminar abriendo el campo de texto o un botón.
+  document.addEventListener('click', e => { if (Date.now() - droppedAt < 400 && e.target.closest(item)) { e.preventDefault(); e.stopPropagation(); } }, true);
 }
+let droppedAt = 0;
 
 // ——— Franja de días en Hoy: deslizar cambia de semana ———
 // La franja tiene tres semanas (anterior, actual, siguiente) y sigue al dedo. Al soltar, si se
@@ -427,7 +438,7 @@ export function initInteractions(isReady) {
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('keydown', onKeydown);
   weekSwipe();
-  sortable({ handle: '[data-drag]', item: '.task[data-task]:not(.focus)', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
+  sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
   sortable({ handle: '[data-habit-drag]', item: '.habit[data-habit]', key: el => el.dataset.habit, onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
 }
 export { openSettings };
