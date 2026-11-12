@@ -521,3 +521,20 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .ritual-icon.done { background: var(--acc); color: var(--acc-ink, #fff); }
 .moods.read { justify-content: flex-start; }
 .moods.read .mood { cursor: default; }
+
+/* Bienvenida: elegir apariencia con muestras. */
+.look-picker { margin: 0 0 18px; }
+.look-picker > .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+.looks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.look { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 8px 10px; border-radius: 16px; border: 1.5px solid var(--line); font-size: 14px; font-weight: 600; color: var(--ink-2); transition: border-color .2s; }
+.look.on { border-color: var(--acc); color: var(--ink); }
+.swatch { display: grid; gap: 5px; width: 100%; padding: 9px; border-radius: 11px; background: var(--sb); border: 1px solid var(--sl); box-sizing: border-box; }
+.sw-title { display: block; width: 46%; height: 7px; border-radius: 4px; background: var(--si); opacity: .85; }
+.sw-card { display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 7px; background: var(--sc); border: 1px solid var(--sl); }
+.sw-check { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--sa); flex: none; }
+.sw-check.on { background: var(--sa); }
+.sw-line { display: block; height: 5px; flex: 1; border-radius: 3px; background: var(--si); opacity: .55; }
+.sw-line.short { flex: 0 0 55%; }
+.look-auto { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 8px 0 0; color: var(--ink-2); }
+.look-auto.on { color: var(--acc); font-weight: 600; }
+.look-auto .icon { width: 15px; height: 15px; }

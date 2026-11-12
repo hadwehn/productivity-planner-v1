@@ -10,7 +10,7 @@ import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
-import { openSheet } from './sheets.js';
+import { appearancePicker, openSheet } from './sheets.js';
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
@@ -159,7 +159,11 @@ const ACTIONS = {
   shiftjournal: update(d => { U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
 
   // Ajustes
-  appearance: d => { S.cfg.appearance = d.k; save(); applyTheme(); drawSettings(); },
+  appearance: d => {
+    S.cfg.appearance = d.k; save(); applyTheme(); drawSettings();
+    const picker = $('#sheet [data-looks]'); // la bienvenida también permite elegirla
+    if (picker) picker.outerHTML = appearancePicker();
+  },
   lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },
   todaypref: (d, b) => { S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked }; save(); render(); },
 };

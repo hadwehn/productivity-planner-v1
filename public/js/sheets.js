@@ -294,5 +294,22 @@ export function welcome() {
       <div class="pillar"><span class="ritual-icon">${icon('week')}</span><div><strong>${tr('Plan', 'Plan')}</strong><p>${tr('Tu semana y tu mes: define lo que importa y repártelo en los días con un toque.', 'Your week and month: decide what matters and spread it across the days with a tap.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon">${icon('habits')}</span><div><strong>${tr('Hábitos', 'Habits')}</strong><p>${tr('Constancia, no perfección: si fallas un día, retomas al siguiente.', 'Consistency, not perfection: miss a day, pick it up the next.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon evening">${icon('journal')}</span><div><strong>${tr('Diario', 'Journal')}</strong><p>${tr('Todo lo que escribes queda aquí para volver a leerlo.', 'Everything you write stays here to read again.')}</p></div></div>
-    </div><button class="btn" data-a="welcomed">${tr('Empezar', 'Get started')}</button>`);
+    </div>${appearancePicker()}<button class="btn" data-a="welcomed">${tr('Empezar', 'Get started')}</button>`);
+}
+
+// Elegir la apariencia en la bienvenida: dos muestras (clara y oscura) y la opción de seguir al celular.
+// Cada muestra usa colores fijos de su modo, para que se vea igual sin importar el modo actual.
+const SWATCH = { light: ['#F4F1EB', '#FBFAF7', '#1E2321', '#2F5D4E', '#E3DDD2'], dark: ['#111413', '#191D1B', '#ECE8E1', '#F2C94C', '#2A302D'] };
+function swatch(mode) {
+  const [bg, card, ink, acc, line] = SWATCH[mode];
+  return `<span class="swatch" style="--sb:${bg};--sc:${card};--si:${ink};--sa:${acc};--sl:${line}" aria-hidden="true">
+    <i class="sw-title"></i><span class="sw-card"><i class="sw-check"></i><i class="sw-line"></i></span><span class="sw-card"><i class="sw-check on"></i><i class="sw-line short"></i></span></span>`;
+}
+export function appearancePicker() {
+  const pref = S.cfg.appearance || 'auto';
+  const card = (k, label) => `<button type="button" class="look${pref === k ? ' on' : ''}" data-a="appearance" data-k="${k}" aria-pressed="${pref === k}">${swatch(k)}<span>${label}</span></button>`;
+  return `<div class="look-picker" data-looks><span class="field-label">${tr('¿Cómo prefieres verla?', 'How would you like it to look?')}</span>
+    <div class="looks">${card('light', tr('Clara', 'Light'))}${card('dark', tr('Oscura', 'Dark'))}</div>
+    <button type="button" class="link look-auto${pref === 'auto' ? ' on' : ''}" data-a="appearance" data-k="auto" aria-pressed="${pref === 'auto'}">${pref === 'auto' ? icon('check') : ''}${tr('Igual que mi celular', 'Same as my phone')}</button>
+    <p class="prompt-hint" style="text-align:center;margin-top:2px">${tr('Puedes cambiarla cuando quieras en Ajustes.', 'You can change it anytime in Settings.')}</p></div>`;
 }
