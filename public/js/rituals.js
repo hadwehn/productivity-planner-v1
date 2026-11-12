@@ -41,3 +41,24 @@ export function finishRitual(date, which) {
     save();
   };
 }
+
+// ——— Revisión semanal ———
+// Se escribe durante su semana; solo el domingo (hasta las 3:00 del lunes) aparece el botón para
+// darla por terminada. Terminada, o pasado ese plazo, queda solo para leer. Se guarda en w[lunes].closed.
+/** 'open' (se escribe, aún no es domingo) | 'sunday' (se puede terminar) | 'done' | 'past' | 'future' */
+export function reviewState(week, now = new Date()) {
+  if (S.w[week]?.closed === true) return 'done';
+  const end = parseDate(shiftDate(week, 7));
+  end.setHours(LOCK_HOUR);
+  if (now >= end) return 'past';
+  if (now < parseDate(week)) return 'future';
+  return now >= parseDate(shiftDate(week, 6)) ? 'sunday' : 'open';
+}
+export const canEditReview = (week, now) => ['open', 'sunday'].includes(reviewState(week, now));
+export const hasReview = week => Object.values(S.w[week]?.r || {}).some(v => clean(v));
+export function finishReview(week) {
+  const w = S.w[week] = S.w[week] || {};
+  w.closed = true;
+  save();
+  return () => { if (S.w[week]) delete S.w[week].closed; save(); };
+}

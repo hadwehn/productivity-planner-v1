@@ -14,7 +14,7 @@ import { habitsView } from '../public/js/views/habits.js';
 import { journalView } from '../public/js/views/journal.js';
 import { shiftDate, today } from '../public/js/util.js';
 import { eventsOn } from '../public/js/events.js';
-import { inWindow } from '../public/js/rituals.js';
+import { inWindow, reviewState } from '../public/js/rituals.js';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -229,6 +229,14 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   const copy = JSON.parse(JSON.stringify(S)); copy.d[DAY].closed = { m: 'sí' };
   let failed = false; try { checkedState(copy); } catch { failed = true; }
   eq(failed, true, 'cierre inválido');
+  const W = '2026-11-09';
+  eq(['2026-11-12T12:00', '2026-11-15T00:00', '2026-11-16T02:59', '2026-11-16T03:00', '2026-11-08T23:00'].map(t => reviewState(W, new Date(t))), ['open', 'sunday', 'sunday', 'past', 'future'], 'revisión: botón solo el domingo, hasta las 3:00 del lunes');
+  S.w[W] = { r: { 0: 'Bien' }, closed: true };
+  eq(reviewState(W, new Date('2026-11-15T10:00')), 'done');
+  eq(v1Accepts(S), true);
+  const badW = JSON.parse(JSON.stringify(S)); badW.w[W].closed = 'sí';
+  let badFailed = false; try { checkedState(badW); } catch { badFailed = true; }
+  eq(badFailed, true, 'cierre de revisión inválido');
   eq([inWindow('2026-11-11', new Date('2026-11-12T02:59')), inWindow('2026-11-11', new Date('2026-11-12T03:00')), inWindow('2026-11-11', new Date('2026-11-10T23:00'))], [true, false, false], 'hasta las 3:00');
 });
 

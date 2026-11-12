@@ -15,7 +15,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
-import { canEditRitual, finishRitual, hasContent } from './rituals.js';
+import { canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -101,6 +101,16 @@ const ACTIONS = {
 
   // Ánimo
   mood: update(d => { if (!canEditRitual(U.date, 'e')) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
+  reviewdone: () => {
+    const week = U.week;
+    if (reviewState(week) !== 'sunday') { render(); return; }
+    if (!hasReview(week)) { toast(tr('Responde al menos una pregunta antes de terminar.', 'Answer at least one question before finishing.')); return; }
+    document.activeElement?.blur?.();
+    const undo = finishReview(week);
+    U.review = false;
+    render();
+    toastUndo(tr('Semana revisada. Bien hecho.', 'Week reviewed. Well done.'), () => { undo(); U.review = true; render(); });
+  },
   ritualdone: d => {
     const which = d.k, date = U.date;
     if (!canEditRitual(date, which)) { render(); return; }
@@ -222,6 +232,8 @@ function onInput(e) {
     // Lo de «Empieza/Cierra tu día» solo se guarda mientras se puede editar (otro dispositivo pudo cerrarlo, o pasó la hora).
     const m = /^d\.(\d{4}-\d{2}-\d{2})\.(i|g|r|hl|learn|remember|p)$/.exec(el.dataset.p);
     if (m && !canEditRitual(m[1], ['i', 'g'].includes(m[2]) ? 'm' : 'e')) { render(); return; }
+    const w = /^w\.(\d{4}-\d{2}-\d{2})\.r\.\d+$/.exec(el.dataset.p);
+    if (w && !canEditReview(w[1])) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);

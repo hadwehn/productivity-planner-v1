@@ -8,6 +8,7 @@ import { icon } from '../icons.js';
 import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
+import { reviewState } from '../rituals.js';
 import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 function overview(week) {
@@ -47,21 +48,39 @@ function progress(week) {
   return `<div class="progress-line" style="margin:14px 4px 0"><div class="bar"><i style="width:${Math.round(done / all.length * 100)}%"></i></div><span class="muted small">${done} ${tr('de', 'of')} ${all.length}</span></div>`;
 }
 
+/** Pie de la revisión: el botón para terminarla aparece solo el domingo (hasta las 3:00 del lunes). */
+function reviewFoot(state) {
+  if (state === 'sunday') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Terminar la revisión', 'Finish the review')}</button>
+    <p class="prompt-hint" style="text-align:center;margin-top:8px">${tr('Al terminarla queda guardada y ya no se puede cambiar.', 'Once finished, it’s saved and can’t be changed.')}</p>`;
+  const note = { open: tr('El domingo podrás darla por terminada.', 'On Sunday you can mark it as finished.'),
+    done: tr('Terminaste la revisión de esta semana. Quedó guardada así.', 'You finished this week’s review. It’s saved as it is.'),
+    past: tr('Esta semana ya cerró: la revisión se puede escribir hasta las 3:00 del lunes siguiente.', 'This week is closed: the review can be written until 3:00 the following Monday.'),
+    future: tr('Podrás escribirla durante esa semana.', 'You can write it during that week.') }[state];
+  return `<p class="ritual-note">${icon(state === 'done' ? 'check' : state === 'open' ? 'calendar' : 'lock')}${note}</p>`;
+}
+
 function weekView() {
   const week = U.week, W = `w.${week}.`, thisWeek = iso(monday(new Date())), questions = weekQuestions();
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
-  const summary = answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
-    : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
+  const state = reviewState(week), editable = state === 'open' || state === 'sunday';
+  const summary = state === 'done' ? tr(`Revisión terminada · ${answered} de ${questions.length}`, `Review done · ${answered} of ${questions.length}`)
+    : answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
+      : state === 'past' ? tr('Sin revisión', 'No review') : state === 'future' ? tr('Disponible durante esa semana', 'Available during that week')
+        : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
   return `${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
     <section class="section">${sectionHead(tr('Intención de la semana', 'Intention for the week'))}<div class="card week-intent">${field(W + 'i', tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?'))}</div>${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}${overview(week)}<p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
-      key: 'review', open: U.review, iconName: 'leaf', title: tr('Revisión semanal', 'Weekly review'), summary,
-      body: questions.map((q, i) => `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`).join(''),
+      key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
+      body: questions.map((q, i) => {
+        if (editable) return `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`;
+        const text = String(get(`${W}r.${i}`)).trim();
+        return text ? `<div class="prompt"><span class="prompt-label">${q}</span><p class="ritual-read">${esc(text)}</p></div>` : '';
+      }).join('') + reviewFoot(state),
     })}</div>`;
 }
 

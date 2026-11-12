@@ -10,7 +10,7 @@
 //              c (agenda por horas), k (tareas), priorityCount, otherCount } }
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
-//       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), evento.to (último día). Las versiones anteriores ignoran estos campos.
+//       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), evento.to (último día). Las versiones anteriores ignoran estos campos.
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
 
@@ -140,7 +140,7 @@ export function checkedState(raw) {
     }
   }
   for (const [k, v] of Object.entries(o.m)) { if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) fail('Mes incorrecto.'); texts(v.p, 'prioridades'); texts(v.h, 'highlights'); }
-  for (const [k, v] of Object.entries(o.w)) { date(k); text(v.i, 'intención semanal'); texts(v.r, 'revisión'); tasks(v.a, k, 4); tasks(v.b, k, 4); }
+  for (const [k, v] of Object.entries(o.w)) { date(k); text(v.i, 'intención semanal'); texts(v.r, 'revisión'); tasks(v.a, k, 4); tasks(v.b, k, 4); if (v.closed !== undefined && v.closed !== true) fail('Cierre de la revisión incorrecto.'); }
   for (const [k, v] of Object.entries(o.d)) {
     date(k);
     for (const f of ['n', 'nRich', 'g', 'g2', 'g3', 'i', 'p', 'r', 'hl', 'learn', 'remember']) text(v[f], f);
