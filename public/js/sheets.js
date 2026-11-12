@@ -268,7 +268,7 @@ export function eventEditor(date, index = null) {
 // ——— Bienvenida (primera vez) ———
 export function welcome() {
   if (S.cfg.welcomed) return;
-  openSheet(tr('Te damos la bienvenida', 'Welcome'), `<p style="margin:0 0 18px;color:var(--ink-2)">${tr('Un diario para organizar lo importante, sostener tus hábitos y darte un momento para pensar cómo estás viviendo.', 'A journal to organize what matters, keep your habits and give yourself a moment to think about how you are living.')}</p>
+  openSheet(tr('Te damos la bienvenida a Focus', 'Welcome to Focus'), `<p style="margin:0 0 18px;color:var(--ink-2)">${tr('Un diario para organizar lo importante, sostener tus hábitos y darte un momento para pensar cómo estás viviendo.', 'A journal to organize what matters, keep your habits and give yourself a moment to think about how you are living.')}</p>
     <div class="pillars">
       <div class="pillar"><span class="ritual-icon">${icon('today')}</span><div><strong>${tr('Hoy', 'Today')}</strong><p>${tr('Empieza con una intención, elige hasta tres tareas en foco y cierra el día con una línea.', 'Start with an intention, pick up to three focus tasks and close the day with one line.')}</p></div></div>
       <div class="pillar"><span class="ritual-icon">${icon('week')}</span><div><strong>${tr('Plan', 'Plan')}</strong><p>${tr('Tu semana y tu mes: define lo que importa y repártelo en los días con un toque.', 'Your week and month: decide what matters and spread it across the days with a tap.')}</p></div></div>

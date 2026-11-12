@@ -1,7 +1,7 @@
 // «Hoy»: lo que importa del día en una sola pantalla.
 // Orden pensado para el uso real: empezar (intención, gratitud) → tareas → agenda → hábitos → cerrar (ánimo, reflexión) → notas.
 import { S, get } from '../state.js';
-import { U, showToday } from '../ui.js';
+import { U, nudgeOnce, showToday, swipeHint } from '../ui.js';
 import { dayTasks, overdue } from '../tasks.js';
 import { isDue, isDone, isWeekly, weekCount } from '../habits.js';
 import { categoryColor, MOOD_LEVELS, moodColor, moodName } from '../categories.js';
@@ -30,7 +30,9 @@ function weekStrip(date) {
   // Sin flechas: se cambia de día tocándolo y de semana deslizando la franja (ver interactions.js).
   const slide = U.stripSlide ? ` slide-${U.stripSlide}` : '';
   U.stripSlide = '';
-  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="days${slide}">${days}</div></div>`;
+  const nudge = !slide && nudgeOnce() ? ' nudge' : '';
+  const hint = swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '';
+  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="days${slide}${nudge}">${days}</div></div>${hint}`;
 }
 
 function taskItem(date, { key, row }, focus) {

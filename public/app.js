@@ -26,7 +26,7 @@ function download(data, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 const envelope = () => ({ format: 'con-intencion', version: 2, exportedAt: new Date().toISOString(), ownerId: sessionUser?.id, revision: cloud?.revision, pending: !!cloud?.unsaved, data: S });
-const downloadCurrent = () => download(envelope(), `agenda-respaldo-${today()}.json`);
+const downloadCurrent = () => download(envelope(), `focus-respaldo-${today()}.json`);
 
 async function importBackup(e) {
   const file = e.target.files[0];

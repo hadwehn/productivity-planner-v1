@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTheme, runUndo, showToday, toast, toastUndo } from './ui.js';
+import { U, applyTheme, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -313,6 +313,7 @@ function sortable({ handle, item, key, onDrop }) {
 // Izquierda → semana siguiente; derecha → anterior (como pasar páginas). También con el
 // desplazamiento horizontal del trackpad o arrastrando con el mouse en el computador.
 function shiftWeek(n) {
+  swipeLearned(); // ya lo descubrió: la pista no vuelve a aparecer
   U.date = shiftDate(U.date, 7 * n);
   U.stripSlide = n > 0 ? 'next' : 'prev';
   render();

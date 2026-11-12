@@ -55,6 +55,26 @@ export function openRitualForNow() {
   U[which] = true;
 }
 
+// ——— Pista «Desliza para cambiar de semana» ———
+// Se muestra en las 3 primeras aperturas de la app, hasta que la persona deslice una vez.
+const HINT_KEY = 'diario-pista-deslizar', HINT_TIMES = 3, HINT_LEARNED = 99;
+let hint = null, nudged = false;
+export function swipeHint() {
+  if (hint === null) {
+    let seen = 0;
+    try { seen = Number(localStorage.getItem(HINT_KEY)) || 0; } catch { /* almacenamiento bloqueado */ }
+    hint = seen < HINT_TIMES;
+    if (hint) try { localStorage.setItem(HINT_KEY, String(seen + 1)); } catch { /* almacenamiento bloqueado */ }
+  }
+  return hint;
+}
+/** Un pequeño vaivén de la franja, solo la primera vez que se dibuja con la pista. */
+export function nudgeOnce() { if (nudged || !swipeHint()) return false; nudged = true; return true; }
+export function swipeLearned() {
+  hint = false;
+  try { localStorage.setItem(HINT_KEY, String(HINT_LEARNED)); } catch { /* almacenamiento bloqueado */ }
+}
+
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */
 export const showToday = key => S.cfg.today?.[key] !== false;
 

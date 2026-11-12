@@ -148,7 +148,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .days.slide-prev { animation: strip-prev .28s var(--ease, ease-out); }
 @keyframes strip-next { from { transform: translateX(28px); opacity: .2; } }
 @keyframes strip-prev { from { transform: translateX(-28px); opacity: .2; } }
-@media (prefers-reduced-motion: reduce) { .days.slide-next, .days.slide-prev { animation: none; } }
+.days.nudge { animation: strip-nudge 1.1s .7s var(--ease, ease-in-out); }
+@keyframes strip-nudge { 30% { transform: translateX(-16px); } 60% { transform: translateX(6px); } 100% { transform: none; } }
+.swipe-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 2px 0 4px; font-size: 12px; color: var(--mute); }
+.swipe-hint .icon { width: 13px; height: 13px; opacity: .7; }
+@media (prefers-reduced-motion: reduce) { .days.slide-next, .days.slide-prev, .days.nudge { animation: none; } }
 .day-pill { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 9px; border-radius: 14px; color: var(--ink-2); transition: background .2s; }
 .day-pill span { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
 .day-pill b { font: 500 18px/1.2 var(--sans); font-variant-numeric: tabular-nums; }
