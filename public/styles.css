@@ -214,6 +214,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .group-label .label.gold .icon, .section-head .label.gold .icon { fill: currentColor; }
 /* Las tareas se reordenan manteniendo presionada la tarjeta (sin manija). */
 .task[data-sort] { -webkit-touch-callout: none; }
+/* En Hoy, las tareas que no están en foco van un poco corridas a la derecha: se leen como secundarias. */
+.task[data-task]:not(.focus) { padding-left: 24px; }
 .task[data-sort] textarea:not(:focus) { -webkit-user-select: none; user-select: none; }
 .is-dragging .task textarea { pointer-events: none; }
 .add-row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 4px; margin-top: 2px; border-top: 1px dashed var(--line); }
