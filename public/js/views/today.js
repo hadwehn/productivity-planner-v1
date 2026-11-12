@@ -27,7 +27,10 @@ function weekStrip(date) {
     const mark = all.length ? `<i class="${all.every(x => x.row.c) ? 'full' : ''}"></i>` : '';
     return `<button class="day-pill${d === date ? ' on' : ''}${d === T ? ' today' : ''}" data-a="date" data-k="${d}" aria-label="${DAYS[i]} ${parseDate(d).getDate()}" aria-current="${d === date ? 'date' : 'false'}"><span>${label.slice(0, 1)}</span><b>${parseDate(d).getDate()}</b>${mark}</button>`;
   }).join('');
-  return `<div class="week-strip"><button class="nav" data-a="shiftweek" data-n="-1" aria-label="${tr('Semana anterior', 'Previous week')}">${icon('left')}</button><div class="days">${days}</div><button class="nav" data-a="shiftweek" data-n="1" aria-label="${tr('Semana siguiente', 'Next week')}">${icon('right')}</button></div>`;
+  // Sin flechas: se cambia de día tocándolo y de semana deslizando la franja (ver interactions.js).
+  const slide = U.stripSlide ? ` slide-${U.stripSlide}` : '';
+  U.stripSlide = '';
+  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="days${slide}">${days}</div></div>`;
 }
 
 function taskItem(date, { key, row }, focus) {

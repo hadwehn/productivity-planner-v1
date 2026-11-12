@@ -142,6 +142,13 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .week-strip { display: flex; align-items: center; gap: 2px; margin: 0 -6px 4px; }
 .week-strip .nav { width: 30px; height: 56px; display: grid; place-items: center; color: var(--mute); flex: none; }
 .days { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+/* La franja de Hoy se desliza en horizontal (el navegador solo se encarga del scroll vertical). */
+[data-swipe="week"] { touch-action: pan-y; user-select: none; -webkit-user-select: none; margin: 0 0 4px; }
+.days.slide-next { animation: strip-next .28s var(--ease, ease-out); }
+.days.slide-prev { animation: strip-prev .28s var(--ease, ease-out); }
+@keyframes strip-next { from { transform: translateX(28px); opacity: .2; } }
+@keyframes strip-prev { from { transform: translateX(-28px); opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .days.slide-next, .days.slide-prev { animation: none; } }
 .day-pill { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 9px; border-radius: 14px; color: var(--ink-2); transition: background .2s; }
 .day-pill span { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
 .day-pill b { font: 500 18px/1.2 var(--sans); font-variant-numeric: tabular-nums; }

@@ -78,7 +78,7 @@ const ACTIONS = {
   go: navigate(d => { if (d.k === 'today' && U.tab === 'today') U.date = today(); U.tab = d.k; }),
   date: update(d => { U.date = d.k; }),
   openday: navigate(d => openDay(d.k)),
-  shiftweek: update(d => { U.date = shiftDate(U.date, 7 * d.n); }),
+  shiftweek: d => shiftWeek(+d.n),
   fold: update(d => { U[d.k] = !U[d.k]; }),
 
   // Tareas del día
@@ -309,6 +309,45 @@ function sortable({ handle, item, key, onDrop }) {
   document.addEventListener('pointercancel', finish);
 }
 
+// ——— Franja de días en Hoy: deslizar cambia de semana ———
+// Izquierda → semana siguiente; derecha → anterior (como pasar páginas). También con el
+// desplazamiento horizontal del trackpad o arrastrando con el mouse en el computador.
+function shiftWeek(n) {
+  U.date = shiftDate(U.date, 7 * n);
+  U.stripSlide = n > 0 ? 'next' : 'prev';
+  render();
+}
+function weekSwipe() {
+  const strip = e => e.target.closest?.('[data-swipe="week"]');
+  let start = null, swipedAt = 0, wheel = 0, wheelAt = 0;
+  document.addEventListener('pointerdown', e => {
+    if (strip(e) && e.button <= 0) start = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  }, { passive: true });
+  document.addEventListener('pointerup', e => {
+    if (!start || e.pointerId !== start.id) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    start = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5 || !canEdit()) return;
+    swipedAt = Date.now();
+    shiftWeek(dx < 0 ? 1 : -1);
+  });
+  document.addEventListener('pointercancel', () => { start = null; });
+  // Un deslizamiento no debe contar además como toque sobre un día.
+  document.addEventListener('click', e => {
+    if (Date.now() - swipedAt < 450 && strip(e)) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  document.addEventListener('wheel', e => {
+    if (!strip(e) || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    if (Date.now() - wheelAt < 600) return;
+    wheel += e.deltaX;
+    if (Math.abs(wheel) < 50) return;
+    const n = wheel > 0 ? 1 : -1;
+    wheel = 0; wheelAt = Date.now();
+    if (canEdit()) shiftWeek(n);
+  }, { passive: false });
+}
+
 export function initInteractions(isReady) {
   canEdit = isReady;
   watchSheetClose();
@@ -317,6 +356,7 @@ export function initInteractions(isReady) {
   document.addEventListener('input', onInput);
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('keydown', onKeydown);
+  weekSwipe();
   sortable({ handle: '[data-drag]', item: '.task[data-task]:not(.focus)', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
   sortable({ handle: '[data-habit-drag]', item: '.habit[data-habit]', key: el => el.dataset.habit, onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
 }
