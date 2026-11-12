@@ -24,6 +24,17 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
+// Como en Instagram: al bajar, la barra de pestañas se achica; al subir (o arriba del todo) vuelve.
+let lastScroll = 0;
+addEventListener('scroll', () => {
+  const y = scrollY, root = document.documentElement;
+  if (y <= 4) root.classList.remove('nav-compact');
+  else if (y > lastScroll + 6 && y > 60) root.classList.add('nav-compact');
+  else if (y < lastScroll - 6) root.classList.remove('nav-compact');
+  else return; // movimientos mínimos: no se cambia nada
+  lastScroll = y;
+}, { passive: true });
+
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
   $('#nav').innerHTML = TABS().map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');

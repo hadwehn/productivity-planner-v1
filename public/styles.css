@@ -384,6 +384,14 @@ nav.tabbar { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset
 nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 18px; font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); transition: color .2s, background .2s; }
 nav.tabbar button .icon { width: 23px; height: 23px; }
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
+/* Al bajar por la página la barra se achica (solo íconos); al subir vuelve a su tamaño. */
+nav.tabbar { transition: width .28s var(--ease), padding .28s var(--ease), border-radius .28s var(--ease); }
+nav.tabbar button span { display: block; max-height: 1.6em; overflow: hidden; transition: max-height .28s var(--ease), opacity .2s; }
+nav.tabbar button { transition: color .2s, background .2s, padding .28s var(--ease), gap .28s var(--ease); }
+.nav-compact nav.tabbar { width: min(calc(100vw - 96px), 300px); padding: 4px; border-radius: 20px; }
+.nav-compact nav.tabbar button { padding: 7px 0; gap: 0; border-radius: 16px; }
+.nav-compact nav.tabbar button span { max-height: 0; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */
 dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: 92dvh; border-radius: 26px 26px 0 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-up); overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box; }
