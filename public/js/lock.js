@@ -14,6 +14,18 @@ let unlocked = false;
 export const isUnlocked = () => unlocked || !lockEnabled();
 export const relock = () => { unlocked = false; reset('unlock'); };
 
+// Si sales del Diario y no vuelves en 5 minutos, se vuelve a proteger (además de al salir de la app).
+const AWAY_MS = 5 * 60 * 1000;
+let leftAt = 0;
+/** Avisa del cambio de pestaña: al salir del Diario empieza a contar; al volver, revisa el tiempo. */
+export function journalTab(from, to) {
+  if (from === 'journal' && to !== 'journal') leftAt = Date.now();
+  else if (to === 'journal' && from !== 'journal') {
+    if (leftAt && Date.now() - leftAt >= AWAY_MS) relock();
+    leftAt = 0;
+  }
+}
+
 // Funciones de sesión que entrega app.js (para «olvidé mi código»).
 let auth = null;
 export const setAuth = a => { auth = a; };

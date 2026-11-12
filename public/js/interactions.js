@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTheme, runUndo, showToday, toast } from './ui.js';
+import { U, applyTheme, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -15,6 +15,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
+import { canEditRitual, finishRitual, hasContent } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -99,7 +100,17 @@ const ACTIONS = {
   overdueall: () => overdueAction('all'),
 
   // Ánimo
-  mood: update(d => { const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
+  mood: update(d => { if (!canEditRitual(U.date, 'e')) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
+  ritualdone: d => {
+    const which = d.k, date = U.date;
+    if (!canEditRitual(date, which)) { render(); return; }
+    if (!hasContent(date, which)) { toast(which === 'm' ? tr('Escribe tu intención o tu gratitud antes de terminar.', 'Write your intention or gratitude before finishing.') : tr('Elige cómo estuvo tu día o escribe algo antes de cerrarlo.', 'Pick how your day was or write something before closing it.')); return; }
+    document.activeElement?.blur?.();
+    const undo = finishRitual(date, which);
+    U[which === 'm' ? 'morning' : 'evening'] = false;
+    render();
+    toastUndo(which === 'm' ? tr('Listo. Que tengas un buen día.', 'Done. Have a good day.') : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); });
+  },
 
   // Eventos
   eventnew: d => eventEditor(d.k || (U.tab === 'week' ? U.calDay : U.date)),
@@ -159,20 +170,47 @@ function onSubmit(e) {
       .catch(() => { sheetBody(forgotHTML(true, tr('El código no es válido o ya venció. Revisa el correo más reciente.', 'The code is invalid or expired. Check the most recent email.'))); });
     return;
   }
+  const input = form.querySelector('input');
+  if (!input.value.trim()) {
+    // El botón «+» con el campo vacío lleva al campo (salvo justo después de guardar al salir de él).
+    if (Date.now() - (+form.dataset.added || 0) > 800) input.focus();
+    return;
+  }
+  if (!quickAdd(form)) return;
+  render();
+  // Se mantiene el cursor en el mismo campo para escribir la siguiente.
+  addInput(form)?.focus({ preventScroll: true });
+}
+
+const addInput = form => form.dataset.form === 'addtask' ? $('[data-form="addtask"] input') : $(`[data-form="addweek"][data-list="${form.dataset.list}"] input`);
+/** Guarda lo escrito en una fila «Añadir…» (Hoy o Semana). Devuelve true si se añadió. */
+function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
-  if (!value) return;
+  if (!value) return false;
   if (form.dataset.form === 'addtask') {
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
   } else {
     const r = addWeekTask(U.week, form.dataset.list, value);
-    if (r.error) { toast(r.error); return; }
+    if (r.error) { toast(r.error); return false; }
   }
-  render();
-  // Se mantiene el cursor en el mismo campo para escribir la siguiente.
-  const again = form.dataset.form === 'addtask' ? $('[data-form="addtask"] input') : $(`[data-form="addweek"][data-list="${form.dataset.list}"] input`);
-  again?.focus({ preventScroll: true });
+  input.value = '';
+  form.dataset.added = String(Date.now());
+  return true;
+}
+
+/**
+ * Al salir de una fila «Añadir…» con texto, la tarea se guarda sola: no hace falta Enter
+ * (en el celular, el ✓ del teclado también la guarda). Se redibuja después del toque que
+ * sacó el foco, para no quitarle el botón de debajo del dedo.
+ */
+function addOnLeave(form) {
+  if (!quickAdd(form)) return;
+  let done = false;
+  const later = () => { if (done) return; done = true; document.removeEventListener('click', later, true); setTimeout(render); };
+  document.addEventListener('click', later, true);
+  setTimeout(later, 700);
 }
 
 // ——— Escritura ———
@@ -180,13 +218,20 @@ function onInput(e) {
   const el = e.target;
   autosize(el);
   if (!canEdit()) return;
-  if (el.dataset.p) setPath(el.dataset.p, el.value);
+  if (el.dataset.p) {
+    // Lo de «Empieza/Cierra tu día» solo se guarda mientras se puede editar (otro dispositivo pudo cerrarlo, o pasó la hora).
+    const m = /^d\.(\d{4}-\d{2}-\d{2})\.(i|g|r|hl|learn|remember|p)$/.exec(el.dataset.p);
+    if (m && !canEditRitual(m[1], ['i', 'g'].includes(m[2]) ? 'm' : 'e')) { render(); return; }
+    setPath(el.dataset.p, el.value);
+  }
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
   else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
 }
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {
   const el = e.target;
+  const addForm = el.closest?.('form[data-form="addtask"], form[data-form="addweek"]');
+  if (addForm) { if (canEdit() && !addForm.contains(e.relatedTarget)) addOnLeave(addForm); return; }
   if (!canEdit() || el.value === undefined || el.value.trim()) return;
   if (el.dataset.taskText) { removeTask(U.date, +el.dataset.taskText); setTimeout(render); }
   else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); weekAction('delete', list, +i); }

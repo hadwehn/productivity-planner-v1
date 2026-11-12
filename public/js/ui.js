@@ -46,7 +46,7 @@ export function openRitualForNow() {
   const empty = which === 'morning'
     ? showToday('intention') && !String(get(Z + 'i')).trim() && !String(get(Z + 'g')).trim()
     : (showToday('reflection') || showToday('mood')) && !String(get(Z + 'r')).trim() && !S.d[T]?.mood;
-  if (!empty) return;
+  if (!empty || S.d[T]?.closed?.[which === 'morning' ? 'm' : 'e']) return;
   let last = '';
   try { last = localStorage.getItem(RITUAL_KEY) || ''; } catch { /* almacenamiento bloqueado */ }
   if (last === `${T}:${which}`) return;

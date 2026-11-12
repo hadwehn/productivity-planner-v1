@@ -10,6 +10,7 @@ import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, 
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
+import { MAX_EVENT_DAYS, rangeLabel } from './events.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
 import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
 
@@ -40,7 +41,7 @@ export function taskMenu(date, key) {
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     <button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir otro día', 'Pick another day')}</button>
-    <button data-a="taskfocus" data-k="${key}" data-close="1">${icon('star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
+    <button data-a="taskfocus" data-k="${key}" data-close="1">${icon(focus ? 'starOff' : 'star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
     <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí. Si cambias su nombre, dejan de estar vinculadas.', 'This comes from your week: marking it done also marks it there. If you rename it, they are no longer linked.')}</p>` : ''}`);
 }
@@ -103,7 +104,7 @@ export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
-    <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon('star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
+    <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
     <button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
     <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
@@ -227,9 +228,10 @@ export function eventEditor(date, index = null) {
   const draft = current ? { ...current } : { t: '', h: '', c: -1 };
   const pd = parseDate(date), optional = `<span class="muted">(${tr('opcional', 'optional')})</span>`;
   openSheet(current ? tr('Editar evento', 'Edit event') : tr('Nuevo evento', 'New event'), `<form id="eventForm">
-    <p class="muted small" style="margin:-4px 0 14px">${DAYS[weekday(pd)]} · ${dayMonth(pd)}</p>
+    <p class="muted small" style="margin:-4px 0 14px">${draft.to && draft.to > date ? rangeLabel(date, draft.to) : `${DAYS[weekday(pd)]} · ${dayMonth(pd)}`}</p>
     <div class="field"><label for="eventTitle">${tr('¿Qué tienes?', 'What do you have?')}</label><input id="eventTitle" class="input" required maxlength="200" placeholder="${tr('Reunión, cumpleaños, médico…', 'Meeting, birthday, doctor…')}" value="${esc(draft.t)}"></div>
     <div class="field"><label for="eventHour">${tr('Hora', 'Time')} ${optional}</label><input id="eventHour" class="input" type="time" step="300" value="${esc(draft.h || '')}"></div>
+    <div class="field"><label for="eventTo">${tr('Hasta', 'Until')} ${optional}</label><input id="eventTo" class="input" type="date" min="${shiftDate(date, 1)}" max="${shiftDate(date, MAX_EVENT_DAYS - 1)}" value="${esc(draft.to || '')}"><p class="prompt-hint">${tr('Para algo de varios días, como un viaje o unas vacaciones.', 'For something that lasts several days, like a trip or a holiday.')}</p></div>
     <div class="field"><span class="field-label">${tr('Área', 'Area')} ${optional}</span><div class="choices">${CATEGORY_ORDER.map(i => `<label class="choice" style="--c:${categoryColor(i)}"><input type="radio" name="eventCategory" value="${i}"${draft.c === i ? ' checked' : ''}><i></i>${categoryName(i)}</label>`).join('')}</div></div>
     <button class="btn" type="submit">${current ? tr('Guardar', 'Save') : tr('Añadir evento', 'Add event')}</button>
     ${current ? `<button class="btn danger" type="button" id="eventDelete" style="margin-top:8px">${tr('Eliminar evento', 'Delete event')}</button>` : ''}</form>`, dlg => {
@@ -239,9 +241,13 @@ export function eventEditor(date, index = null) {
     $('#eventForm', dlg).addEventListener('submit', e => {
       e.preventDefault();
       const t = $('#eventTitle', dlg).value.trim(), h = $('#eventHour', dlg).value, c = Number(radios.find(r => r.checked)?.value ?? -1);
+      const to = $('#eventTo', dlg).value;
       if (!t) { toast(tr('Escribe qué tienes.', 'Write what you have.')); return; }
+      if (to && to <= date) { toast(tr('La fecha final tiene que ser después del primer día.', 'The end date has to be after the first day.')); return; }
+      if (to && to > shiftDate(date, MAX_EVENT_DAYS - 1)) { toast(tr('Un evento puede durar hasta un año.', 'An event can last up to a year.')); return; }
+      const event = to ? { t, h, c, to } : { t, h, c };
       const list = S.ev[date] = S.ev[date] || [];
-      if (index === null) list.push({ t, h, c }); else list[index] = { t, h, c };
+      if (index === null) list.push(event); else list[index] = event;
       save();
       closeSheet();
       render();

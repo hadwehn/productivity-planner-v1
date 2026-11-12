@@ -9,8 +9,10 @@ import { quoteFor } from '../quotes.js';
 import { icon } from '../icons.js';
 import { dayMonth, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
-import { checkButton, field, foldable, pageHead, sectionHead, stickyHead } from './common.js';
+import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
+import { eventRow, eventsOn } from '../events.js';
+import { ritualState } from '../rituals.js';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -53,16 +55,15 @@ function tasksSection(date) {
   const restBlock = rest.length ? `<div class="divider"></div>${rest.map(t => taskItem(date, t, false)).join('')}` : '';
   return `<section class="section">${banner}${sectionHead(tr('Tareas', 'Tasks'), total ? `<span class="muted small">${doneCount} ${tr('de', 'of')} ${total}</span>` : '')}
     <div class="card tasks">${focusBlock}${restBlock}
-      <form class="add-row" data-form="addtask">${icon('plus')}<input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>
+      <form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>
     </div></section>`;
 }
 
 function agendaSection(date) {
-  const events = (S.ev[date] || []).map((e, i) => ({ e, i })).filter(({ e }) => e.t?.trim()).sort((a, b) => (a.e.h || '99').localeCompare(b.e.h || '99'));
+  const events = eventsOn(date);
   const add = `<button class="link" data-a="eventnew">${icon('plus')}${tr('Evento', 'Event')}</button>`;
   if (!events.length) return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}</section>`;
-  return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(({ e, i }) =>
-    `<button class="event" data-a="eventedit" data-i="${i}" style="--c:${categoryColor(e.c ?? -1)}"><time>${esc(e.h || tr('Todo', 'All day'))}</time><i class="bar"></i><span>${esc(e.t)}</span></button>`).join('')}</div></section>`;
+  return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(x => eventRow(x, date)).join('')}</div></section>`;
 }
 
 function habitsSection(date) {
@@ -77,30 +78,59 @@ function habitsSection(date) {
   return `<section class="section">${sectionHead(title, manage)}<div class="habit-chips">${chips}</div></section>`;
 }
 
+// Campo editable o, si el ritual ya está terminado o fuera de su día, el texto para leer.
+const ritualField = (editable, path, label, placeholder, cls = '', id = '', hint = '') => {
+  if (editable) return `<div class="prompt"><label for="${id}">${label}</label>${field(path, placeholder, cls, ` id="${id}"`)}${hint}</div>`;
+  const text = String(get(path)).trim();
+  return text ? `<div class="prompt"><span class="prompt-label">${label}</span><p class="ritual-read ${cls}">${esc(text)}</p></div>` : '';
+};
+
+/** Pie del ritual: botón para terminarlo, o el aviso de por qué ya no se edita. */
+function ritualFoot(date, which, state) {
+  if (state === 'open') {
+    const label = which === 'm' ? tr('Listo, empezar el día', 'Done, start the day') : tr('Cerrar el día', 'Close the day');
+    return `<button class="btn ritual-finish" data-a="ritualdone" data-k="${which}">${icon('check')}${label}</button>
+      <p class="prompt-hint" style="text-align:center;margin-top:8px">${tr('Al terminar queda guardado y ya no se puede cambiar.', 'Once done, it’s saved and can’t be changed.')}</p>`;
+  }
+  const note = state === 'done' ? (which === 'm' ? tr('Empezaste este día. Quedó guardado así.', 'You started this day. It’s saved as it is.') : tr('Cerraste este día. Quedó guardado así.', 'You closed this day. It’s saved as it is.'))
+    : state === 'future' ? tr('Podrás escribirlo ese día.', 'You can write it on that day.')
+      : tr('Este día ya cerró: se puede escribir solo hasta las 3:00 del día siguiente.', 'This day is closed: you can write only until 3:00 the next day.');
+  return `<p class="ritual-note">${state === 'done' ? icon('check') : icon('lock')}${note}</p>`;
+}
+
 function morning(date) {
-  const Z = `d.${date}.`, intent = get(Z + 'i'), grat = get(Z + 'g');
+  const Z = `d.${date}.`, intent = get(Z + 'i'), grat = get(Z + 'g'), state = ritualState(date, 'm'), editable = state === 'open';
   const parts = [];
-  if (showToday('intention')) parts.push(`<div class="prompt"><label for="f-intent">${tr('¿Cómo quieres vivir este día?', 'How do you want to live today?')}</label>${field(Z + 'i', tr('Con calma, presente…', 'Calm, present…'), 'serif', ' id="f-intent"')}</div>`);
-  if (showToday('gratitude')) parts.push(`<div class="prompt"><label for="f-grat">${tr('Gratitud', 'Gratitude')}</label>${field(Z + 'g', tr('Agradece a tu manera…', 'Be grateful your way…'), '', ' id="f-grat"')}<p class="prompt-hint">${tr('Una persona, un momento, algo simple. No hace falta más.', 'A person, a moment, something simple. That is enough.')}</p></div>`);
-  if (!parts.length) return '';
-  const summary = intent.trim() ? `“${esc(preview(intent))}”` : grat.trim() ? tr('Gratitud escrita', 'Gratitude written') : tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute');
-  return foldable({ key: 'morning', open: U.morning, iconName: 'sunrise', title: tr('Empieza tu día', 'Start your day'), summary, written: !!intent.trim(), body: parts.join('') });
+  if (showToday('intention')) parts.push(ritualField(editable, Z + 'i', tr('¿Cómo quieres vivir este día?', 'How do you want to live today?'), tr('Con calma, presente…', 'Calm, present…'), 'serif', 'f-intent'));
+  if (showToday('gratitude')) parts.push(ritualField(editable, Z + 'g', tr('Gratitud', 'Gratitude'), tr('Agradece a tu manera…', 'Be grateful your way…'), '', 'f-grat', `<p class="prompt-hint">${tr('Una persona, un momento, algo simple. No hace falta más.', 'A person, a moment, something simple. That is enough.')}</p>`));
+  if (!showToday('intention') && !showToday('gratitude')) return '';
+  const done = state === 'done';
+  const summary = done ? `${tr('Listo', 'Done')}${intent.trim() ? ` · “${esc(preview(intent, 70))}”` : ''}`
+    : intent.trim() ? `“${esc(preview(intent))}”` : grat.trim() ? tr('Gratitud escrita', 'Gratitude written')
+      : state === 'open' ? tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute') : state === 'future' ? tr('Disponible ese día', 'Available on that day') : tr('Sin escribir', 'Not written');
+  return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: done ? 'done' : '', title: tr('Empieza tu día', 'Start your day'), summary, written: done || !!intent.trim(), body: parts.join('') + ritualFoot(date, 'm', state) });
 }
 
 function evening(date) {
-  const Z = `d.${date}.`, mood = S.d[date]?.mood, reflection = get(Z + 'r');
+  const Z = `d.${date}.`, mood = S.d[date]?.mood, reflection = get(Z + 'r'), state = ritualState(date, 'e'), editable = state === 'open';
   const parts = [];
-  if (showToday('mood')) parts.push(`<div class="prompt"><span class="prompt-label">${tr('¿Cómo estuvo tu día?', 'How was your day?')}</span><div class="moods" role="radiogroup" aria-label="${tr('Estado de ánimo', 'Mood')}">${MOOD_LEVELS.map(n =>
-    `<button class="mood${mood === n ? ' on' : ''}" role="radio" aria-checked="${mood === n}" data-a="mood" data-k="${n}" style="--c:${moodColor(n)}">${icon('mood' + n, 'icon face')}${moodName(n)}</button>`).join('')}</div></div>`);
+  if (showToday('mood')) {
+    const levels = editable ? MOOD_LEVELS : MOOD_LEVELS.filter(n => n === mood);
+    if (levels.length) parts.push(`<div class="prompt"><span class="prompt-label">${tr('¿Cómo estuvo tu día?', 'How was your day?')}</span><div class="moods${editable ? '' : ' read'}" role="radiogroup" aria-label="${tr('Estado de ánimo', 'Mood')}">${levels.map(n =>
+      `<button class="mood${mood === n ? ' on' : ''}" role="radio" aria-checked="${mood === n}" ${editable ? `data-a="mood" data-k="${n}"` : 'disabled'} style="--c:${moodColor(n)}">${icon('mood' + n, 'icon face')}${moodName(n)}</button>`).join('')}</div></div>`);
+  }
   if (showToday('reflection')) {
     const legacy = [['hl', tr('Momento que guardaste', 'A moment you kept')], ['learn', tr('Lo que aprendiste', 'What you learned')], ['remember', tr('Lo que quisiste recordar', 'What you wanted to remember')], ['p', tr('Planes del día', 'Plans for the day')]]
       .filter(([k]) => String(get(Z + k)).trim());
-    parts.push(`<div class="prompt"><label for="f-refl">${tr('¿Qué te dejó este día?', 'What did today leave you?')}</label>${field(Z + 'r', tr('Algo que aprendiste, sentiste o quieres recordar…', 'Something you learned, felt or want to remember…'), '', ' id="f-refl"')}</div>`
-      + legacy.map(([k, label]) => `<div class="prompt"><label>${label} <span class="muted small">(${tr('versión anterior', 'previous version')})</span></label>${field(Z + k, label)}</div>`).join(''));
+    parts.push(ritualField(editable, Z + 'r', tr('¿Qué te dejó este día?', 'What did today leave you?'), tr('Algo que aprendiste, sentiste o quieres recordar…', 'Something you learned, felt or want to remember…'), '', 'f-refl')
+      + legacy.map(([k, label]) => ritualField(editable, Z + k, `${label} <span class="muted small">(${tr('versión anterior', 'previous version')})</span>`, label, '', `f-${k}`)).join(''));
   }
-  if (!parts.length) return '';
-  const summary = reflection.trim() ? `“${esc(preview(reflection))}”` : mood ? moodName(mood) : tr('Ánimo y reflexión · 1 minuto', 'Mood and reflection · 1 minute');
-  return foldable({ key: 'evening', open: U.evening, iconName: 'moon', iconCls: 'evening', title: tr('Cierra tu día', 'Close your day'), summary, written: !!reflection.trim(), body: parts.join('') });
+  if (!showToday('mood') && !showToday('reflection')) return '';
+  const done = state === 'done';
+  const summary = done ? `${tr('Día cerrado', 'Day closed')}${mood ? ` · ${moodName(mood)}` : ''}`
+    : reflection.trim() ? `“${esc(preview(reflection))}”` : mood ? moodName(mood)
+      : state === 'open' ? tr('Ánimo y reflexión · 1 minuto', 'Mood and reflection · 1 minute') : state === 'future' ? tr('Disponible ese día', 'Available on that day') : tr('Sin escribir', 'Not written');
+  return foldable({ key: 'evening', open: U.evening, iconName: done ? 'check' : 'moon', iconCls: done ? 'done' : 'evening', title: tr('Cierra tu día', 'Close your day'), summary, written: done || !!reflection.trim(), body: parts.join('') + ritualFoot(date, 'e', state) });
 }
 
 function notes(date) {
@@ -112,10 +142,11 @@ export function todayView() {
   const date = U.date, d = parseDate(date), T = today(), isToday = date === T;
   const eyebrow = `${DAYS[(d.getDay() + 6) % 7]} · ${dayMonth(d)}`;
   const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
-  const back = isToday ? '' : `<button class="link" data-a="date" data-k="${T}" style="min-height:0">${tr('Volver a hoy', 'Back to today')}</button>`;
+  // «Volver a hoy» va junto a Ajustes (no en una línea extra), para que la cabecera fija mida lo mismo cualquier día.
+  const side = `<div class="head-actions">${isToday ? '' : `<button class="pill" data-a="date" data-k="${T}">${icon('left')}${tr('Hoy', 'Today')}</button>`}${settingsButton()}</div>`;
   const [q, author] = quoteFor(date);
   const rituals = [morning(date), evening(date), notes(date)];
-  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, subtitle: back }) + weekStrip(date))}
+  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}
     ${showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : ''}
     ${rituals[0] ? `<div class="section">${rituals[0]}</div>` : ''}
     ${tasksSection(date)}

@@ -82,6 +82,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 8px 0 18px; }
 .page-head > div { min-width: 0; }
+.head-actions { display: flex; align-items: center; gap: 6px; flex: none; min-width: 0; }
 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--mute); margin: 0 0 4px; }
 .title { font: 400 34px/1.1 var(--serif); letter-spacing: -.01em; margin: 0; }
 .subtitle { color: var(--ink-2); font-size: 14px; margin: 6px 0 0; }
@@ -199,7 +200,9 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .task-btn.star.on .icon { fill: currentColor; }
 .task .handle { width: 18px; height: 40px; margin-left: -4px; display: grid; place-items: center; color: var(--line-strong); touch-action: none; cursor: grab; flex: none; }
 .add-row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 4px; margin-top: 2px; border-top: 1px dashed var(--line); }
-.add-row .icon { color: var(--mute); margin: 0 3px; }
+.add-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--acc); transition: background .15s; }
+.add-btn:hover, .add-btn:active { background: var(--sunken); }
+.add-row .add-btn .icon { color: inherit; margin: 0; }
 .add-row input { padding: 12px 0; }
 .divider { height: 1px; background: var(--line); margin: 6px 8px; }
 .banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--gold-soft); color: var(--ink); margin-bottom: 12px; }
@@ -228,6 +231,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .event time { font-size: 13px; font-weight: 600; color: var(--ink-2); width: 48px; flex: none; font-variant-numeric: tabular-nums; }
 .event .bar { width: 3px; align-self: stretch; border-radius: 3px; background: var(--c); flex: none; }
 .event span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.event .event-range { display: block; font-size: 12px; color: var(--mute); margin-top: 1px; }
 
 /* ===== Hábitos ===== */
 .habit-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -493,3 +497,14 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Rituales terminados o fuera de su día: se leen, no se editan. */
+.ritual-read { margin: 2px 0 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--sunken); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.ritual-read.serif { font-family: var(--serif); font-size: 17px; }
+.ritual-finish { margin-top: 6px; gap: 8px; }
+.ritual-finish .icon { width: 18px; height: 18px; }
+.ritual-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 0 0; font-size: 13px; color: var(--mute); text-align: center; }
+.ritual-note .icon { width: 15px; height: 15px; flex: none; }
+.ritual-icon.done { background: var(--acc); color: var(--acc-ink, #fff); }
+.moods.read { justify-content: flex-start; }
+.moods.read .mood { cursor: default; }

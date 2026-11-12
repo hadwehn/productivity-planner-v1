@@ -7,13 +7,14 @@ import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
 import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
+import { eventRow, eventsOn } from '../events.js';
 import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 function overview(week) {
   const T = today();
   return `<div class="week-overview">${DAY_SHORT.map((label, i) => {
     const d = shiftDate(week, i), { focus, rest } = dayTasks(d), all = [...focus, ...rest], left = all.filter(x => !x.row.c).length;
-    const events = (S.ev[d] || []).filter(e => e.t?.trim()).length;
+    const events = eventsOn(d).length;
     const info = all.length ? (left ? `${left} ${tr('pend.', 'left')}` : tr('✓ listo', '✓ done')) : events ? `${events} ev.` : '';
     return `<button class="wo-day${d === T ? ' today' : ''}${d < T ? ' past' : ''}" data-a="openday" data-k="${d}" aria-label="${tr('Abrir', 'Open')} ${DAYS[i]} ${parseDate(d).getDate()}"><span>${label}</span><b>${parseDate(d).getDate()}</b><small>${info}</small></button>`;
   }).join('')}</div>`;
@@ -36,7 +37,7 @@ function weekList(week, list, title, hint) {
   const placeholder = list === 'a' ? tr('Añadir al foco de la semana', 'Add to this week’s focus') : tr('Añadir otra tarea', 'Add another task');
   return `<section class="section">${sectionHead(title, `<span class="muted small">${items.length}/5</span>`, list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${hint}</p>`}
-      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}">${icon('plus')}<input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
+      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div></section>`;
 }
 
@@ -69,13 +70,12 @@ function monthView() {
   let grid = DAY_SHORT.map(d => `<span class="wd">${d.slice(0, 1)}</span>`).join('');
   for (let i = 0; i < offset; i++) grid += '<span></span>';
   for (let d = 1; d <= n; d++) {
-    const k = `${m}-${p2(d)}`, events = (S.ev[k] || []).filter(e => e.t?.trim());
-    const marks = events.slice(0, 3).map(e => `<u style="--c:${categoryColor(e.c ?? -1)}"></u>`).join('');
+    const k = `${m}-${p2(d)}`, events = eventsOn(k);
+    const marks = events.slice(0, 3).map(({ e }) => `<u style="--c:${categoryColor(e.c ?? -1)}"></u>`).join('');
     grid += `<button class="cal-day${k === U.calDay ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}">${d}<span class="marks">${marks}</span></button>`;
   }
   const sel = U.calDay, sd = parseDate(sel);
-  const events = (S.ev[sel] || []).map((e, i) => ({ e, i })).filter(({ e }) => e.t?.trim()).sort((a, b) => (a.e.h || '99').localeCompare(b.e.h || '99'));
-  const list = events.map(({ e, i }) => `<button class="event" data-a="eventedit" data-i="${i}" data-k="${sel}" style="--c:${categoryColor(e.c ?? -1)}"><time>${esc(e.h || tr('Todo', 'All day'))}</time><i class="bar"></i><span>${esc(e.t)}</span></button>`).join('');
+  const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
   const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
   return `<div class="week-strip" style="margin-top:14px"><button class="nav" data-a="shiftmonth" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><div style="flex:1;text-align:center;font:500 20px/1.2 var(--serif);text-transform:capitalize">${monthYear(m)}</div><button class="nav" data-a="shiftmonth" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}">${icon('right')}</button></div>
     <div class="card"><div class="cal">${grid}</div></div>

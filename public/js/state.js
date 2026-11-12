@@ -4,13 +4,13 @@
 //   h   hábitos [{id, name, days, color, createdOn}]
 //   hl  registros de hábitos { 'AAAA-MM-DD': { idHábito: 0|1 } }
 //   m   meses { 'AAAA-MM': { p: prioridades, h: highlights } }
-//   ev  eventos { 'AAAA-MM-DD': [{ t: título, h: 'HH:MM' | '', c: categoría }] }
+//   ev  eventos { 'AAAA-MM-DD': [{ t: título, h: 'HH:MM' | '', c: categoría, to?: último día }] }
 //   w   semanas { lunes: { i: intención, a: prioridades, b: otras, r: revisión } }
 //   d   días { fecha: { i, g (gratitud), p (planes), r (reflexión), n/nRich (notas),
 //              c (agenda por horas), k (tareas), priorityCount, otherCount } }
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
-//       cfg.today (qué se muestra en Hoy). Las versiones anteriores ignoran estos campos.
+//       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), evento.to (último día). Las versiones anteriores ignoran estos campos.
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
 
@@ -136,6 +136,7 @@ export function checkedState(raw) {
       text(e.t, 'evento');
       if (e.c !== undefined && (!Number.isInteger(e.c) || e.c < -1 || e.c > 5)) fail('Categoría de evento incorrecta.');
       if (e.h !== undefined && (typeof e.h !== 'string' || !/^$|^(?:[01]\d|2[0-3]):[0-5]\d$/.test(e.h))) fail('Hora incorrecta.');
+      if (e.to !== undefined) { date(e.to); if (e.to <= k || e.to > iso(new Date(parseDate(k).getTime() + 366 * 864e5))) fail('Fin de evento incorrecto.'); }
     }
   }
   for (const [k, v] of Object.entries(o.m)) { if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) fail('Mes incorrecto.'); texts(v.p, 'prioridades'); texts(v.h, 'highlights'); }
@@ -145,6 +146,7 @@ export function checkedState(raw) {
     for (const f of ['n', 'nRich', 'g', 'g2', 'g3', 'i', 'p', 'r', 'hl', 'learn', 'remember']) text(v[f], f);
     tasks(v.k, k, 502);
     if (v.mood !== undefined && (!Number.isInteger(v.mood) || v.mood < 1 || v.mood > 5)) fail('Estado de ánimo incorrecto.');
+    if (v.closed !== undefined && (!plain(v.closed) || Object.entries(v.closed).some(([x, y]) => !['m', 'e'].includes(x) || y !== true))) fail('Cierre del día incorrecto.');
     texts(v.c, 'agenda');
   }
   if (!Number.isInteger(o.cfg.acc) || o.cfg.acc < 0 || o.cfg.acc >= LEGACY_ACCENTS) fail('Color anterior incorrecto.');

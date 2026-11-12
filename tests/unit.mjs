@@ -13,6 +13,8 @@ import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
 import { journalView } from '../public/js/views/journal.js';
 import { shiftDate, today } from '../public/js/util.js';
+import { eventsOn } from '../public/js/events.js';
+import { inWindow } from '../public/js/rituals.js';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -208,6 +210,26 @@ test('semana: pasar a la próxima semana quita las copias pendientes y se puede 
   eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['Llamar al banco', 'Otra'], 'deshacer');
   eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT, FRI]);
   eq(v1Accepts(S), true);
+});
+
+test('eventos de varios días y rituales terminados: se ven en cada día, se validan y la versión anterior los acepta', () => {
+  load(fixture());
+  S.ev['2026-11-13'] = [{ t: 'Playa', h: '', c: -1, to: '2026-11-15' }, { t: 'Cena', h: '20:00', c: 1 }];
+  eq(eventsOn('2026-11-14').map(x => [x.e.t, x.start, x.i]), [['Playa', '2026-11-13', 0]]);
+  eq(eventsOn('2026-11-13').map(x => x.e.t), ['Playa', 'Cena'], 'varios días primero');
+  eq(eventsOn('2026-11-16').length, 0);
+  S.d[DAY] = { ...(S.d[DAY] || {}), closed: { m: true, e: true } };
+  checkedState(JSON.parse(JSON.stringify(S)));
+  eq(v1Accepts(S), true);
+  for (const bad of [{ to: '2026-11-13' }, { to: '2026-11-12' }, { to: '2028-01-01' }, { to: 'mañana' }]) {
+    const copy = JSON.parse(JSON.stringify(S)); Object.assign(copy.ev['2026-11-13'][0], bad);
+    let failed = false; try { checkedState(copy); } catch { failed = true; }
+    eq(failed, true, `fin inválido ${bad.to}`);
+  }
+  const copy = JSON.parse(JSON.stringify(S)); copy.d[DAY].closed = { m: 'sí' };
+  let failed = false; try { checkedState(copy); } catch { failed = true; }
+  eq(failed, true, 'cierre inválido');
+  eq([inWindow('2026-11-11', new Date('2026-11-12T02:59')), inWindow('2026-11-11', new Date('2026-11-12T03:00')), inWindow('2026-11-11', new Date('2026-11-10T23:00'))], [true, false, false], 'hasta las 3:00');
 });
 
 // ——— Hábitos ———

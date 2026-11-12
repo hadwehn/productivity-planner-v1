@@ -7,6 +7,7 @@ import { todayView } from './views/today.js';
 import { planView } from './views/week.js';
 import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
+import { journalTab } from './lock.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
 export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Plan', 'Plan')], ['today', tr('Hoy', 'Today')]];
@@ -42,7 +43,10 @@ export function autosize(el) {
 }
 
 /** Vuelve a dibujar. `toTop` lleva el scroll arriba (cambio de pantalla). Conserva el campo enfocado. */
+let shownTab = null;
 export function render(toTop = false) {
+  journalTab(shownTab, U.tab);
+  shownTab = U.tab;
   const y = scrollY, active = document.activeElement;
   const focusKey = active?.dataset?.p || active?.dataset?.taskText || active?.dataset?.weekText;
   const caret = active?.selectionStart;
