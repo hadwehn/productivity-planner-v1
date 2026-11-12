@@ -18,6 +18,8 @@ export function dayClosed(date, now = new Date()) {
   end.setHours(LOCK_HOUR);
   return now >= end;
 }
+/** La semana (que empieza el lunes `week`) ya pasó: desde las 3:00 del lunes siguiente. */
+export const weekClosed = (week, now) => dayClosed(shiftDate(week, 6), now);
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
 export const canEditRitual = (date, which) => !isFinished(date, which) && inWindow(date);
 /** 'open' | 'done' | 'past' (ya cerró el plazo) | 'future' (todavía no llega el día) */

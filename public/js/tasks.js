@@ -297,15 +297,15 @@ function syncLinked(source, value) {
 }
 
 /**
- * Lleva una tarea semanal a la misma lista de la semana siguiente, sin día asignado.
+ * Lleva una tarea semanal a la misma lista de otra semana (por defecto, la siguiente), sin día asignado.
  * Llega pendiente (aunque estuviera hecha: se sigue trabajando en ella).
  * Sus copias pendientes en los días de esta semana se quitan; las ya hechas quedan, sin vínculo.
  */
-export function moveWeekTaskToNext(week, list, i) {
+export function moveWeekTaskToNext(week, list, i, next = shiftDate(week, 7)) {
   const row = weekList(week, list)[i];
   if (!row || !text(row)) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
-  const next = shiftDate(week, 7);
-  if (weekTasks(next, list).length >= WEEK_SLOTS) return { error: list === 'a' ? tr('El foco de la próxima semana ya tiene cinco tareas.', 'Next week’s focus already has five tasks.') : tr('La próxima semana ya tiene cinco tareas en esa lista.', 'Next week already has five tasks in that list.') };
+  if (next === week) return { error: tr('La tarea ya está en esa semana.', 'The task is already in that week.') };
+  if (weekTasks(next, list).length >= WEEK_SLOTS) return { error: next !== shiftDate(week, 7) ? tr('Esa semana ya tiene cinco tareas en esa lista.', 'That week already has five tasks in that list.') : list === 'a' ? tr('El foco de la próxima semana ya tiene cinco tareas.', 'Next week’s focus already has five tasks.') : tr('La próxima semana ya tiene cinco tareas en esa lista.', 'Next week already has five tasks in that list.') };
   const path = weekPath(week, list, i);
   // Al quitar una tarea el día se reescribe sin huecos, así que se busca de nuevo después de cada una.
   const pendingCopy = date => Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path && !r.c)?.[0];

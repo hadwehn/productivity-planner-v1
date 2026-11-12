@@ -11,9 +11,9 @@ import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
 import { MAX_EVENT_DAYS, rangeLabel } from './events.js';
-import { dayClosed } from './rituals.js';
+import { dayClosed, weekClosed } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
-import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
+import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
 
 const sheet = () => $('#sheet');
 export function openSheet(title, body, onMount) {
@@ -108,6 +108,12 @@ export function overdueAction(kind, date, key) {
 export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
+  // Semana pasada: solo se puede traer la tarea a esta semana (no cambiarla de lista ni borrarla).
+  if (weekClosed(U.week)) {
+    openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="weekthis" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a esta semana', 'Move to this week')}</button></div>`);
+    return;
+  }
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
     <button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>
@@ -117,6 +123,15 @@ export function weekMenu(list, i) {
 export function weekAction(kind, list, i) {
   const undo = snapshot(Object.keys(S.d));
   if (kind === 'move') { const r = toggleWeekFocus(U.week, list, i); if (r.error) toast(r.error); closeSheet(); render(); return; }
+  if (kind === 'this') {
+    const r = moveWeekTaskToNext(U.week, list, i, iso(monday(new Date())));
+    closeSheet();
+    if (r.error) { toast(r.error); return; }
+    render();
+    toastUndo(tr('Pasó a esta semana', 'Moved to this week'), () => { restore(undo); render(); });
+    return;
+  }
+  if (weekClosed(U.week)) { closeSheet(); return; }
   if (kind === 'next') {
     const r = moveWeekTaskToNext(U.week, list, i);
     closeSheet();

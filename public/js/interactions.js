@@ -15,7 +15,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
-import { dayClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
+import { dayClosed, weekClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -148,10 +148,11 @@ const ACTIONS = {
   shiftplan: update(d => { U.week = shiftDate(U.week, 7 * d.n); }),
   thisweek: update(() => { U.week = iso(monday(new Date())); }),
   weekdone: update(d => { const row = S.w[U.week]?.[d.list]?.[d.i]; if (row) setWeekDone(U.week, d.list, +d.i, !row.c); }),
-  weekday: update(d => { const r = toggleWeekDay(U.week, d.list, +d.i, d.k); if (r.error) toast(r.error); }),
+  weekday: update(d => { if (weekClosed(U.week)) return; const r = toggleWeekDay(U.week, d.list, +d.i, d.k); if (r.error) toast(r.error); }),
   weekmenu: d => weekMenu(d.list, +d.i),
   weekmove: d => weekAction('move', d.list, +d.i),
   weeknext: d => weekAction('next', d.list, +d.i),
+  weekthis: d => weekAction('this', d.list, +d.i),
   weekdelete: d => weekAction('delete', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
   shiftmonth: update(d => { U.month = shiftMonth(U.month, +d.n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }),
@@ -210,6 +211,7 @@ function quickAdd(form) {
     addTask(U.date, value, { focus: focusFirst });
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
   } else {
+    if (weekClosed(U.week)) return false; // una semana pasada no recibe tareas nuevas
     const r = addWeekTask(U.week, form.dataset.list, value);
     if (r.error) { toast(r.error); return false; }
   }
@@ -245,7 +247,7 @@ function onInput(e) {
     setPath(el.dataset.p, el.value);
   }
   else if (el.dataset.taskText && !dayClosed(U.date)) renameTask(U.date, +el.dataset.taskText, el.value);
-  else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
+  else if (el.dataset.weekText && !weekClosed(U.week)) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
 }
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {

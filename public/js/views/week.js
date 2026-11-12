@@ -8,7 +8,7 @@ import { icon } from '../icons.js';
 import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { reviewState } from '../rituals.js';
+import { reviewState, weekClosed } from '../rituals.js';
 import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 function overview(week) {
@@ -22,23 +22,27 @@ function overview(week) {
 }
 
 function weekList(week, list, title, hint) {
-  const T = today(), items = weekTasks(week, list);
+  const T = today(), items = weekTasks(week, list), closed = weekClosed(week);
+  // En una semana ya pasada las tareas solo se marcan o se mueven (desde ⋯); no se añaden ni se editan.
   const rows = items.map(({ i, row, days }) => {
     const toggles = DAY_SHORT.map((label, w) => {
       const d = shiftDate(week, w), on = days.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
-      return `<button class="day-toggle${on ? ' on' : ''}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}" title="${what} ${DAYS[w]}">${label.slice(0, 1)}</button>`;
+      return closed ? `<span class="day-toggle${on ? ' on' : ''} past" aria-hidden="true">${label.slice(0, 1)}</span>`
+        : `<button class="day-toggle${on ? ' on' : ''}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}" title="${what} ${DAYS[w]}">${label.slice(0, 1)}</button>`;
     }).join('');
+    const text = closed ? `<span>${esc(row.t)}</span>` : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
-      <div class="task-main"><textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea></div>
+      <div class="task-main">${text}</div>
       <button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="${tr('Más opciones', 'More options')}">${icon('more')}</button>
     </div><div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div></div>`;
   }).join('');
   const full = items.length >= 5;
   const placeholder = list === 'a' ? tr('Añadir al foco de la semana', 'Add to this week’s focus') : tr('Añadir otra tarea', 'Add another task');
+  const empty = closed ? tr('No hubo tareas en esta lista.', 'No tasks in this list.') : hint;
   return `<section class="section">${sectionHead(title, `<span class="muted small">${items.length}/5</span>`, list === 'a' ? 'gold' : '')}
-    <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${hint}</p>`}
-      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
+    <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${empty}</p>`}
+      ${full || closed ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div></section>`;
 }
 
@@ -73,7 +77,8 @@ function weekView() {
     <section class="section">${sectionHead(tr('Intención de la semana', 'Intention for the week'))}<div class="card week-intent">${field(W + 'i', tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?'))}</div>${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
-    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}${overview(week)}<p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
+    ${weekClosed(week) ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es una semana pasada: puedes marcar sus tareas o moverlas a esta semana desde ⋯.', 'This week has passed: you can check off its tasks or move them to this week from ⋯.')}</p>` : ''}
+    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}${overview(week)}<p class="muted small" style="margin:8px 4px 0">${weekClosed(week) ? tr('Toca un día para abrirlo.', 'Tap a day to open it.') : tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
       body: questions.map((q, i) => {
