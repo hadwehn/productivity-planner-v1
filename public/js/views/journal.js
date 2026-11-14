@@ -114,11 +114,13 @@ export function journalView() {
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
   const nav = `<span class="range"><button class="mini" data-a="shiftjournal" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><span style="text-transform:capitalize">${monthYear(m)}</span><button class="mini" data-a="shiftjournal" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}"${m >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></span>`;
   return `<div class="view">${stickyHead(pageHead({ title, subtitle: nav }))}
+    <div class="cols"><div class="col">
     ${m === T.slice(0, 7) ? memory(T) : ''}
     ${monthSummary(m, T)}
     ${moodMonth(m)}
+    </div><div class="col">
     <section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'))}
       ${days.length ? `<div style="display:grid;gap:12px">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
         : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write one line when you close the day; over time, this becomes your best record.')}</p></div>`}
-    </section></div>`;
+    </section></div></div></div>`;
 }

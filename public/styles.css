@@ -507,12 +507,91 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .access-signout { width: 100%; }
 #retry-load { margin-top: 12px; }
 
+/* ===== Barra lateral, atajos y avisos (lo propio del computador se activa en «Escritorio») ===== */
+.nav-brand, nav.tabbar .nav-help, .wo-list { display: none; }
+.wo-date { display: contents; }
+.habit-grid { display: grid; gap: 24px; }
+.habit-grid .card + .card { margin-top: 0; }
+.sticky-head + .cols { margin-top: 0; }
+.ritual { scroll-margin-top: 200px; }
+.ritual-note .link { min-height: 28px; margin-left: 4px; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.nudge-row { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 14px; padding: 11px 14px; border-radius: var(--r-md); border: 1px dashed var(--line-strong); color: var(--ink-2); font-size: calc(14px * var(--ts)); text-align: left; }
+.nudge-row span { flex: 1; }
+.nudge-row b { color: var(--acc); font-weight: 600; }
+.nudge-row .icon { width: 17px; height: 17px; color: var(--mute); }
+kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; border-radius: 6px; background: var(--sunken); border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; }
+.shortcuts { margin: 0; display: grid; gap: 12px; }
+.shortcuts div { display: flex; align-items: baseline; gap: 14px; }
+.shortcuts dt { flex: 0 0 116px; }
+.shortcuts dd { margin: 0; color: var(--ink-2); font-size: calc(14px * var(--ts)); line-height: 1.4; }
+
 /* ===== Escritorio ===== */
 @media (min-width: 900px) {
   .sticky-head { padding-top: 34px; }
   dialog.sheet { margin: auto; border-radius: 26px; max-height: 86dvh; }
   .sheet-grip { display: none; }
   .title { font-size: 40px; }
+}
+/* Pantalla ancha: navegación al costado. */
+@media (min-width: 1000px) {
+  #planner { padding-left: 232px; }
+  main { max-width: 760px; --gutter: 36px; padding-bottom: 64px; }
+  .sticky-head { padding-top: 30px; }
+  .sticky-head .seg { max-width: 340px; }
+  .sticky-head [data-swipe="week"] { max-width: 620px; }
+  .swipe-hint { display: none; }
+
+  nav.tabbar, .nav-compact nav.tabbar { left: 0; top: 0; bottom: 0; transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
+  nav.tabbar button, .nav-compact nav.tabbar button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; border-radius: 12px; font-size: calc(15px * var(--ts)); font-weight: 550; }
+  nav.tabbar button span, .nav-compact nav.tabbar button span { max-height: none; opacity: 1; }
+  nav.tabbar button .icon { width: 21px; height: 21px; }
+  nav.tabbar button:hover { color: var(--ink); background: color-mix(in srgb, var(--sunken) 60%, transparent); }
+  nav.tabbar button.on { background: var(--sunken); }
+  nav.tabbar button[data-k="today"] { order: 1; }
+  nav.tabbar button[data-k="week"] { order: 2; }
+  nav.tabbar button[data-k="habits"] { order: 3; }
+  nav.tabbar button[data-k="journal"] { order: 4; }
+  .nav-brand { display: flex; align-items: center; gap: 2px; order: 0; padding: 0 4px 22px; }
+  .nav-brand img { width: 118px; height: auto; margin-left: -8px; }
+  .nav-brand .wordmark-dark { display: none; }
+  :root[data-appearance="dark"] .nav-brand .wordmark-light { display: none; }
+  :root[data-appearance="dark"] .nav-brand .wordmark-dark { display: block; }
+  .nav-brand span { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: var(--mute); padding-top: 3px; }
+  nav.tabbar .nav-help { display: flex; order: 9; margin-top: auto; font-size: calc(13px * var(--ts)); font-weight: 500; }
+  .nav-help span { white-space: nowrap; }
+  nav.tabbar .nav-help .icon { width: 18px; height: 18px; }
+  .nav-help kbd { margin-left: auto; }
+  #status { left: calc(50% + 116px); bottom: 32px; }
+
+  .narrow > .btn { width: auto; padding-inline: 24px; }
+  .narrow > p.muted { text-align: left !important; margin-left: 4px !important; }
+}
+/* Pantalla amplia: dos columnas. */
+@media (min-width: 1200px) {
+  main { max-width: 1120px; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 36px; align-items: start; }
+  .cols > .col > :first-child { margin-top: 10px; }
+
+  /* «Tu semana día a día» como lista: cada día muestra sus eventos y tareas. */
+  .week-overview { grid-template-columns: 1fr; gap: 8px; }
+  .wo-day { flex-direction: row; align-items: center; gap: 16px; padding: 12px 16px; text-align: left; transition: border-color .15s; }
+  .wo-day:hover { border-color: var(--line-strong); }
+  .wo-date { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 38px; flex: none; }
+  .wo-day small { display: none; }
+  .wo-list { display: grid; gap: 3px; flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; font-size: calc(14px * var(--ts)); color: var(--ink-2); }
+  .wo-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wo-list li.done { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+  .wo-list li:not(.ev):not(.more) { font-variant-caps: all-small-caps; letter-spacing: .04em; }
+  .wo-list li.ev { color: var(--acc); }
+  .wo-list li.more { color: var(--mute); font-size: calc(12px * var(--ts)); }
+  .wo-list time { font-variant-numeric: tabular-nums; opacity: .8; }
+
+  .habit-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+}
+/* Con mouse, las acciones de cada tarea aparecen al pasar el cursor (la ★ encendida se ve siempre). */
+@media (hover: hover) and (min-width: 1000px) {
+  .task .task-btn:not(.on) { opacity: 0; transition: opacity .15s; }
+  .task:hover .task-btn, .task:focus-within .task-btn { opacity: 1; }
 }
 @media (max-width: 760px) {
   .access-shell { grid-template-columns: 1fr; gap: 28px; padding: 32px 20px 40px; max-width: 480px; align-content: center; }

@@ -8,14 +8,14 @@ import {
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, taskMenu, taskPick, weekAction, weekMenu,
+  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, weekAction, weekMenu,
 } from './sheets.js';
 import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
-import { dayClosed, weekClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reviewState } from './rituals.js';
+import { dayClosed, weekClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
 
@@ -62,6 +62,7 @@ const ACTIONS = {
   dismiss: (d, b) => b.closest('dialog')?.close(),
   undo: () => runUndo(),
   settings: () => openSettings(),
+  shortcuts: () => shortcutsSheet(),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 
@@ -112,7 +113,7 @@ const ACTIONS = {
   mood: update(d => { if (!canEditRitual(U.date, 'e')) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
   reviewdone: () => {
     const week = U.week;
-    if (reviewState(week) !== 'sunday') { render(); return; }
+    if (reviewState(week) !== 'ready') { render(); return; }
     if (!hasReview(week)) { toast(tr('Responde al menos una pregunta antes de terminar.', 'Answer at least one question before finishing.')); return; }
     document.activeElement?.blur?.();
     const undo = finishReview(week);
@@ -131,7 +132,14 @@ const ACTIONS = {
     const reopen = () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); };
     // Al cerrar el día, si quedaron tareas, se ofrece pasarlas a mañana (la hoja trae su propio «deshacer»).
     if (which === 'e' && carryOverSheet(date, reopen)) return;
-    toastUndo(which === 'm' ? tr('Listo. Que tengas un buen día.', 'Done. Have a good day.') : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
+    toastUndo(which === 'm' ? (date < today() ? tr('Listo. Quedó guardado.', 'Done. It’s saved.') : tr('Listo. Que tengas un buen día.', 'Done. Have a good day.')) : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
+  },
+  ritualedit: d => { if (reopenRitual(U.date, d.k)) U[d.k === 'm' ? 'morning' : 'evening'] = true; render(); },
+  reviewedit: () => { if (reopenReview(U.week)) U.review = true; render(); },
+  closeyesterday: () => {
+    U.date = shiftDate(today(), -1); U.tab = 'today'; U.evening = true;
+    render(true);
+    $('[data-a="fold"][data-k="evening"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   },
   carryover: () => doCarryOver(U.date),
   closeundo: () => undoDayClose(),
@@ -254,7 +262,7 @@ function onInput(e) {
   autosize(el);
   if (!canEdit()) return;
   if (el.dataset.p) {
-    // Lo de «Empieza/Cierra tu día» solo se guarda mientras se puede editar (otro dispositivo pudo cerrarlo, o pasó la hora).
+    // Lo de «Empieza/Cierra tu día» solo se guarda mientras está abierto (otro dispositivo pudo darlo por terminado).
     const m = /^d\.(\d{4}-\d{2}-\d{2})\.(i|g|r|hl|learn|remember|p)$/.exec(el.dataset.p);
     if (m && !canEditRitual(m[1], ['i', 'g'].includes(m[2]) ? 'm' : 'e')) { render(); return; }
     const w = /^w\.(\d{4}-\d{2}-\d{2})\.r\.\d+$/.exec(el.dataset.p);
@@ -281,8 +289,37 @@ function nextField(el) {
   const next = fields[fields.indexOf(el) + 1];
   if (next) focusEnd(next); else el.blur();
 }
+// ——— Atajos de teclado (computador): solo cuando no se está escribiendo ni hay una ventana abierta ———
+const SHORTCUT_TABS = ['today', 'week', 'habits', 'journal'];
+function shortcut(e) {
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (k === '?') { shortcutsSheet(); return true; }
+  if (/^[1-4]$/.test(k)) { ACTIONS.go({ k: SHORTCUT_TABS[k - 1] }); return true; }
+  if (k === 'h') { U.date = today(); U.week = iso(monday(new Date())); U.month = U.journalMonth = today().slice(0, 7); U.calDay = today(); render(); return true; }
+  if (k === 'n') {
+    if (U.tab === 'habits') { ACTIONS.habitnew(); return true; }
+    if (U.tab === 'week' && U.weekMode === 'month') { ACTIONS.eventnew({}); return true; }
+    const input = U.tab === 'today' ? $('[data-form="addtask"] input') : $$('[data-form="addweek"] input')[0];
+    if (!input) return false;
+    input.focus(); input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return true;
+  }
+  if (k === 'ArrowLeft' || k === 'ArrowRight') {
+    const n = k === 'ArrowLeft' ? -1 : 1;
+    if (U.tab === 'today') U.date = shiftDate(U.date, n);
+    else if (U.tab === 'week' && U.weekMode === 'week') U.week = shiftDate(U.week, 7 * n);
+    else if (U.tab === 'week') { ACTIONS.shiftmonth({ n }); return true; }
+    else if (U.tab === 'journal' && !(n > 0 && U.journalMonth >= today().slice(0, 7))) U.journalMonth = shiftMonth(U.journalMonth, n);
+    else return false;
+    render();
+    return true;
+  }
+  return false;
+}
+
 function onKeydown(e) {
   const el = e.target;
+  if (e.key === 'Escape' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) && !el.closest('dialog')) { el.blur(); return; }
   if (e.key === 'Enter' && el.matches?.('[role=link][data-a]')) { e.preventDefault(); el.click(); return; }
   // Teclado físico sobre el teclado numérico del código.
   const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el.isContentEditable;
@@ -290,6 +327,7 @@ function onKeydown(e) {
     if (/^\d$/.test(e.key)) { e.preventDefault(); pressDigit(e.key); return; }
     if (e.key === 'Backspace') { e.preventDefault(); pressDelete(); return; }
   }
+  if (!typing && canEdit() && !e.metaKey && !e.ctrlKey && !e.altKey && !$('dialog[open]') && !$('[data-keypad]') && shortcut(e)) { e.preventDefault(); return; }
   if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !(el instanceof HTMLTextAreaElement)) return;
   if (!(el.dataset.p || el.dataset.taskText || el.dataset.weekText)) return;
   e.preventDefault();

@@ -12,7 +12,7 @@ import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '
 import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
-import { dayClosed, ritualState } from '../rituals.js';
+import { dayClosed, hasContent, isFinished, ritualState } from '../rituals.js';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -101,24 +101,22 @@ function habitsSection(date) {
   return `<section class="section">${sectionHead(title, manage)}<div class="habit-chips">${chips}</div></section>`;
 }
 
-// Campo editable o, si el ritual ya está terminado o fuera de su día, el texto para leer.
+// Campo editable o, si el ritual ya está terminado (o el día aún no llega), el texto para leer.
 const ritualField = (editable, path, label, placeholder, cls = '', id = '', hint = '') => {
   if (editable) return `<div class="prompt"><label for="${id}">${label}</label>${field(path, placeholder, cls, ` id="${id}"`)}${hint}</div>`;
   const text = String(get(path)).trim();
   return text ? `<div class="prompt"><span class="prompt-label">${label}</span><p class="ritual-read ${cls}">${esc(text)}</p></div>` : '';
 };
 
-/** Pie del ritual: botón para terminarlo, o el aviso de por qué ya no se edita. */
+/** Pie del ritual: botón para terminarlo o, ya terminado, la opción de volver a editarlo. */
 function ritualFoot(date, which, state) {
   if (state === 'open') {
-    const label = which === 'm' ? tr('Listo, empezar el día', 'Done, start the day') : tr('Cerrar el día', 'Close the day');
-    return `<button class="btn ritual-finish" data-a="ritualdone" data-k="${which}">${icon('check')}${label}</button>
-      <p class="prompt-hint" style="text-align:center;margin-top:8px">${tr('Al terminar queda guardado y ya no se puede cambiar.', 'Once done, it’s saved and can’t be changed.')}</p>`;
+    const label = which === 'e' ? tr('Cerrar el día', 'Close the day') : date < today() ? tr('Listo', 'Done') : tr('Listo, empezar el día', 'Done, start the day');
+    return `<button class="btn ritual-finish" data-a="ritualdone" data-k="${which}">${icon('check')}${label}</button>`;
   }
-  const note = state === 'done' ? (which === 'm' ? tr('Empezaste este día. Quedó guardado así.', 'You started this day. It’s saved as it is.') : tr('Cerraste este día. Quedó guardado así.', 'You closed this day. It’s saved as it is.'))
-    : state === 'future' ? tr('Podrás escribirlo ese día.', 'You can write it on that day.')
-      : tr('Este día ya cerró: se puede escribir solo hasta las 3:00 del día siguiente.', 'This day is closed: you can write only until 3:00 the next day.');
-  return `<p class="ritual-note">${state === 'done' ? icon('check') : icon('lock')}${note}</p>`;
+  if (state === 'future') return `<p class="ritual-note">${icon('calendar')}${tr('Podrás escribirlo cuando llegue ese día.', 'You can write it when that day comes.')}</p>`;
+  const note = which === 'm' ? tr('Empezaste este día.', 'You started this day.') : tr('Cerraste este día.', 'You closed this day.');
+  return `<p class="ritual-note">${icon('check')}${note}<button class="link" data-a="ritualedit" data-k="${which}">${tr('Editar', 'Edit')}</button></p>`;
 }
 
 function morning(date) {
@@ -130,7 +128,7 @@ function morning(date) {
   const done = state === 'done';
   const summary = done ? tr('Listo', 'Done')
     : intent.trim() ? `“${esc(preview(intent))}”` : grat.trim() ? tr('Gratitud escrita', 'Gratitude written')
-      : state === 'open' ? tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute') : state === 'future' ? tr('Disponible ese día', 'Available on that day') : tr('Sin escribir', 'Not written');
+      : state === 'future' ? tr('Disponible ese día', 'Available on that day') : date < today() ? tr('Sin escribir · puedes completarlo', 'Not written · you can still fill it in') : tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute');
   return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: done ? 'done' : '', title: tr('Empieza tu día', 'Start your day'), summary, written: done || !!intent.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'm', state) });
 }
 
@@ -152,8 +150,19 @@ function evening(date) {
   const done = state === 'done';
   const summary = done ? tr('Listo', 'Done')
     : reflection.trim() ? `“${esc(preview(reflection))}”` : mood ? moodName(mood)
-      : state === 'open' ? tr('Ánimo y reflexión · 1 minuto', 'Mood and reflection · 1 minute') : state === 'future' ? tr('Disponible ese día', 'Available on that day') : tr('Sin escribir', 'Not written');
+      : state === 'future' ? tr('Disponible ese día', 'Available on that day') : date < today() ? tr('Sin escribir · puedes completarlo', 'Not written · you can still fill it in') : tr('Ánimo y reflexión · 1 minuto', 'Mood and reflection · 1 minute');
   return foldable({ key: 'evening', open: U.evening, iconName: done ? 'check' : 'moon', iconCls: done ? 'done' : 'evening', title: tr('Cierra tu día', 'Close your day'), summary, written: done || !!reflection.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'e', state) });
+}
+
+/**
+ * Por la mañana, si ayer se usó pero quedó sin cerrar, se ofrece cerrarlo (p. ej., al llegar tarde
+ * a casa). Desaparece solo al mediodía o al escribir algo en el cierre de ayer.
+ */
+function yesterdayNudge(T) {
+  if (new Date().getHours() >= 12 || !(showToday('mood') || showToday('reflection'))) return '';
+  const Y = shiftDate(T, -1), { focus, rest } = dayTasks(Y);
+  if (isFinished(Y, 'e') || hasContent(Y, 'e') || !(hasContent(Y, 'm') || focus.length || rest.length)) return '';
+  return `<button class="nudge-row" data-a="closeyesterday">${icon('moon')}<span>${tr('Ayer quedó sin cerrar.', 'Yesterday wasn’t closed.')} <b>${tr('Cerrarlo ahora', 'Close it now')}</b></span>${icon('right')}</button>`;
 }
 
 function notes(date) {
@@ -170,11 +179,15 @@ export function todayView() {
   const [q, author] = quoteFor(date);
   const rituals = [morning(date), evening(date), notes(date)];
   return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}
+    <div class="cols"><div class="col">
     ${showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : ''}
+    ${isToday ? yesterdayNudge(T) : ''}
     ${rituals[0] ? `<div class="section">${rituals[0]}</div>` : ''}
     ${tasksSection(date)}
     ${agendaSection(date)}
+    </div><div class="col">
     ${showToday('habits') ? habitsSection(date) : ''}
     <div class="section">${rituals[1]}${rituals[1] ? '<div style="height:12px"></div>' : ''}${rituals[2]}</div>
+    </div></div>
   </div>`;
 }

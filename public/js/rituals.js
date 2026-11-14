@@ -1,17 +1,12 @@
-// «Empieza tu día» y «Cierra tu día»: se escriben solo en su día (hasta las 3 de la madrugada
-// siguiente) y se pueden dar por terminados con un botón. Terminado o pasado el plazo, quedan
-// solo para leer. Se guarda en d[fecha].closed = { m: true, e: true } (m = mañana, e = cierre).
+// «Empieza tu día» y «Cierra tu día»: se escriben el mismo día o cualquier día ya vivido, sin límite
+// de hora (un día futuro todavía no). El botón los da por terminados: quedan plegados y solo para
+// leer, y «Editar» los vuelve a abrir. Se guarda en d[fecha].closed = { m: true, e: true }
+// (m = mañana, e = cierre).
 import { S, save, get } from './state.js';
-import { parseDate, shiftDate } from './util.js';
+import { iso, parseDate, shiftDate } from './util.js';
 
 export const LOCK_HOUR = 3;
 
-/** ¿Estamos dentro del día `date` (desde las 00:00 hasta las 3:00 del día siguiente)? */
-export function inWindow(date, now = new Date()) {
-  const end = parseDate(shiftDate(date, 1));
-  end.setHours(LOCK_HOUR);
-  return now >= parseDate(date) && now < end;
-}
 /** El día ya pasó (son más de las 3:00 del día siguiente): sus tareas solo se marcan o se mueven. */
 export function dayClosed(date, now = new Date()) {
   const end = parseDate(shiftDate(date, 1));
@@ -21,12 +16,20 @@ export function dayClosed(date, now = new Date()) {
 /** La semana (que empieza el lunes `week`) ya pasó: desde las 3:00 del lunes siguiente. */
 export const weekClosed = (week, now) => dayClosed(shiftDate(week, 6), now);
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
-export const canEditRitual = (date, which) => !isFinished(date, which) && inWindow(date);
-/** 'open' | 'done' | 'past' (ya cerró el plazo) | 'future' (todavía no llega el día) */
+/** 'open' | 'done' | 'future' (todavía no llega el día) */
 export function ritualState(date, which, now = new Date()) {
   if (isFinished(date, which)) return 'done';
-  if (inWindow(date, now)) return 'open';
-  return parseDate(date) > now ? 'future' : 'past';
+  return date > iso(now) ? 'future' : 'open';
+}
+export const canEditRitual = (date, which, now) => ritualState(date, which, now) === 'open';
+/** Vuelve a abrir un ritual terminado para corregirlo o completarlo. */
+export function reopenRitual(date, which) {
+  const closed = S.d[date]?.closed;
+  if (!closed?.[which]) return false;
+  delete closed[which];
+  if (!Object.keys(closed).length) delete S.d[date].closed;
+  save();
+  return true;
 }
 
 const clean = v => String(v || '').trim();
@@ -51,22 +54,25 @@ export function finishRitual(date, which) {
 }
 
 // ——— Revisión semanal ———
-// Se escribe durante su semana; solo el domingo (hasta las 3:00 del lunes) aparece el botón para
-// darla por terminada. Terminada, o pasado ese plazo, queda solo para leer. Se guarda en w[lunes].closed.
-/** 'open' (se escribe, aún no es domingo) | 'sunday' (se puede terminar) | 'done' | 'past' | 'future' */
+// Se escribe durante su semana o después. Desde el domingo aparece el botón para darla por
+// terminada; terminada queda solo para leer, y «Editar» la vuelve a abrir. Se guarda en w[lunes].closed.
+/** 'open' (se escribe, aún no es domingo) | 'ready' (se puede terminar) | 'done' | 'future' */
 export function reviewState(week, now = new Date()) {
   if (S.w[week]?.closed === true) return 'done';
-  const end = parseDate(shiftDate(week, 7));
-  end.setHours(LOCK_HOUR);
-  if (now >= end) return 'past';
   if (now < parseDate(week)) return 'future';
-  return now >= parseDate(shiftDate(week, 6)) ? 'sunday' : 'open';
+  return now >= parseDate(shiftDate(week, 6)) ? 'ready' : 'open';
 }
-export const canEditReview = (week, now) => ['open', 'sunday'].includes(reviewState(week, now));
+export const canEditReview = (week, now) => ['open', 'ready'].includes(reviewState(week, now));
 export const hasReview = week => Object.values(S.w[week]?.r || {}).some(v => clean(v));
 export function finishReview(week) {
   const w = S.w[week] = S.w[week] || {};
   w.closed = true;
   save();
   return () => { if (S.w[week]) delete S.w[week].closed; save(); };
+}
+export function reopenReview(week) {
+  if (S.w[week]?.closed !== true) return false;
+  delete S.w[week].closed;
+  save();
+  return true;
 }

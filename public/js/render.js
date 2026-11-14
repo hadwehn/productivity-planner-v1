@@ -37,7 +37,10 @@ addEventListener('scroll', () => {
 
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
-  $('#nav').innerHTML = TABS().map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('');
+  // La marca y los atajos solo se ven en la barra lateral del computador (ver «Escritorio» en styles.css).
+  $('#nav').innerHTML = `<div class="nav-brand" aria-hidden="true"><img class="wordmark-light" src="icons/estoico-icon.png?v=3" width="240" height="80" alt=""><img class="wordmark-dark" src="icons/estoico-icon-dark.png?v=1" width="240" height="80" alt=""><span>FOCUS</span></div>`
+    + TABS().map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('')
+    + `<button class="nav-help" data-a="shortcuts">${icon('keyboard')}<span>${tr('Atajos de teclado', 'Keyboard shortcuts')}</span><kbd>?</kbd></button>`;
 }
 
 export function autosize(el) {
@@ -64,7 +67,7 @@ export function render(toTop = false) {
   const view = $('#v');
   view.innerHTML = VIEWS[U.tab]();
   if (!toTop) view.firstElementChild?.classList.remove('view');
-  $$('#nav button').forEach(b => {
+  $$('#nav button[data-k]').forEach(b => {
     const on = b.dataset.k === U.tab;
     b.classList.toggle('on', on);
     b.setAttribute('aria-current', on ? 'page' : 'false');

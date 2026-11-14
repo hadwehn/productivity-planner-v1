@@ -310,7 +310,7 @@ export function appearancePicker() {
   const card = (k, label) => `<button type="button" class="look${pref === k ? ' on' : ''}" data-a="appearance" data-k="${k}" aria-pressed="${pref === k}">${swatch(k)}<span>${label}</span></button>`;
   return `<div class="look-picker" data-looks><span class="field-label">${tr('¿Cómo prefieres verla?', 'How would you like it to look?')}</span>
     <div class="looks">${card('light', tr('Clara', 'Light'))}${card('dark', tr('Oscura', 'Dark'))}</div>
-    <button type="button" class="link look-auto${pref === 'auto' ? ' on' : ''}" data-a="appearance" data-k="auto" aria-pressed="${pref === 'auto'}">${pref === 'auto' ? icon('check') : ''}${tr('Igual que mi celular', 'Same as my phone')}</button>
+    <button type="button" class="link look-auto${pref === 'auto' ? ' on' : ''}" data-a="appearance" data-k="auto" aria-pressed="${pref === 'auto'}">${pref === 'auto' ? icon('check') : ''}${matchMedia?.('(pointer: coarse)').matches ? tr('Igual que mi celular', 'Same as my phone') : tr('Igual que mi computador', 'Same as my computer')}</button>
     <p class="prompt-hint" style="text-align:center;margin-top:2px">${tr('Puedes cambiarla cuando quieras en Ajustes.', 'You can change it anytime in Settings.')}</p></div>`;
 }
 
@@ -322,21 +322,38 @@ export function carryOverSheet(date, undo) {
   if (!pending.length) return false;
   undoClose = undo;
   const n = pending.length;
-  openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr('Te quedó una tarea sin terminar. ¿La pasas a mañana?', 'One task is left. Move it to tomorrow?') : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas a mañana?`, `${n} tasks are left. Move them to tomorrow?`)}</p>
+  const past = date < today();
+  openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr(`Te quedó una tarea sin terminar. ¿La pasas a ${past ? 'hoy' : 'mañana'}?`, `One task is left. Move it to ${past ? 'today' : 'tomorrow'}?`) : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas a ${past ? 'hoy' : 'mañana'}?`, `${n} tasks are left. Move them to ${past ? 'today' : 'tomorrow'}?`)}</p>
     <ul class="carry-list">${pending.map(t => `<li>${isFocusKey(t.key) ? icon('star', 'icon star-fill') : '<i class="dot"></i>'}<span class="caps">${esc(t.row.t)}</span></li>`).join('')}</ul>
-    <button class="btn" data-a="carryover">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>
+    <button class="btn" data-a="carryover">${icon('tomorrow')}${past ? tr('Pasar a hoy', 'Move to today') : tr('Pasar a mañana', 'Move to tomorrow')}</button>
     <button class="btn quiet" data-a="dismiss" style="margin-top:8px">${tr('Dejarlas aquí', 'Leave them here')}</button>
     <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`);
   return true;
 }
 export function doCarryOver(date) {
-  const { count, undo } = movePendingTo(date, shiftDate(date, 1));
+  const past = date < today();
+  const { count, undo } = movePendingTo(date, past ? today() : shiftDate(date, 1));
   closeSheet();
   render();
-  if (count) toastUndo(count === 1 ? tr('1 tarea pasó a mañana', '1 task moved to tomorrow') : tr(`${count} tareas pasaron a mañana`, `${count} tasks moved to tomorrow`), () => { restore(undo); render(); });
+  if (count) toastUndo(count === 1 ? tr(`1 tarea pasó a ${past ? 'hoy' : 'mañana'}`, `1 task moved to ${past ? 'today' : 'tomorrow'}`) : tr(`${count} tareas pasaron a ${past ? 'hoy' : 'mañana'}`, `${count} tasks moved to ${past ? 'today' : 'tomorrow'}`), () => { restore(undo); render(); });
 }
 export function undoDayClose() {
   closeSheet();
   undoClose?.();
   undoClose = null;
+}
+
+// ——— Atajos de teclado (computador) ———
+export function shortcutsSheet() {
+  const rows = [
+    ['1 – 4', tr('Ir a Hoy, Plan, Hábitos o Diario', 'Go to Today, Plan, Habits or Journal')],
+    ['N', tr('Nueva tarea (en Hoy y en Plan), hábito o evento', 'New task (in Today and Plan), habit or event')],
+    ['← →', tr('Día anterior o siguiente (semana o mes en Plan, mes en Diario)', 'Previous or next day (week or month in Plan, month in Journal)')],
+    ['H', tr('Volver a hoy', 'Back to today')],
+    ['Enter', tr('Pasar a la siguiente tarea', 'Go to the next task')],
+    [tr('Mayús + Enter', 'Shift + Enter'), tr('Salto de línea', 'Line break')],
+    ['Esc', tr('Salir del campo o cerrar la ventana', 'Leave the field or close the window')],
+    ['?', tr('Ver estos atajos', 'Show these shortcuts')],
+  ];
+  openSheet(tr('Atajos de teclado', 'Keyboard shortcuts'), `<dl class="shortcuts">${rows.map(([k, text]) => `<div><dt><kbd>${k}</kbd></dt><dd>${text}</dd></div>`).join('')}</dl>`);
 }

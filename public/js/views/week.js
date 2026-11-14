@@ -16,8 +16,10 @@ function overview(week) {
   return `<div class="week-overview">${DAY_SHORT.map((label, i) => {
     const d = shiftDate(week, i), { focus, rest } = dayTasks(d), all = [...focus, ...rest], left = all.filter(x => !x.row.c).length;
     const events = eventsOn(d).length;
+    const lines = [...eventsOn(d).map(({ e }) => `<li class="ev">${e.h ? `<time>${esc(e.h)}</time> ` : ''}${esc(e.t)}</li>`), ...all.map(x => `<li class="${x.row.c ? 'done' : ''}">${esc(x.row.t)}</li>`)];
+    const list = lines.length ? `<ul class="wo-list">${lines.slice(0, 5).join('')}${lines.length > 5 ? `<li class="more">+${lines.length - 5}</li>` : ''}</ul>` : '';
     const info = all.length ? (left ? `${left} ${tr('pend.', 'left')}` : tr('✓ listo', '✓ done')) : events ? `${events} ev.` : '';
-    return `<button class="wo-day${d === T ? ' today' : ''}${d < T ? ' past' : ''}" data-a="openday" data-k="${d}" aria-label="${tr('Abrir', 'Open')} ${DAYS[i]} ${parseDate(d).getDate()}"><span>${label}</span><b>${parseDate(d).getDate()}</b><small>${info}</small></button>`;
+    return `<button class="wo-day${d === T ? ' today' : ''}${d < T ? ' past' : ''}" data-a="openday" data-k="${d}" aria-label="${tr('Abrir', 'Open')} ${DAYS[i]} ${parseDate(d).getDate()}"><span class="wo-date"><span>${label}</span><b>${parseDate(d).getDate()}</b></span><small>${info}</small>${list}</button>`;
   }).join('')}</div>`;
 }
 
@@ -52,15 +54,12 @@ function progress(week) {
   return `<div class="progress-line" style="margin:14px 4px 0"><div class="bar"><i style="width:${Math.round(done / all.length * 100)}%"></i></div><span class="muted small">${done} ${tr('de', 'of')} ${all.length}</span></div>`;
 }
 
-/** Pie de la revisión: el botón para terminarla aparece solo el domingo (hasta las 3:00 del lunes). */
+/** Pie de la revisión: desde el domingo se puede dar por terminada; terminada, se puede volver a editar. */
 function reviewFoot(state) {
-  if (state === 'sunday') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Terminar la revisión', 'Finish the review')}</button>
-    <p class="prompt-hint" style="text-align:center;margin-top:8px">${tr('Al terminarla queda guardada y ya no se puede cambiar.', 'Once finished, it’s saved and can’t be changed.')}</p>`;
-  const note = { open: tr('El domingo podrás darla por terminada.', 'On Sunday you can mark it as finished.'),
-    done: tr('Terminaste la revisión de esta semana. Quedó guardada así.', 'You finished this week’s review. It’s saved as it is.'),
-    past: tr('Esta semana ya cerró: la revisión se puede escribir hasta las 3:00 del lunes siguiente.', 'This week is closed: the review can be written until 3:00 the following Monday.'),
-    future: tr('Podrás escribirla durante esa semana.', 'You can write it during that week.') }[state];
-  return `<p class="ritual-note">${icon(state === 'done' ? 'check' : state === 'open' ? 'calendar' : 'lock')}${note}</p>`;
+  if (state === 'ready') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Terminar la revisión', 'Finish the review')}</button>`;
+  if (state === 'done') return `<p class="ritual-note">${icon('check')}${tr('Terminaste la revisión de esta semana.', 'You finished this week’s review.')}<button class="link" data-a="reviewedit">${tr('Editar', 'Edit')}</button></p>`;
+  const note = state === 'open' ? tr('Desde el domingo podrás darla por terminada.', 'From Sunday you can mark it as finished.') : tr('Podrás escribirla cuando llegue esa semana.', 'You can write it when that week comes.');
+  return `<p class="ritual-note">${icon('calendar')}${note}</p>`;
 }
 
 function weekView() {
@@ -68,16 +67,17 @@ function weekView() {
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
-  const state = reviewState(week), editable = state === 'open' || state === 'sunday';
+  const state = reviewState(week), editable = state === 'open' || state === 'ready';
   const summary = state === 'done' ? tr(`Revisión terminada · ${answered} de ${questions.length}`, `Review done · ${answered} of ${questions.length}`)
     : answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
-      : state === 'past' ? tr('Sin revisión', 'No review') : state === 'future' ? tr('Disponible durante esa semana', 'Available during that week')
-        : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
-  return `${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
+      : state === 'future' ? tr('Disponible durante esa semana', 'Available during that week')
+        : week < thisWeek ? tr('Sin revisión · puedes completarla', 'No review · you can still fill it in') : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
+  return `<div class="cols"><div class="col">${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
     <section class="section">${sectionHead(tr('Intención de la semana', 'Intention for the week'))}<div class="card week-intent">${field(W + 'i', tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?'))}</div>${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     ${weekClosed(week) ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es una semana pasada: puedes marcar sus tareas o moverlas a esta semana desde ⋯.', 'This week has passed: you can check off its tasks or move them to this week from ⋯.')}</p>` : ''}
+    </div><div class="col">
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}${overview(week)}<p class="muted small" style="margin:8px 4px 0">${weekClosed(week) ? tr('Toca un día para abrirlo.', 'Tap a day to open it.') : tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
@@ -86,7 +86,7 @@ function weekView() {
         const text = String(get(`${W}r.${i}`)).trim();
         return text ? `<div class="prompt"><span class="prompt-label">${q}</span><p class="ritual-read">${esc(text)}</p></div>` : '';
       }).join('') + reviewFoot(state),
-    })}</div>`;
+    })}</div></div></div>`;
 }
 
 function monthView() {
@@ -101,12 +101,14 @@ function monthView() {
   const sel = U.calDay, sd = parseDate(sel);
   const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
   const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
-  return `<div class="week-strip" style="margin-top:14px"><button class="nav" data-a="shiftmonth" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><div style="flex:1;text-align:center;font:500 20px/1.2 var(--serif);text-transform:capitalize">${monthYear(m)}</div><button class="nav" data-a="shiftmonth" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}">${icon('right')}</button></div>
+  return `<div class="cols"><div class="col"><div class="week-strip" style="margin-top:14px"><button class="nav" data-a="shiftmonth" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><div style="flex:1;text-align:center;font:500 20px/1.2 var(--serif);text-transform:capitalize">${monthYear(m)}</div><button class="nav" data-a="shiftmonth" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}">${icon('right')}</button></div>
     <div class="card"><div class="cal">${grid}</div></div>
     <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
+    </div><div class="col">
     <section class="section">${sectionHead(tr('Foco del mes', 'Month focus'))}<div class="card">${three('p')}</div></section>
-    <section class="section">${sectionHead(tr('Lo mejor del mes', 'Best of the month'))}<div class="card">${three('h')}</div></section>`;
+    <section class="section">${sectionHead(tr('Lo mejor del mes', 'Best of the month'))}<div class="card">${three('h')}</div></section>
+    </div></div>`;
 }
 
 export function planView() {

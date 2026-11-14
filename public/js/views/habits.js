@@ -36,8 +36,8 @@ export function habitsView() {
   const dueToday = S.h.filter(h => isDue(h, T)), doneToday = dueToday.filter(h => isDone(h, T)).length;
   const motto = tr('Constancia, no perfección.', 'Consistency, not perfection.');
   const subtitle = S.h.length ? (dueToday.length ? `${tr('Hoy', 'Today')}: ${doneToday} ${tr('de', 'of')} ${dueToday.length}. ${motto}` : tr('Hoy no hay hábitos previstos.', 'No habits planned for today.')) : motto;
-  return `<div class="view">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }))}
-    ${cards ? `<div style="display:grid;gap:12px">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
+  return `<div class="view narrow">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }))}
+    ${cards ? `<div class="habit-grid">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>
     ${S.h.length ? `<p class="muted small" style="text-align:center;margin:14px 8px 0">${tr('Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial, ⋯ para editarlo o mantenlo presionado para cambiarlo de lugar.', 'Missed a day? That’s fine: your streak picks up when you come back. Tap a habit to see its history, ⋯ to edit it, or press and hold to move it.')}</p>` : ''}
   </div>`;
