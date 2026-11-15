@@ -24,16 +24,21 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
-// Como en Instagram: al bajar, la barra de pestañas se achica; al subir (o arriba del todo) vuelve.
-let lastScroll = 0;
+// La barra de pestañas se achica mientras se baja y vuelve a su tamaño al subir, al llegar
+// arriba o al dejar de desplazarse (no se queda achicada a mitad de página).
+let lastScroll = 0, scrollIdle = 0;
 addEventListener('scroll', () => {
-  const y = scrollY, root = document.documentElement;
-  if (y <= 4) root.classList.remove('nav-compact');
-  else if (y > lastScroll + 6 && y > 60) root.classList.add('nav-compact');
-  else if (y < lastScroll - 6) root.classList.remove('nav-compact');
-  else return; // movimientos mínimos: no se cambia nada
+  const y = scrollY, root = document.documentElement, dy = y - lastScroll;
+  clearTimeout(scrollIdle);
+  scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 450);
+  if (y > 4 && Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
   lastScroll = y;
+  root.classList.toggle('nav-compact', dy > 0 && y > 60);
 }, { passive: true });
+
+// «Hoy» ordena distinto sus bloques en pantallas amplias: se vuelve a dibujar al cruzar ese ancho.
+const wideScreen = typeof matchMedia === 'function' ? matchMedia('(min-width: 1200px)') : null;
+wideScreen?.addEventListener?.('change', () => { if (shownTab) render(); });
 
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));

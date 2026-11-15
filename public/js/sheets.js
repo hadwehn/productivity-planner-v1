@@ -208,7 +208,7 @@ export function habitDetail(id, month = today().slice(0, 7)) {
   }
   const s = streak(h, T), pct = consistency(h, T);
   openSheet(`<span class="caps">${esc(h.name)}</span>`, `<p class="muted small" style="margin:-4px 0 14px">${frequencyLabel(h)} · ${categoryName(h.color ?? 0)}</p>
-    <div class="stats"><div class="stat"><b>${s.n}</b><small>${s.unit} ${tr('de racha', 'streak')}</small></div><div class="stat"><b>${pct ?? '—'}${pct !== null ? '%' : ''}</b><small>${tr('constancia, 4 sem.', 'consistency, 4 wks')}</small></div><div class="stat"><b>${monthDone}</b><small>${tr('este mes', 'this month')}</small></div></div>
+    <div class="stats"><div class="stat"><b>${s.n}</b><small>${s.unit} ${tr('de racha', 'streak')}</small></div><div class="stat"><b>${pct ?? '—'}${pct !== null ? '%' : ''}</b><small>${tr('constancia en 4 semanas', 'consistency, 4 weeks')}</small></div><div class="stat"><b>${monthDone}</b><small>${tr('este mes', 'this month')}</small></div></div>
     <div class="week-strip" style="margin:0 0 10px"><button class="nav" data-a="habitmonth" data-id="${esc(id)}" data-month="${shiftMonth(month, -1)}" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><div style="flex:1;text-align:center;font-weight:600;text-transform:capitalize">${monthYear(month)}</div><button class="nav" data-a="habitmonth" data-id="${esc(id)}" data-month="${shiftMonth(month, 1)}" aria-label="${tr('Mes siguiente', 'Next month')}"${month >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></div>
     <div class="heat" style="--c:${categoryColor(h.color ?? 0)}">${cells}</div>
     <p class="muted small" style="margin:12px 2px 18px">${tr('Toca un día para marcarlo o desmarcarlo.', 'Tap a day to mark or unmark it.')}</p>

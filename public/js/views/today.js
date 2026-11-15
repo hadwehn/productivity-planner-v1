@@ -14,6 +14,7 @@ import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
 import { dayClosed, hasContent, isFinished, ritualState } from '../rituals.js';
 
+const wide = () => typeof matchMedia === 'function' && matchMedia('(min-width: 1200px)').matches;
 const greeting = () => {
   const h = new Date().getHours();
   return h < 6 ? tr('Buenas noches', 'Good night') : h < 13 ? tr('Buenos días', 'Good morning') : h < 20 ? tr('Buenas tardes', 'Good afternoon') : tr('Buenas noches', 'Good evening');
@@ -38,7 +39,8 @@ function weekStrip(date) {
   const panels = [-1, 0, 1].map(o => weekPanel(shiftDate(mon, 7 * o), shiftDate(date, 7 * o), o !== 0)).join('');
   const nudge = nudgeOnce() ? ' nudge' : '';
   const hint = swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '';
-  return `<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${hint}`;
+  const arrow = (n, label, name) => `<button class="strip-nav" data-a="shiftweek" data-n="${n}" aria-label="${label}" title="${label}">${icon(name)}</button>`;
+  return `<div class="strip-wrap">${arrow(-1, tr('Semana anterior', 'Previous week'), 'left')}<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${arrow(1, tr('Semana siguiente', 'Next week'), 'right')}</div>${hint}`;
 }
 
 function taskItem(date, { key, row }, focus, closed) {
@@ -177,17 +179,16 @@ export function todayView() {
   // «Volver a hoy» va junto a Ajustes (no en una línea extra), para que la cabecera fija mida lo mismo cualquier día.
   const side = `<div class="head-actions">${isToday ? '' : `<button class="pill" data-a="date" data-k="${T}">${icon('left')}${tr('Hoy', 'Today')}</button>`}${settingsButton()}</div>`;
   const [q, author] = quoteFor(date);
-  const rituals = [morning(date), evening(date), notes(date)];
-  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}
-    <div class="cols"><div class="col">
-    ${showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : ''}
-    ${isToday ? yesterdayNudge(T) : ''}
-    ${rituals[0] ? `<div class="section">${rituals[0]}</div>` : ''}
-    ${tasksSection(date)}
-    ${agendaSection(date)}
-    </div><div class="col">
-    ${showToday('habits') ? habitsSection(date) : ''}
-    <div class="section">${rituals[1]}${rituals[1] ? '<div style="height:12px"></div>' : ''}${rituals[2]}</div>
-    </div></div>
-  </div>`;
+  const quote = showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : '';
+  const section = html => (html ? `<div class="section">${html}</div>` : '');
+  const start = section(morning(date)), close = evening(date), pad = notes(date);
+  const nudge = isToday ? yesterdayNudge(T) : '', habits = showToday('habits') ? habitsSection(date) : '';
+  // Pantalla amplia: a la izquierda el recorrido del día (empezar → tareas → cerrar) y a la derecha,
+  // más angosto, lo que acompaña (frase, hábitos, agenda y notas). En el resto, una sola columna.
+  const body = wide()
+    ? `<div class="cols today-cols"><div class="col">${nudge}${start}${tasksSection(date)}${section(close)}</div>
+        <div class="col">${quote}${habits}${agendaSection(date)}${section(pad)}</div></div>`
+    : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
+        <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
+  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}${body}</div>`;
 }
