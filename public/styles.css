@@ -526,10 +526,12 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .strip-nav { display: none; }
 .ritual { scroll-margin-top: 200px; }
 .ritual-note .link { min-height: 28px; margin-left: 4px; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.nudge-row { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 14px; padding: 11px 14px; border-radius: var(--r-md); border: 1px dashed var(--line-strong); color: var(--ink-2); font-size: calc(14px * var(--ts)); text-align: left; }
-.nudge-row span { flex: 1; }
-.nudge-row b { color: var(--acc); font-weight: 600; }
-.nudge-row .icon { width: 17px; height: 17px; color: var(--mute); }
+.notices { margin-top: 14px; padding: 2px 14px; border-radius: var(--r-md); background: var(--gold-soft); }
+.notice { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.notice + .notice { border-top: 1px solid color-mix(in srgb, var(--gold) 20%, transparent); }
+.notice p { flex: 1; margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.4; }
+.notice > .icon { width: 19px; height: 19px; color: var(--ink-2); }
+.notice .btn.small { background: var(--surface); color: var(--ink); min-height: 34px; padding: 6px 13px; }
 kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; border-radius: 6px; background: var(--sunken); border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; }
 .shortcuts { margin: 0; display: grid; gap: 12px; }
 .shortcuts div { display: flex; align-items: baseline; gap: 14px; }
@@ -549,7 +551,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   main { max-width: 760px; --gutter: 36px; padding-bottom: 64px; }
   .sticky-head { padding-top: 30px; }
   .sticky-head .seg { max-width: 340px; }
-  .strip-wrap { display: flex; align-items: center; gap: 6px; max-width: 700px; margin-left: -6px; }
+  .strip-wrap { display: flex; align-items: center; gap: 6px; margin: 0 -8px; }
   .strip-wrap [data-swipe="week"] { flex: 1; min-width: 0; margin-bottom: 0; }
   .strip-nav { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; color: var(--mute); transition: background .15s, color .15s; }
   .strip-nav:hover { background: var(--sunken); color: var(--ink); }
@@ -587,7 +589,13 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 36px; align-items: start; }
   .cols > .col > :first-child { margin-top: 10px; }
   .today-cols { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 0 40px; }
-  .today-cols .nudge-row + .section { margin-top: 14px; }
+  .today-cols > .col > :first-child { margin-top: 22px; }
+  .today-cols .notices + .section { margin-top: 14px; }
+  /* Frase del día a todo el ancho, en una franja baja. */
+  .quote-wide { display: flex; align-items: baseline; gap: 18px; padding: 15px 24px; }
+  .quote-wide blockquote { flex: 1; font-size: 18px; }
+  .quote-wide figcaption { margin-top: 0; flex: none; }
+  .quote-wide .quote-mark { display: none; }
 
   /* «Tu semana día a día» como lista: cada día muestra sus eventos y tareas. */
   .week-overview { grid-template-columns: 1fr; gap: 8px; }

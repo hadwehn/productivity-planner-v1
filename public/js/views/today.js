@@ -64,12 +64,8 @@ const pendingFirst = list => [...list].sort((a, b) => done(a) - done(b));
 const done = t => (t.row.c && t.key !== U.settling ? 1 : 0);
 
 function tasksSection(date) {
-  const { focus: focusRaw, rest: restRaw } = dayTasks(date), T = today();
+  const { focus: focusRaw, rest: restRaw } = dayTasks(date);
   const focus = pendingFirst(focusRaw), rest = pendingFirst(restRaw);
-  const late = date === T ? overdue(T) : [];
-  const lateText = late.length === 1 ? tr('Quedó 1 tarea pendiente de días anteriores.', '1 task left over from previous days.')
-    : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`);
-  const banner = late.length ? `<div class="banner">${icon('inbox')}<p>${lateText}</p><button class="btn small" data-a="overdue">${tr('Revisar', 'Review')}</button></div>` : '';
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
   const closed = dayClosed(date);
   const items = (list, focus) => list.map(t => taskItem(date, t, focus, closed)).join('');
@@ -80,14 +76,14 @@ function tasksSection(date) {
   const add = closed ? '' : `<form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>`;
   const card = closed && !total ? `<p class="empty-note" style="margin-left:4px">${tr('No hubo tareas este día.', 'No tasks on this day.')}</p>`
     : `<div class="card tasks">${focusBlock}${restBlock}${add}</div>${closed ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es un día pasado: puedes marcar sus tareas o moverlas a otro día desde ⋯.', 'This day has passed: you can check off its tasks or move them to another day from ⋯.')}</p>` : ''}`;
-  return `<section class="section">${banner}${sectionHead(tr('Tareas', 'Tasks'), total ? `<span class="muted small">${doneCount} ${tr('de', 'of')} ${total}</span>` : '')}
+  return `<section class="section">${sectionHead(tr('Tareas', 'Tasks'), total ? `<span class="muted small">${doneCount} ${tr('de', 'of')} ${total}</span>` : '')}
     ${card}</section>`;
 }
 
 function agendaSection(date) {
   const events = eventsOn(date);
   const add = `<button class="link" data-a="eventnew">${icon('plus')}${tr('Evento', 'Event')}</button>`;
-  if (!events.length) return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}</section>`;
+  if (!events.length) return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p></section>`;
   return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(x => eventRow(x, date)).join('')}</div></section>`;
 }
 
@@ -157,14 +153,22 @@ function evening(date) {
 }
 
 /**
- * Por la mañana, si ayer se usó pero quedó sin cerrar, se ofrece cerrarlo (p. ej., al llegar tarde
- * a casa). Desaparece solo al mediodía o al escribir algo en el cierre de ayer.
+ * Avisos de hoy, juntos en un solo bloque discreto:
+ * - por la mañana, si ayer se usó pero quedó sin cerrar, se ofrece cerrarlo (p. ej., al llegar tarde
+ *   a casa); desaparece solo al mediodía o al escribir algo en el cierre de ayer;
+ * - tareas pendientes de días anteriores.
  */
-function yesterdayNudge(T) {
-  if (new Date().getHours() >= 12 || !(showToday('mood') || showToday('reflection'))) return '';
+function notices(T) {
+  const rows = [];
   const Y = shiftDate(T, -1), { focus, rest } = dayTasks(Y);
-  if (isFinished(Y, 'e') || hasContent(Y, 'e') || !(hasContent(Y, 'm') || focus.length || rest.length)) return '';
-  return `<button class="nudge-row" data-a="closeyesterday">${icon('moon')}<span>${tr('Ayer quedó sin cerrar.', 'Yesterday wasn’t closed.')} <b>${tr('Cerrarlo ahora', 'Close it now')}</b></span>${icon('right')}</button>`;
+  const unclosed = new Date().getHours() < 12 && (showToday('mood') || showToday('reflection'))
+    && !isFinished(Y, 'e') && !hasContent(Y, 'e') && (hasContent(Y, 'm') || focus.length || rest.length);
+  if (unclosed) rows.push([icon('moon'), tr('Ayer quedó sin cerrar.', 'Yesterday wasn’t closed.'), 'closeyesterday', tr('Cerrarlo', 'Close it')]);
+  const late = overdue(T);
+  if (late.length) rows.push([icon('inbox'), late.length === 1 ? tr('Quedó 1 tarea pendiente de días anteriores.', '1 task left over from previous days.')
+    : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`), 'overdue', tr('Revisar', 'Review')]);
+  if (!rows.length) return '';
+  return `<div class="notices">${rows.map(([ic, text, action, label]) => `<div class="notice">${ic}<p>${text}</p><button class="btn small" data-a="${action}">${label}</button></div>`).join('')}</div>`;
 }
 
 function notes(date) {
@@ -182,12 +186,13 @@ export function todayView() {
   const quote = showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : '';
   const section = html => (html ? `<div class="section">${html}</div>` : '');
   const start = section(morning(date)), close = evening(date), pad = notes(date);
-  const nudge = isToday ? yesterdayNudge(T) : '', habits = showToday('habits') ? habitsSection(date) : '';
-  // Pantalla amplia: a la izquierda el recorrido del día (empezar → tareas → cerrar) y a la derecha,
-  // más angosto, lo que acompaña (frase, hábitos, agenda y notas). En el resto, una sola columna.
+  const nudge = isToday ? notices(T) : '', habits = showToday('habits') ? habitsSection(date) : '';
+  // Pantalla amplia: la franja de días y la frase ocupan todo el ancho. Debajo, a la izquierda el
+  // recorrido del día (avisos → empezar → tareas → cerrar) y a la derecha, más angosto, lo que
+  // acompaña (hábitos, agenda y notas). En el resto, una sola columna.
   const body = wide()
-    ? `<div class="cols today-cols"><div class="col">${nudge}${start}${tasksSection(date)}${section(close)}</div>
-        <div class="col">${quote}${habits}${agendaSection(date)}${section(pad)}</div></div>`
+    ? `${quote.replace('class="quote"', 'class="quote quote-wide"')}<div class="cols today-cols"><div class="col">${nudge}${start}${tasksSection(date)}${section(close)}</div>
+        <div class="col">${habits}${agendaSection(date)}${section(pad)}</div></div>`
     : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
         <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
   return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}${body}</div>`;
