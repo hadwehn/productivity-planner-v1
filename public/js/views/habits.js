@@ -23,10 +23,10 @@ function habitCard(h, week, T) {
   return `<article class="card habit" style="--c:${c}" data-habit="${esc(h.id)}">
     <div class="habit-top">
       <button class="name" data-a="habitopen" data-id="${esc(h.id)}"><strong>${name}</strong><small>${sub}</small></button>
-      <div class="habit-stat"><b>${s.n}</b><small>${s.unit} ${tr('de racha', 'streak')}</small></div>
+      <button class="task-btn" data-a="habitmenu" data-id="${esc(h.id)}" aria-label="${tr('Opciones de', 'Options for')} ${name}" title="${tr('Editar o eliminar', 'Edit or delete')}">${icon('more')}</button>
     </div>
     <div class="week-dots">${dots}</div>
-    <div class="habit-foot">${progress}<button class="task-btn" data-a="habitmenu" data-id="${esc(h.id)}" aria-label="${tr('Opciones de', 'Options for')} ${name}" title="${tr('Editar o eliminar', 'Edit or delete')}">${icon('more')}</button></div>
+    <div class="habit-foot">${progress}<span class="habit-streak"><b>${s.n}</b> ${s.unit} ${tr('de racha', 'streak')}</span></div>
   </article>`;
 }
 
