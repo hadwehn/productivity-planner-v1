@@ -34,14 +34,16 @@ function weekPanel(mon, selected, side) {
 
 // Sin flechas: se cambia de día tocándolo y de semana deslizando la franja, que sigue al dedo y
 // deja ver la semana anterior o la siguiente (ver interactions.js).
+// La pista va bajo la línea de la cabecera (no dentro de ella), para que la cabecera de Hoy mida siempre lo mismo.
+const stripHint = () => (swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '');
+
 function weekStrip(date) {
   const mon = iso(monday(parseDate(date)));
   // En las semanas vecinas se marca el día que se abrirá al pasar a ellas (su lunes, u hoy en la semana actual).
   const panels = [-1, 0, 1].map(o => weekPanel(shiftDate(mon, 7 * o), o ? weekLanding(shiftDate(mon, 7 * o)) : date, o !== 0)).join('');
   const nudge = nudgeOnce() ? ' nudge' : '';
-  const hint = swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '';
   const arrow = (n, label, name) => `<button class="strip-nav" data-a="shiftweek" data-n="${n}" aria-label="${label}" title="${label}">${icon(name)}</button>`;
-  return `<div class="strip-wrap">${arrow(-1, tr('Semana anterior', 'Previous week'), 'left')}<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${arrow(1, tr('Semana siguiente', 'Next week'), 'right')}</div>${hint}`;
+  return `<div class="strip-wrap">${arrow(-1, tr('Semana anterior', 'Previous week'), 'left')}<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track${nudge}">${panels}</div></div>${arrow(1, tr('Semana siguiente', 'Next week'), 'right')}</div>`;
 }
 
 function taskItem(date, { key, row }, focus, closed) {
@@ -206,5 +208,5 @@ export function todayView() {
         <div class="col">${habits}${agendaSection(date)}${section(pad)}</div></div>`
     : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
         <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
-  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + weekStrip(date))}${planSwitch(date, T)}${body}</div>`;
+  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + weekStrip(date))}${stripHint()}${planSwitch(date, T)}${body}</div>`;
 }

@@ -75,6 +75,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .sticky-head { position: sticky; top: 0; z-index: 6; margin: 0 calc(-1 * var(--gutter)); padding: calc(14px + env(safe-area-inset-top)) var(--gutter) 10px; background: var(--bg); transition: box-shadow .2s; }
 .sticky-head .page-head { margin: 6px 0 12px; }
 .sticky-head .page-head:last-child { margin-bottom: 4px; }
+/* Plan: el selector Semana/Mes deja la línea a la misma altura que la franja de días en Hoy. */
+.sticky-head > .seg:last-child { margin-bottom: calc(8px + (var(--ts) - 1) * 36px); } /* con «Texto más grande» la franja crece 5px */
 .sticky-head .week-strip { margin-bottom: 0; }
 /* La línea bajo la cabecera fija se ve siempre; al desplazarse se suma una sombra suave. */
 .sticky-head { box-shadow: 0 1px 0 var(--line); }
@@ -165,7 +167,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 @keyframes enter-prev { from { opacity: 0; transform: translateX(-28px); } }
 .strip-track.nudge { animation: strip-nudge 1.1s .7s var(--ease, ease-in-out); }
 @keyframes strip-nudge { 0%, 100% { transform: translateX(-100%); } 30% { transform: translateX(calc(-100% - 22px)); } 60% { transform: translateX(calc(-100% + 8px)); } }
-.swipe-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 2px 0 4px; font-size: calc(12px * var(--ts)); color: var(--mute); }
+.swipe-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0 -8px; font-size: calc(12px * var(--ts)); color: var(--mute); }
 .swipe-hint .icon { width: 13px; height: 13px; opacity: .7; }
 @media (prefers-reduced-motion: reduce) { .strip-track.nudge { animation: none; } }
 .day-pill { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 9px; border-radius: 14px; color: var(--ink-2); transition: background .2s; }
