@@ -6,14 +6,14 @@ import { categoryColor } from '../categories.js';
 import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
 import { dayMonthShort, monthYear, tr } from '../i18n.js';
-import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
+import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
 import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 function overview(week) {
   const T = today();
-  return `<div class="week-overview">${DAY_SHORT.map((label, i) => {
+  return `<div class="week-overview" data-swipe="plan">${DAY_SHORT.map((label, i) => {
     const d = shiftDate(week, i), { focus, rest } = dayTasks(d), all = [...focus, ...rest], left = all.filter(x => !x.row.c).length;
     const events = eventsOn(d).length;
     const lines = [...eventsOn(d).map(({ e }) => `<li class="ev">${e.h ? `<time>${esc(e.h)}</time> ` : ''}${esc(e.t)}</li>`), ...all.map(x => `<li class="${x.row.c ? 'done' : ''}">${esc(x.row.t)}</li>`)];
@@ -89,20 +89,29 @@ function weekView() {
     })}</div></div></div>`;
 }
 
-function monthView() {
-  const m = U.month, [y, mo] = m.split('-').map(Number), offset = weekday(new Date(y, mo - 1, 1)), n = daysInMonth(m), T = today();
+/** Cuadrícula de un mes. `side`: mes vecino (solo se ve al deslizar), sin foco de teclado. */
+function calGrid(m, T, side) {
+  const [y, mo] = m.split('-').map(Number), offset = weekday(new Date(y, mo - 1, 1)), n = daysInMonth(m);
+  // En los meses vecinos se marca el día que se abrirá al pasar a ellos (hoy en el mes actual; si no, el 1).
+  const selected = side ? (m === T.slice(0, 7) ? T : `${m}-01`) : U.calDay;
   let grid = DAY_SHORT.map(d => `<span class="wd">${d.slice(0, 1)}</span>`).join('');
   for (let i = 0; i < offset; i++) grid += '<span></span>';
   for (let d = 1; d <= n; d++) {
     const k = `${m}-${p2(d)}`, events = eventsOn(k);
     const marks = events.slice(0, 3).map(({ e }) => `<u style="--c:${categoryColor(e.c ?? -1)}"></u>`).join('');
-    grid += `<button class="cal-day${k === U.calDay ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}">${d}<span class="marks">${marks}</span></button>`;
+    grid += `<button class="cal-day${k === selected ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}"${side ? ' tabindex="-1"' : ''}>${d}<span class="marks">${marks}</span></button>`;
   }
+  return `<div class="cal"${side ? ' aria-hidden="true"' : ''}>${grid}</div>`;
+}
+
+function monthView() {
+  const m = U.month, T = today();
+  const panels = [-1, 0, 1].map(o => calGrid(shiftMonth(m, o), T, o !== 0)).join('');
   const sel = U.calDay, sd = parseDate(sel);
   const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
   const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
   return `<div class="cols"><div class="col">
-    <div class="card"><div class="cal">${grid}</div></div>
+    <div class="card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>
     <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
     </div><div class="col">
@@ -135,6 +144,6 @@ export function planView() {
     ? rangeRow({ action: 'shiftplan', label: `${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}`, prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week') })
     : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(U.month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), n, back: 'thismonth', backLabel: tr('Este mes', 'This month') });
   const head = pageHead({ title: relativeTitle(n, isWeek ? 'week' : 'month') });
-  return `<div class="view">${stickyHead(head + row + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
+  return `<div class="view">${stickyHead(`<div data-swipe="plan">${head}${row}</div>` + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
     ${isWeek ? weekView() : monthView()}</div>`;
 }

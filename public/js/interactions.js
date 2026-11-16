@@ -172,7 +172,7 @@ const ACTIONS = {
   weekdelete: d => weekAction('delete', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
-  shiftmonth: update(d => { U.month = shiftMonth(U.month, +d.n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }),
+  shiftmonth: update(d => shiftMonthBy(+d.n)),
   shiftjournal: update(d => { U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
 
   // Ajustes
@@ -397,76 +397,101 @@ function sortable({ handle, item, key, onDrop, ignore = 'button, a, input, [cont
 }
 let droppedAt = 0;
 
-// ——— Franja de días en Hoy: deslizar cambia de semana ———
-// La franja tiene tres semanas (anterior, actual, siguiente) y sigue al dedo. Al soltar, si se
-// arrastró lo suficiente (o con un gesto rápido) termina de pasar a la semana vecina; si no,
-// vuelve a su lugar. Izquierda → siguiente; derecha → anterior. En el computador funciona
-// arrastrando con el mouse o deslizando con dos dedos en el trackpad.
+// ——— Deslizar para cambiar de semana o de mes ———
+// Zonas con data-swipe:
+// · «week» (franja de días en Hoy) y «month» (calendario del Mes): tres paneles (anterior, actual,
+//   siguiente) que siguen al dedo; al soltar terminan de pasar al vecino o vuelven a su lugar.
+// · «plan» (cabecera de Plan y «Tu semana día a día»): el contenido se corre un poco con el dedo y,
+//   al soltar, cambia la semana (o el mes) y la pantalla entra desde ese lado.
+// Izquierda → siguiente; derecha → anterior. En el computador funciona arrastrando con el mouse o
+// deslizando con dos dedos en el trackpad.
 const reduceMotion = () => matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const track = () => $('[data-swipe="week"] .strip-track');
+const zoneOf = e => e.target.closest?.('[data-swipe]');
 const place = (el, px, animate) => {
   el.style.transition = animate ? 'transform .26s cubic-bezier(.2,.7,.3,1)' : 'none';
   el.style.transform = `translateX(calc(-100% + ${px}px))`;
 };
-/** Termina el paso a la semana vecina (con animación) y vuelve a dibujar centrado en ella. */
-function shiftWeek(n) {
-  swipeLearned(); // ya lo descubrió: la pista no vuelve a aparecer
-  const el = track(), width = el?.parentElement.offsetWidth || 0;
+const plans = () => $$('[data-swipe="plan"]');
+const nudgePlan = (px, animate, fade = 0) => plans().forEach(el => {
+  el.style.transition = animate ? 'transform .18s ease, opacity .18s ease' : 'none';
+  el.style.transform = px ? `translateX(${px}px)` : '';
+  el.style.opacity = fade ? String(1 - fade) : '';
+});
+function shiftMonthBy(n) { U.month = shiftMonth(U.month, n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }
+const MOVE = {
   // La semana nueva se abre en su lunes (o en hoy, si es la semana actual).
-  const go = () => { U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); render(); };
-  if (!el || reduceMotion()) { go(); return; }
+  week: n => { swipeLearned(); U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); },
+  month: n => shiftMonthBy(n),
+  plan: n => { if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
+};
+/** Termina el paso al vecino (con animación) y vuelve a dibujar. */
+function shiftZone(kind, n) {
+  const go = () => {
+    MOVE[kind](n);
+    render();
+    if (kind === 'plan' && !reduceMotion()) $('#v').firstElementChild?.classList.add(n > 0 ? 'enter-next' : 'enter-prev');
+  };
+  if (reduceMotion()) { go(); return; }
+  if (kind === 'plan') { nudgePlan(-n * 60, true, 1); setTimeout(go, 150); return; }
+  const el = $(`[data-swipe="${kind}"] .strip-track`), width = el?.parentElement.offsetWidth || 0;
+  if (!el) { go(); return; }
   let finished = false;
   const done = () => { if (!finished) { finished = true; go(); } };
   el.addEventListener('transitionend', done, { once: true });
   setTimeout(done, 350); // por si el navegador no avisa del final de la transición
   place(el, -n * width, true);
 }
-function weekSwipe() {
-  const strip = e => e.target.closest?.('[data-swipe="week"]');
+const shiftWeek = n => shiftZone('week', n);
+function swipeZones() {
   let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
-    if (!strip(e) || e.button > 0 || !canEdit()) return;
-    drag = { x: e.clientX, y: e.clientY, id: e.pointerId, el: track(), moving: false, last: [[e.clientX, e.timeStamp]] };
+    const zone = zoneOf(e);
+    if (!zone || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]')) return;
+    const kind = zone.dataset.swipe;
+    drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: kind === 'plan' ? null : zone.querySelector('.strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
   document.addEventListener('pointermove', e => {
-    if (!drag || e.pointerId !== drag.id || !drag.el?.isConnected) return;
+    if (!drag || e.pointerId !== drag.id || (drag.el && !drag.el.isConnected)) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moving) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (Math.abs(dx) < Math.abs(dy)) { drag = null; return; } // es scroll vertical
+      if (Math.abs(dx) < Math.abs(dy) * 1.2) { drag = null; return; } // es scroll vertical
       drag.moving = true;
       try { e.target.setPointerCapture?.(e.pointerId); } catch { /* el puntero ya no está activo */ }
     }
     drag.last = [...drag.last.slice(-4), [e.clientX, e.timeStamp]];
-    place(drag.el, dx, false);
+    if (drag.el) place(drag.el, dx, false);
+    else nudgePlan(dx * 0.35, false, Math.min(0.5, Math.abs(dx) / drag.width));
   }, { passive: true });
   const end = e => {
     if (!drag || e.pointerId !== drag.id) return;
-    const { el, moving, x, last } = drag;
+    const { kind, el, moving, x, last, width } = drag;
     drag = null;
-    if (!moving || !el?.isConnected) return;
+    if (!moving) return;
     swipedAt = Date.now();
-    const dx = e.clientX - x, width = el.parentElement.offsetWidth;
+    const dx = e.clientX - x;
     const [x0, t0] = last[0], speed = (e.clientX - x0) / Math.max(1, e.timeStamp - t0); // px por ms
     const flick = Math.abs(speed) > 0.45 && Math.sign(speed) === Math.sign(dx);
-    if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftWeek(dx < 0 ? 1 : -1);
-    else place(el, 0, true); // no alcanzó: vuelve a su lugar
+    if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftZone(kind, dx < 0 ? 1 : -1);
+    else if (el?.isConnected) place(el, 0, true); // no alcanzó: vuelve a su lugar
+    else nudgePlan(0, true);
   };
   document.addEventListener('pointerup', end);
   document.addEventListener('pointercancel', end);
-  // Un deslizamiento no debe contar además como toque sobre un día.
+  // Un deslizamiento no debe contar además como toque sobre un día o un botón.
   document.addEventListener('click', e => {
-    if (Date.now() - swipedAt < 450 && strip(e)) { e.preventDefault(); e.stopPropagation(); }
+    if (Date.now() - swipedAt < 450 && zoneOf(e)) { e.preventDefault(); e.stopPropagation(); }
   }, true);
   document.addEventListener('wheel', e => {
-    if (!strip(e) || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    const zone = zoneOf(e);
+    if (!zone || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (Date.now() - wheelAt < 600) return;
     wheel += e.deltaX;
     if (Math.abs(wheel) < 50) return;
     const n = wheel > 0 ? 1 : -1;
     wheel = 0; wheelAt = Date.now();
-    if (canEdit()) shiftWeek(n);
+    if (canEdit()) shiftZone(zone.dataset.swipe, n);
   }, { passive: false });
 }
 
@@ -478,7 +503,7 @@ export function initInteractions(isReady) {
   document.addEventListener('input', onInput);
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('keydown', onKeydown);
-  weekSwipe();
+  swipeZones();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
   sortable({ handle: '.habit[data-habit]', item: '.habit[data-habit]', key: el => el.dataset.habit, ignore: '.week-dot, .task-btn, a, input', onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
 }
