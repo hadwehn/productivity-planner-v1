@@ -76,7 +76,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .sticky-head .page-head { margin: 6px 0 12px; }
 .sticky-head .page-head:last-child { margin-bottom: 4px; }
 /* Plan: el selector Semana/Mes deja la línea a la misma altura que la franja de días en Hoy. */
-.sticky-head > .seg:last-child { margin-bottom: calc(8px + (var(--ts) - 1) * 36px); } /* con «Texto más grande» la franja crece 5px */
+.sticky-head > .seg:last-child, .sticky-head > .plan-controls:last-child { margin-bottom: calc(8px + (var(--ts) - 1) * 36px); } /* con «Texto más grande» la franja crece 5px */
 .sticky-head .week-strip { margin-bottom: 0; }
 /* La línea bajo la cabecera fija se ve siempre; al desplazarse se suma una sombra suave. */
 .sticky-head { box-shadow: 0 1px 0 var(--line); }
@@ -610,6 +610,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   main { max-width: 760px; --gutter: 36px; padding-bottom: 64px; }
   .sticky-head { padding-top: 30px; min-height: calc(190px + (var(--ts) - 1) * 36px); }
   .sticky-head .seg { max-width: 340px; }
+  .plan-controls .seg { flex: 0 1 340px; }
   .strip-wrap { display: flex; align-items: center; gap: 6px; margin: 0 -8px; }
   .strip-wrap [data-swipe="week"] { flex: 1; min-width: 0; margin-bottom: 0; }
   .strip-nav { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; color: var(--mute); transition: background .15s, color .15s; }
@@ -689,8 +690,10 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .plan-range { display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; white-space: nowrap; }
 .plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); padding: 0 2px; font-variant-numeric: tabular-nums; }
 .plan-range .cap { text-transform: capitalize; }
-.plan-range .pill { margin-left: 10px; min-height: 30px; padding-block: 4px; } /* mismo alto que la fila: la línea no se mueve al aparecer */
-@media (max-width: 600px) { .plan-range .pill { margin-left: auto; } } /* en el celular, alineado bajo Ajustes */
+/* Plan: selector Semana | Mes y, fuera del presente, «‹ Hoy» a su lado. */
+.plan-controls { display: flex; align-items: center; gap: 8px; }
+.plan-controls .seg { flex: 1; min-width: 0; }
+.plan-controls .pill { min-height: 44px; padding-inline: 14px; border-radius: 12px; }
   .range .pill { display: inline-flex; }
 }
 @media (max-width: 380px) {

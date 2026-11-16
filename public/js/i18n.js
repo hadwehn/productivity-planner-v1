@@ -46,11 +46,10 @@ export function setLang(value, remember = true) {
 export const dayMonth = d => tr(`${d.getDate()} de ${MONTHS[d.getMonth()]}`, `${MONTHS[d.getMonth()]} ${d.getDate()}`);
 /** «10 nov» / «Nov 10». */
 export const dayMonthShort = d => tr(`${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`, `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}`);
-/** Días de una semana: «16 al 22 de noviembre»; si cruza de mes, «30 nov al 6 dic» (para que quepa en el celular). */
+/** Días de una semana, siempre con el mes completo: «16 al 22 de noviembre» o «30 de noviembre al 6 de diciembre». */
 export function weekRange(from, to) {
-  const short = d => MONTHS[d.getMonth()].slice(0, 3);
   if (from.getMonth() === to.getMonth()) return tr(`${from.getDate()} al ${to.getDate()} de ${MONTHS[to.getMonth()]}`, `${MONTHS[to.getMonth()]} ${from.getDate()}–${to.getDate()}`);
-  return tr(`${from.getDate()} ${short(from)} al ${to.getDate()} ${short(to)}`, `${short(from)} ${from.getDate()} – ${short(to)} ${to.getDate()}`);
+  return tr(`${from.getDate()} de ${MONTHS[from.getMonth()]} al ${to.getDate()} de ${MONTHS[to.getMonth()]}`, `${MONTHS[from.getMonth()]} ${from.getDate()} – ${MONTHS[to.getMonth()]} ${to.getDate()}`);
 }
 /** «noviembre 2026» / «November 2026». */
 export const monthYear = ym => { const [y, m] = ym.split('-').map(Number); return `${MONTHS[m - 1]} ${y}`; };
