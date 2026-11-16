@@ -79,7 +79,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* La línea bajo la cabecera fija se ve siempre; al desplazarse se suma una sombra suave. */
 .sticky-head { box-shadow: 0 1px 0 var(--line); }
 :root.scrolled .sticky-head { box-shadow: 0 1px 0 var(--line), 0 10px 18px -16px #2b25184d; }
-.sticky-head + * { margin-top: 14px; }
+/* Mismo aire bajo la línea de la cabecera en todas las pantallas. */
+.sticky-head + * { margin-top: 20px; }
 .view { animation: view-in .28s var(--ease); }
 @keyframes view-in { from { opacity: 0; transform: translateY(6px); } }
 
@@ -134,7 +135,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px #0000001a; }
 
 /* Frase del día: tarjeta propia, con más presencia. */
-.quote { position: relative; margin: 6px 0 0; padding: 22px 22px 18px 24px; border-radius: var(--r-lg); background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent); overflow: hidden; }
+.quote { position: relative; margin: 20px 0 0; padding: 22px 22px 18px 24px; border-radius: var(--r-lg); background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent); overflow: hidden; }
 .quote-mark { position: absolute; top: -18px; right: 14px; font: 400 110px/1 var(--serif); color: var(--gold); opacity: .18; pointer-events: none; }
 .quote blockquote { position: relative; margin: 0; font: italic 400 20px/1.45 var(--serif); color: var(--ink); text-wrap: pretty; }
 .quote figcaption { position: relative; margin-top: 12px; font: 650 calc(11px * var(--ts))/1.5 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
@@ -546,7 +547,8 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .plan-switch > span { flex: 1; min-width: 0; font-size: calc(14px * var(--ts)); color: var(--ink-2); line-height: 1.3; }
 .plan-switch .seg { flex: none; }
 .plan-switch .seg button { min-height: 34px; padding: 0 14px; }
-.plan-switch + .quote { margin-top: 12px; }
+/* Hoy: selector de noche → frase → avisos → «Empieza tu día», con el mismo espacio entre cada bloque. */
+.plan-switch + .quote, .quote + .notices, .quote + .section, .notices + .section { margin-top: 20px; }
 .notices { margin-top: 14px; padding: 2px 14px; border-radius: var(--r-md); background: var(--gold-soft); }
 .notice { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
 .notice + .notice { border-top: 1px solid color-mix(in srgb, var(--gold) 20%, transparent); }
@@ -610,8 +612,8 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 36px; align-items: start; }
   .cols > .col > :first-child { margin-top: 10px; }
   .today-cols { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 0 40px; }
-  .today-cols > .col > :first-child { margin-top: 22px; }
-  .today-cols .notices + .section { margin-top: 14px; }
+  .today-cols > .col > :first-child { margin-top: 20px; }
+  .today-cols .notices + .section { margin-top: 20px; }
   /* Frase del día a todo el ancho, en una franja baja. */
   .quote-wide { display: flex; align-items: baseline; gap: 18px; padding: 15px 24px; }
   .quote-wide blockquote { flex: 1; font-size: 18px; }
