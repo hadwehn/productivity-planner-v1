@@ -317,7 +317,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .wtask { padding: 4px 0 10px; }
 .wtask + .wtask { border-top: 1px solid var(--line); }
 .day-toggles { display: flex; gap: 4px; margin: 2px 0 0 36px; flex-wrap: wrap; }
-.day-toggle { width: 32px; height: 30px; border-radius: 9px; font-size: calc(12px * var(--ts)); font-weight: 600; color: var(--mute); background: var(--sunken); }
+.day-toggle { display: inline-grid; place-items: center; flex: none; width: 32px; height: 30px; border-radius: 9px; font-size: calc(12px * var(--ts)); font-weight: 600; color: var(--mute); background: var(--sunken); }
 .day-toggle.on { background: var(--acc); color: var(--acc-ink); }
 .day-toggle.past:not(.on) { opacity: .4; }
 .review-q { font: 500 calc(16px * var(--ts))/1.4 var(--serif); margin: 0 0 8px; }
