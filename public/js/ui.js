@@ -40,7 +40,8 @@ export function rollDay() {
 // ——— Navegación: deslizar o flechas ———
 // Dos variantes para probar con usuarios (Ajustes → Navegación). «Deslizar» (por defecto): en el
 // celular se cambia de semana o de mes deslizando, y desde la tarde aparece la tarjeta «¿Qué día
-// quieres organizar?». «Flechas» (cfg.nav = 'arrows'): flechas visibles, sin deslizado y sin tarjeta.
+// quieres organizar?». «Flechas» (cfg.nav = 'arrows'): flechas visibles y sin tarjeta; solo la franja
+// de días de Hoy se puede deslizar además.
 export const arrowsNav = () => S.cfg.nav === 'arrows';
 
 // ——— De noche: organizar hoy o mañana ———

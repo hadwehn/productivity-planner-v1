@@ -297,7 +297,7 @@ test('navegación: «Flechas» se guarda, se valida y las vistas se dibujan en l
   checkedState(JSON.parse(JSON.stringify(S)));
   Object.assign(U, { date: DAY, week: WEEK, weekMode: 'week', month: '2026-10', calDay: DAY, journalMonth: '2026-10' });
   ok(todayView().includes('strip-nav') && !todayView().includes('plan-switch') && !todayView().includes('swipe-hint'), 'Hoy con flechas, sin tarjeta ni pista');
-  ok(planView().includes('nav-pair') && journalView().includes('nav-pair'), 'par de flechas en Plan y Diario');
+  ok(planView().includes('nav-arrow') && journalView().includes('nav-arrow'), 'flechas junto a las fechas en Plan y Diario');
   const bad = JSON.parse(JSON.stringify(S)); bad.cfg.nav = 'otra';
   let failed = false; try { checkedState(bad); } catch { failed = true; }
   eq(failed, true, 'valor inválido');

@@ -439,11 +439,13 @@ function shiftZone(kind, n, el = $(`[data-swipe="${kind}"] > .strip-track`)) {
   place(el, -n * width, true);
 }
 const shiftWeek = n => shiftZone('week', n);
+// Con «Navegación: Flechas» solo se desliza la franja de días de Hoy; Plan y Diario cambian con sus flechas.
+const canSwipe = zone => !arrowsNav() || zone.dataset.swipe === 'week';
 function swipeZones() {
   let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
     const zone = zoneOf(e);
-    if (!zone || arrowsNav() || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
+    if (!zone || !canSwipe(zone) || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
     const kind = zone.dataset.swipe;
     drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: zone.querySelector(':scope > .strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
@@ -479,7 +481,7 @@ function swipeZones() {
   }, true);
   document.addEventListener('wheel', e => {
     const zone = zoneOf(e);
-    if (!zone || arrowsNav() || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    if (!zone || !canSwipe(zone) || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (Date.now() - wheelAt < 600) return;
     wheel += e.deltaX;

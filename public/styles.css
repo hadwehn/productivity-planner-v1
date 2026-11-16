@@ -179,24 +179,25 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .plan-head > .title { padding-right: 54px; } /* Diario: el título queda fijo y solo el mes se desliza */
 /* En el celular se cambia de semana o de mes deslizando (como en Hoy): las flechas no se ven, pero
    siguen disponibles para el teclado y los lectores de pantalla. */
+/* Flechas junto a las fechas (Plan y Diario): sin recuadro, como las de la franja de días en Hoy. */
+.plan-range .nav-arrow { width: 28px; background: none; border-radius: 10px; }
+@media (hover: hover) { .plan-range .nav-arrow:hover { background: var(--sunken); } } /* en pantallas táctiles no queda marcada tras el toque */
+.plan-range .nav-arrow:active { background: var(--sunken); }
+.plan-range .nav-arrow .icon { width: 18px; height: 18px; }
+.plan-range .nav-arrow:first-child { margin-left: -8px; }
 @media (max-width: 999px) {
-  .plan-range .nav-arrow { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .plan-range b { padding-left: 0; }
-}
-/* «Navegación: Flechas» en el celular. Hoy: flechas a los lados de la franja de días. Plan y Diario:
-   un par ‹ › junto al selector (al lado de las fechas no caben las semanas más largas). */
-.nav-pair { display: none; }
-@media (max-width: 999px) {
+  /* «Deslizar»: las flechas no se ven, pero siguen disponibles para el teclado y los lectores de pantalla. */
+  :root:not([data-nav="arrows"]) .plan-range .nav-arrow { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :root:not([data-nav="arrows"]) .plan-range b { padding-left: 0; }
+  /* «Flechas»: ‹ fechas ›. La letra se ajusta al ancho para que la semana más larga quepa en una línea. */
+  :root[data-nav="arrows"] .plan-range { gap: 2px; }
+  :root[data-nav="arrows"] .plan-range b { font-size: min(calc(15px * var(--ts)), 4.2vw); }
+  /* Hoy: flechas a los lados de la franja de días. */
   :root[data-nav="arrows"] .strip-wrap { display: flex; align-items: center; gap: 2px; margin-inline: -8px; }
   :root[data-nav="arrows"] .strip-wrap [data-swipe="week"] { flex: 1; min-width: 0; margin-bottom: 0; }
   :root[data-nav="arrows"] .strip-nav { display: grid; place-items: center; width: 30px; height: 44px; flex: none; border-radius: 12px; color: var(--ink-2); }
   :root[data-nav="arrows"] .strip-nav:active { background: var(--sunken); }
   :root[data-nav="arrows"] .strip-nav .icon { width: 18px; height: 18px; }
-  :root[data-nav="arrows"] .plan-range .nav-arrow { display: none; } /* las reemplaza el par ‹ › */
-  :root[data-nav="arrows"] .nav-pair { display: flex; gap: 4px; flex: none; }
-  .nav-pair button { display: grid; place-items: center; width: 38px; height: 44px; border-radius: 12px; background: var(--sunken); color: var(--ink-2); }
-  .nav-pair button:active { transform: scale(.96); }
-  .nav-pair .icon { width: 17px; height: 17px; }
 }
 .strip-track.nudge { animation: strip-nudge 1.1s .7s var(--ease, ease-in-out); }
 @keyframes strip-nudge { 0%, 100% { transform: translateX(-100%); } 30% { transform: translateX(calc(-100% - 22px)); } 60% { transform: translateX(calc(-100% + 8px)); } }

@@ -9,7 +9,7 @@ import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
-import { checkButton, field, foldable, navPair, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
+import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
   const T = today();
@@ -157,8 +157,7 @@ export function planView() {
   const thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
   const away = isWeek ? U.week !== thisWeek : U.month !== thisMonth, toPast = isWeek ? U.week > thisWeek : U.month > thisMonth;
   const back = away ? `<button class="pill" data-a="${isWeek ? 'thisweek' : 'thismonth'}" aria-label="${isWeek ? tr('Volver a esta semana', 'Back to this week') : tr('Volver a este mes', 'Back to this month')}">${icon(toPast ? 'left' : 'right')}${tr('Hoy', 'Today')}</button>` : '';
-  const arrows = isWeek ? navPair('shiftplan', tr('Semana anterior', 'Previous week'), tr('Semana siguiente', 'Next week')) : navPair('shiftmonth', tr('Mes anterior', 'Previous month'), tr('Mes siguiente', 'Next month'));
-  const controls = `<div class="plan-controls">${segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode)}${arrows}${back}</div>`;
+  const controls = `<div class="plan-controls">${segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode)}${back}</div>`;
   return `<div class="view">${stickyHead(head + controls)}${hint}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
