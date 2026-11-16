@@ -38,9 +38,9 @@ export function rollDay() {
 }
 
 // ——— De noche: organizar hoy o mañana ———
-// Desde las 20:00, «Hoy» ofrece pasar al día de mañana para planificarlo. Si esa noche se eligió
+// Desde las 18:00, «Hoy» ofrece pasar al día de mañana para planificarlo. Si esa noche se eligió
 // «Mañana», la app vuelve a abrir en mañana hasta la medianoche (se recuerda en el dispositivo).
-const PLAN_KEY = 'diario-organizar-manana', PLAN_HOUR = 20;
+const PLAN_KEY = 'diario-organizar-manana', PLAN_HOUR = 18;
 export const planningTime = () => new Date().getHours() >= PLAN_HOUR;
 export function rememberPlan(tomorrow) {
   try { if (tomorrow) localStorage.setItem(PLAN_KEY, today()); else localStorage.removeItem(PLAN_KEY); } catch { /* almacenamiento bloqueado */ }
