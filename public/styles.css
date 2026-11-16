@@ -76,6 +76,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .sticky-head .page-head { margin: 6px 0 12px; }
 .sticky-head .page-head:last-child { margin-bottom: 4px; }
 .sticky-head .week-strip { margin-bottom: 0; }
+/* La línea bajo la cabecera fija se ve siempre; al desplazarse se suma una sombra suave. */
+.sticky-head { box-shadow: 0 1px 0 var(--line); }
 :root.scrolled .sticky-head { box-shadow: 0 1px 0 var(--line), 0 10px 18px -16px #2b25184d; }
 .sticky-head + * { margin-top: 14px; }
 .view { animation: view-in .28s var(--ease); }
