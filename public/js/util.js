@@ -16,6 +16,8 @@ export const weekday = d => (d.getDay() + 6) % 7;
 export const weekdayOf = s => weekday(parseDate(s));
 export const monday = d => addDays(d, -weekday(d));
 export const today = () => iso(new Date());
+/** Día que se abre al cambiar a la semana que empieza el lunes `mon`: hoy si es la semana actual; si no, su lunes. */
+export const weekLanding = mon => { const T = today(); return T >= mon && T <= shiftDate(mon, 6) ? T : mon; };
 export const shiftMonth = (ym, n) => { const [y, m] = ym.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}`; };
 export const monthTitle = ym => { const [y, m] = ym.split('-'); return `${MONTHS[m - 1]} ${y}`; };
 export const daysInMonth = ym => { const [y, m] = ym.split('-').map(Number); return new Date(y, m, 0).getDate(); };

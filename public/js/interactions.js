@@ -17,7 +17,7 @@ import {
 import { autosize, focusEnd, render, renderNav } from './render.js';
 import { dayClosed, weekClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
-import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate } from './util.js';
+import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
 let canEdit = () => false;
 let settleTimer = 0;
@@ -411,7 +411,8 @@ const place = (el, px, animate) => {
 function shiftWeek(n) {
   swipeLearned(); // ya lo descubrió: la pista no vuelve a aparecer
   const el = track(), width = el?.parentElement.offsetWidth || 0;
-  const go = () => { U.date = shiftDate(U.date, 7 * n); render(); };
+  // La semana nueva se abre en su lunes (o en hoy, si es la semana actual).
+  const go = () => { U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); render(); };
   if (!el || reduceMotion()) { go(); return; }
   let finished = false;
   const done = () => { if (!finished) { finished = true; go(); } };

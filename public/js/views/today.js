@@ -8,7 +8,7 @@ import { categoryColor, MOOD_LEVELS, moodColor, moodName } from '../categories.j
 import { quoteFor } from '../quotes.js';
 import { icon } from '../icons.js';
 import { dayMonth, tr } from '../i18n.js';
-import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
+import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today, weekLanding } from '../util.js';
 import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
@@ -36,7 +36,8 @@ function weekPanel(mon, selected, side) {
 // deja ver la semana anterior o la siguiente (ver interactions.js).
 function weekStrip(date) {
   const mon = iso(monday(parseDate(date)));
-  const panels = [-1, 0, 1].map(o => weekPanel(shiftDate(mon, 7 * o), shiftDate(date, 7 * o), o !== 0)).join('');
+  // En las semanas vecinas se marca el día que se abrirá al pasar a ellas (su lunes, u hoy en la semana actual).
+  const panels = [-1, 0, 1].map(o => weekPanel(shiftDate(mon, 7 * o), o ? weekLanding(shiftDate(mon, 7 * o)) : date, o !== 0)).join('');
   const nudge = nudgeOnce() ? ' nudge' : '';
   const hint = swipeHint() ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de semana', 'Swipe to change week')}${icon('right')}</p>` : '';
   const arrow = (n, label, name) => `<button class="strip-nav" data-a="shiftweek" data-n="${n}" aria-label="${label}" title="${label}">${icon(name)}</button>`;
