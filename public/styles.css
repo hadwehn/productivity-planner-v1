@@ -190,6 +190,19 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .day-pill.on { background: var(--ink); color: var(--bg); }
 .day-pill.on span, .day-pill.on b { color: var(--bg); }
 .day-pill.on i { background: var(--bg); opacity: .7; }
+/* Hábitos: franja de la semana con un anillo de avance en cada día. */
+.ring-days { margin: 0 -6px; }
+.ring-day { gap: 4px; padding: 4px 0; }
+.ring-day b { position: relative; display: grid; place-items: center; width: 32px; height: 32px; font-size: calc(14px * var(--ts)); line-height: 1; }
+.ring-day b::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(var(--acc) calc(var(--p) * 1%), var(--line) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); }
+.ring-day b.none::before { background: none; }
+.ring-day.full b { color: var(--acc); font-weight: 700; }
+.ring-day.future { opacity: .45; }
+.ring-day:hover { background: var(--sunken); }
+.entry-grid { display: grid; gap: 12px; }
+.entry-grid > .card + .card { margin-top: 0; }
 
 /* ===== Rituales (empezar / cerrar el día) ===== */
 .ritual { padding: 0; overflow: hidden; }
@@ -651,6 +664,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .wo-list time { font-variant-numeric: tabular-nums; opacity: .8; }
 
   .habit-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .entry-grid { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 /* Con mouse, las acciones de cada tarea aparecen al pasar el cursor (la ★ encendida se ve siempre). */
 @media (hover: hover) and (min-width: 1000px) {

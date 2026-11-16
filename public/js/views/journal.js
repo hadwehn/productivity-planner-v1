@@ -5,7 +5,7 @@ import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, today, weekday } from '../util.js';
-import { pageHead, sectionHead, stickyHead } from './common.js';
+import { pageHead, sectionHead, segmented, stickyHead } from './common.js';
 import { dayTasks } from '../tasks.js';
 import { isDone, isDue } from '../habits.js';
 import { isUnlocked, showUnlock } from '../lock.js';
@@ -113,14 +113,13 @@ export function journalView() {
   const m = U.journalMonth, T = today();
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
   const nav = `<span class="range"><button class="mini" data-a="shiftjournal" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><span style="text-transform:capitalize">${monthYear(m)}</span><button class="mini" data-a="shiftjournal" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}"${m >= T.slice(0, 7) ? ' disabled' : ''}>${icon('right')}</button></span>`;
-  return `<div class="view">${stickyHead(pageHead({ title, subtitle: nav }))}
-    <div class="cols"><div class="col">
-    ${m === T.slice(0, 7) ? memory(T) : ''}
-    ${monthSummary(m, T)}
-    ${moodMonth(m)}
-    </div><div class="col">
-    <section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'))}
-      ${days.length ? `<div style="display:grid;gap:12px">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
+  // Dos pestañas, como «Semana | Mes» en Plan: el resumen del mes y lo que escribiste.
+  const tabs = segmented('journaltab', [['summary', tr('Resumen', 'Summary')], ['entries', tr('Escritos', 'Entries')]], U.journalTab);
+  const body = U.journalTab === 'entries'
+    ? `<section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'), days.length ? `<span class="muted small">${days.length} ${plural(days.length, 'día', 'días', 'day', 'days')}</span>` : '')}
+      ${days.length ? `<div class="entry-grid">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
         : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write one line when you close the day; over time, this becomes your best record.')}</p></div>`}
-    </section></div></div></div>`;
+    </section>`
+    : `<div class="cols"><div class="col">${m === T.slice(0, 7) ? memory(T) : ''}${monthSummary(m, T)}</div><div class="col">${moodMonth(m)}</div></div>`;
+  return `<div class="view">${stickyHead(pageHead({ title, subtitle: nav }) + tabs)}${body}</div>`;
 }

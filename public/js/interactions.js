@@ -174,6 +174,7 @@ const ACTIONS = {
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
   shiftmonth: update(d => shiftMonthBy(+d.n)),
   shiftjournal: update(d => { U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
+  journaltab: navigate(d => { U.journalTab = d.k; }),
 
   // Ajustes
   appearance: d => {

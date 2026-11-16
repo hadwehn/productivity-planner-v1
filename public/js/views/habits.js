@@ -5,7 +5,7 @@ import { consistency, frequencyLabel, isDone, isDue, isWeekly, streak, weekCount
 import { categoryColor } from '../categories.js';
 import { icon } from '../icons.js';
 import { tr } from '../i18n.js';
-import { DAY_SHORT, esc, iso, monday, shiftDate, today } from '../util.js';
+import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
 import { pageHead, stickyHead } from './common.js';
 
 function habitCard(h, week, T) {
@@ -30,13 +30,31 @@ function habitCard(h, week, T) {
   </article>`;
 }
 
+/**
+ * Franja de la semana (como la de Hoy): bajo cada día, un anillo con la parte de los hábitos de ese
+ * día que cumpliste. Los hábitos «N veces por semana» cuentan solo el día en que se marcaron.
+ * Tocar un día lo abre en Hoy.
+ */
+function weekRings(week, T) {
+  const days = DAY_SHORT.map((label, i) => {
+    const d = shiftDate(week, i), list = S.h.filter(h => (isWeekly(h) ? isDone(h, d) : isDue(h, d)));
+    const done = list.filter(h => isDone(h, d)).length, future = d > T;
+    const pct = list.length && !future ? Math.round(done / list.length * 100) : 0;
+    const what = list.length ? tr(`${done} de ${list.length} hábitos`, `${done} of ${list.length} habits`) : tr('sin hábitos', 'no habits');
+    return `<button class="day-pill ring-day${d === T ? ' today' : ''}${future ? ' future' : ''}${list.length && done === list.length && !future ? ' full' : ''}" data-a="openday" data-k="${d}" aria-label="${DAYS[i]} ${parseDate(d).getDate()}: ${what}">
+      <span>${label.slice(0, 1)}</span><b style="--p:${pct}"${list.length ? '' : ' class="none"'}>${parseDate(d).getDate()}</b></button>`;
+  }).join('');
+  return `<div class="days ring-days">${days}</div>`;
+}
+
 export function habitsView() {
   const T = today(), week = iso(monday(new Date()));
   const cards = S.h.map(h => habitCard(h, week, T)).join('');
   const dueToday = S.h.filter(h => isDue(h, T)), doneToday = dueToday.filter(h => isDone(h, T)).length;
   const motto = tr('Constancia, no perfección.', 'Consistency, not perfection.');
-  const subtitle = S.h.length ? (dueToday.length ? `${tr('Hoy', 'Today')}: ${doneToday} ${tr('de', 'of')} ${dueToday.length}. ${motto}` : tr('Hoy no hay hábitos previstos.', 'No habits planned for today.')) : motto;
-  return `<div class="view narrow">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }))}
+  // El avance de hoy ya se ve en el anillo del día; la línea bajo el título queda corta, así cabe en una línea.
+  const subtitle = S.h.length && dueToday.length ? `${tr('Hoy', 'Today')}: ${doneToday} ${tr('de', 'of')} ${dueToday.length}` : motto;
+  return `<div class="view narrow">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }) + (S.h.length ? weekRings(week, T) : ''))}
     ${cards ? `<div class="habit-grid">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>
     ${S.h.length ? `<p class="muted small" style="text-align:center;margin:14px 8px 0">${tr('Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial, ⋯ para editarlo o mantenlo presionado para cambiarlo de lugar.', 'Missed a day? That’s fine: your streak picks up when you come back. Tap a habit to see its history, ⋯ to edit it, or press and hold to move it.')}</p>` : ''}

@@ -16,6 +16,7 @@ export const U = {
   month: today().slice(0, 7),
   calDay: today(),
   journalMonth: today().slice(0, 7),
+  journalTab: 'summary',  // summary · entries
 };
 
 // ——— Cambio de día ———
