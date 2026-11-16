@@ -398,10 +398,9 @@ let droppedAt = 0;
 
 // ——— Deslizar para cambiar de semana o de mes ———
 // Zonas con data-swipe:
-// · «week» (franja de días en Hoy) y «month» (calendario del Mes): tres paneles (anterior, actual,
-//   siguiente) que siguen al dedo; al soltar terminan de pasar al vecino o vuelven a su lugar.
-// · «plan» (cabecera de Plan y «Tu semana día a día»): el contenido se corre un poco con el dedo y,
-//   al soltar, cambia la semana (o el mes) y la pantalla entra desde ese lado.
+// «week» (franja de días en Hoy), «month» (calendario del Mes) y «plan» (cabecera de Plan y «Tu
+// semana día a día»): tres paneles (anterior, actual, siguiente) que siguen al dedo; al soltar
+// terminan de pasar al vecino o vuelven a su lugar.
 // Izquierda → siguiente; derecha → anterior. En el computador funciona arrastrando con el mouse o
 // deslizando con dos dedos en el trackpad.
 const reduceMotion = () => matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -410,12 +409,6 @@ const place = (el, px, animate) => {
   el.style.transition = animate ? 'transform .26s cubic-bezier(.2,.7,.3,1)' : 'none';
   el.style.transform = `translateX(calc(-100% + ${px}px))`;
 };
-const plans = () => $$('[data-swipe="plan"]');
-const nudgePlan = (px, animate, fade = 0) => plans().forEach(el => {
-  el.style.transition = animate ? 'transform .18s ease, opacity .18s ease' : 'none';
-  el.style.transform = px ? `translateX(${px}px)` : '';
-  el.style.opacity = fade ? String(1 - fade) : '';
-});
 function shiftMonthBy(n) { U.month = shiftMonth(U.month, n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }
 const MOVE = {
   // La semana nueva se abre en su lunes (o en hoy, si es la semana actual).
@@ -423,17 +416,11 @@ const MOVE = {
   month: n => shiftMonthBy(n),
   plan: n => { if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
 };
-/** Termina el paso al vecino (con animación) y vuelve a dibujar. */
-function shiftZone(kind, n) {
-  const go = () => {
-    MOVE[kind](n);
-    render();
-    if (kind === 'plan' && !reduceMotion()) $('#v').firstElementChild?.classList.add(n > 0 ? 'enter-next' : 'enter-prev');
-  };
-  if (reduceMotion()) { go(); return; }
-  if (kind === 'plan') { nudgePlan(-n * 60, true, 1); setTimeout(go, 150); return; }
-  const el = $(`[data-swipe="${kind}"] .strip-track`), width = el?.parentElement.offsetWidth || 0;
-  if (!el) { go(); return; }
+/** Termina el paso al vecino (con animación) y vuelve a dibujar. `el`: los paneles que se arrastraron. */
+function shiftZone(kind, n, el = $(`[data-swipe="${kind}"] > .strip-track`)) {
+  const go = () => { MOVE[kind](n); render(); };
+  if (!el || reduceMotion()) { go(); return; }
+  const width = el.parentElement.offsetWidth;
   let finished = false;
   const done = () => { if (!finished) { finished = true; go(); } };
   el.addEventListener('transitionend', done, { once: true });
@@ -445,12 +432,12 @@ function swipeZones() {
   let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
     const zone = zoneOf(e);
-    if (!zone || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]')) return;
+    if (!zone || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
     const kind = zone.dataset.swipe;
-    drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: kind === 'plan' ? null : zone.querySelector('.strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
+    drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: zone.querySelector(':scope > .strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
   document.addEventListener('pointermove', e => {
-    if (!drag || e.pointerId !== drag.id || (drag.el && !drag.el.isConnected)) return;
+    if (!drag || e.pointerId !== drag.id || !drag.el?.isConnected) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moving) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
@@ -459,8 +446,7 @@ function swipeZones() {
       try { e.target.setPointerCapture?.(e.pointerId); } catch { /* el puntero ya no está activo */ }
     }
     drag.last = [...drag.last.slice(-4), [e.clientX, e.timeStamp]];
-    if (drag.el) place(drag.el, dx, false);
-    else nudgePlan(dx * 0.35, false, Math.min(0.5, Math.abs(dx) / drag.width));
+    place(drag.el, dx, false);
   }, { passive: true });
   const end = e => {
     if (!drag || e.pointerId !== drag.id) return;
@@ -471,9 +457,8 @@ function swipeZones() {
     const dx = e.clientX - x;
     const [x0, t0] = last[0], speed = (e.clientX - x0) / Math.max(1, e.timeStamp - t0); // px por ms
     const flick = Math.abs(speed) > 0.45 && Math.sign(speed) === Math.sign(dx);
-    if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftZone(kind, dx < 0 ? 1 : -1);
+    if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftZone(kind, dx < 0 ? 1 : -1, el);
     else if (el?.isConnected) place(el, 0, true); // no alcanzó: vuelve a su lugar
-    else nudgePlan(0, true);
   };
   document.addEventListener('pointerup', end);
   document.addEventListener('pointercancel', end);
@@ -490,7 +475,7 @@ function swipeZones() {
     if (Math.abs(wheel) < 50) return;
     const n = wheel > 0 ? 1 : -1;
     wheel = 0; wheelAt = Date.now();
-    if (canEdit()) shiftZone(zone.dataset.swipe, n);
+    if (canEdit()) shiftZone(zone.dataset.swipe, n, zone.querySelector(':scope > .strip-track'));
   }, { passive: false });
 }
 

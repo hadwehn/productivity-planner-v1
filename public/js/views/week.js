@@ -9,17 +9,17 @@ import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
-import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
+import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
-function overview(week) {
+function overview(week, side = false) {
   const T = today();
-  return `<div class="week-overview" data-swipe="plan">${DAY_SHORT.map((label, i) => {
+  return `<div class="week-overview"${side ? ' aria-hidden="true"' : ''}>${DAY_SHORT.map((label, i) => {
     const d = shiftDate(week, i), { focus, rest } = dayTasks(d), all = [...focus, ...rest], left = all.filter(x => !x.row.c).length;
     const events = eventsOn(d).length;
     const lines = [...eventsOn(d).map(({ e }) => `<li class="ev">${e.h ? `<time>${esc(e.h)}</time> ` : ''}${esc(e.t)}</li>`), ...all.map(x => `<li class="${x.row.c ? 'done' : ''}">${esc(x.row.t)}</li>`)];
     const list = lines.length ? `<ul class="wo-list">${lines.slice(0, 5).join('')}${lines.length > 5 ? `<li class="more">+${lines.length - 5}</li>` : ''}</ul>` : '';
     const info = all.length ? (left ? `${left} ${tr('pend.', 'left')}` : tr('✓ listo', '✓ done')) : events ? `${events} ev.` : '';
-    return `<button class="wo-day${d === T ? ' today' : ''}${d < T ? ' past' : ''}" data-a="openday" data-k="${d}" aria-label="${tr('Abrir', 'Open')} ${DAYS[i]} ${parseDate(d).getDate()}"><span class="wo-date"><span>${label}</span><b>${parseDate(d).getDate()}</b></span><small>${info}</small>${list}</button>`;
+    return `<button class="wo-day${d === T ? ' today' : ''}${d < T ? ' past' : ''}" data-a="openday" data-k="${d}" aria-label="${tr('Abrir', 'Open')} ${DAYS[i]} ${parseDate(d).getDate()}"${side ? ' tabindex="-1"' : ''}><span class="wo-date"><span>${label}</span><b>${parseDate(d).getDate()}</b></span><small>${info}</small>${list}</button>`;
   }).join('')}</div>`;
 }
 
@@ -78,7 +78,7 @@ function weekView() {
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     ${weekClosed(week) ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es una semana pasada: puedes marcar sus tareas o moverlas a esta semana desde ⋯.', 'This week has passed: you can check off its tasks or move them to this week from ⋯.')}</p>` : ''}
     </div><div class="col">
-    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}${overview(week)}<p class="muted small" style="margin:8px 4px 0">${weekClosed(week) ? tr('Toca un día para abrirlo.', 'Tap a day to open it.') : tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
+    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${weekClosed(week) ? tr('Toca un día para abrirlo.', 'Tap a day to open it.') : tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
       body: questions.map((q, i) => {
@@ -131,19 +131,28 @@ function relativeTitle(n, unit) {
 const monthIndex = ym => { const [y, m] = ym.split('-').map(Number); return y * 12 + m; };
 
 /** Fila bajo el título: ‹ fechas › y, si no es el presente, el botón para volver (siempre en la misma línea). */
-function rangeRow({ action, label, prev, next, n, back, backLabel }) {
-  const arrow = (dir, aria, name) => `<button class="mini" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}">${icon(name)}</button>`;
-  const backBtn = n ? `<button class="pill" data-a="${back}">${icon(n < 0 ? 'right' : 'left')}${backLabel}</button>` : '';
+function rangeRow({ action, label, prev, next, n, back, backLabel, side }) {
+  const skip = side ? ' tabindex="-1"' : '';
+  const arrow = (dir, aria, name) => `<button class="mini" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}"${skip}>${icon(name)}</button>`;
+  const backBtn = n ? `<button class="pill" data-a="${back}"${skip}>${icon(n < 0 ? 'right' : 'left')}${backLabel}</button>` : '';
   return `<div class="plan-range">${arrow(-1, prev, 'left')}<b>${label}</b>${arrow(1, next, 'right')}${backBtn}</div>`;
 }
 
-export function planView() {
-  const isWeek = U.weekMode === 'week', thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
-  const n = isWeek ? Math.round((parseDate(U.week) - parseDate(thisWeek)) / (7 * 864e5)) : monthIndex(U.month) - monthIndex(thisMonth);
+/** Título y fechas de la semana (o el mes) a `o` pasos de la elegida. `o` ≠ 0: panel vecino, solo visible al deslizar. */
+function headPanel(isWeek, o) {
+  const thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
+  const week = shiftDate(U.week, 7 * o), month = shiftMonth(U.month, o), side = o !== 0;
+  const n = isWeek ? Math.round((parseDate(week) - parseDate(thisWeek)) / (7 * 864e5)) : monthIndex(month) - monthIndex(thisMonth);
   const row = isWeek
-    ? rangeRow({ action: 'shiftplan', label: `${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}`, prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week') })
-    : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(U.month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), n, back: 'thismonth', backLabel: tr('Este mes', 'This month') });
-  const head = pageHead({ title: relativeTitle(n, isWeek ? 'week' : 'month') });
-  return `<div class="view">${stickyHead(`<div data-swipe="plan">${head}${row}</div>` + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
+    ? rangeRow({ action: 'shiftplan', label: `${dayMonthShort(parseDate(week))} – ${dayMonthShort(parseDate(shiftDate(week, 6)))}`, prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week'), side })
+    : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), n, back: 'thismonth', backLabel: tr('Este mes', 'This month'), side });
+  return `<div class="plan-head-panel"${side ? ' aria-hidden="true"' : ''}><h1 class="title">${relativeTitle(n, isWeek ? 'week' : 'month')}</h1>${row}</div>`;
+}
+
+export function planView() {
+  const isWeek = U.weekMode === 'week';
+  // Al deslizar la cabecera se ve la semana (o el mes) vecino, como la franja de días en Hoy.
+  const head = `<header class="plan-head"><div class="plan-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => headPanel(isWeek, o)).join('')}</div></div>${settingsButton()}</header>`;
+  return `<div class="view">${stickyHead(head + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
