@@ -171,6 +171,7 @@ const ACTIONS = {
   weekthis: d => weekAction('this', d.list, +d.i),
   weekdelete: d => weekAction('delete', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
+  thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
   shiftmonth: update(d => { U.month = shiftMonth(U.month, +d.n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }),
   shiftjournal: update(d => { U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
 

@@ -9,7 +9,7 @@ import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
-import { checkButton, field, foldable, pageHead, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
+import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
 
 function overview(week) {
   const T = today();
@@ -101,7 +101,7 @@ function monthView() {
   const sel = U.calDay, sd = parseDate(sel);
   const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
   const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
-  return `<div class="cols"><div class="col"><div class="week-strip" style="margin-top:14px"><button class="nav" data-a="shiftmonth" data-n="-1" aria-label="${tr('Mes anterior', 'Previous month')}">${icon('left')}</button><div style="flex:1;text-align:center;font:500 20px/1.2 var(--serif);text-transform:capitalize">${monthYear(m)}</div><button class="nav" data-a="shiftmonth" data-n="1" aria-label="${tr('Mes siguiente', 'Next month')}">${icon('right')}</button></div>
+  return `<div class="cols"><div class="col">
     <div class="card"><div class="cal">${grid}</div></div>
     <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
@@ -111,24 +111,30 @@ function monthView() {
     </div></div>`;
 }
 
-/** Nombre de la semana relativo a la actual: «Esta semana», «Semana pasada», «Próxima semana», «Hace 3 semanas»… */
-function weekTitle(week, thisWeek) {
-  const n = Math.round((parseDate(week) - parseDate(thisWeek)) / (7 * 864e5));
-  if (n === 0) return tr('Esta semana', 'This week');
-  if (n === -1) return tr('Semana pasada', 'Last week');
-  if (n === 1) return tr('Próxima semana', 'Next week');
-  return n < 0 ? tr(`Hace ${-n} semanas`, `${-n} weeks ago`) : tr(`En ${n} semanas`, `In ${n} weeks`);
+/** Nombre relativo al presente: «Esta semana», «Semana pasada», «Hace 3 semanas», «Este mes», «Mes pasado»… */
+function relativeTitle(n, unit) {
+  const T = {
+    week: [tr('Esta semana', 'This week'), tr('Semana pasada', 'Last week'), tr('Próxima semana', 'Next week'), k => tr(`Hace ${k} semanas`, `${k} weeks ago`), k => tr(`En ${k} semanas`, `In ${k} weeks`)],
+    month: [tr('Este mes', 'This month'), tr('Mes pasado', 'Last month'), tr('Próximo mes', 'Next month'), k => tr(`Hace ${k} meses`, `${k} months ago`), k => tr(`En ${k} meses`, `In ${k} months`)],
+  }[unit];
+  return n === 0 ? T[0] : n === -1 ? T[1] : n === 1 ? T[2] : n < 0 ? T[3](-n) : T[4](n);
+}
+const monthIndex = ym => { const [y, m] = ym.split('-').map(Number); return y * 12 + m; };
+
+/** Fila bajo el título: ‹ fechas › y, si no es el presente, el botón para volver (siempre en la misma línea). */
+function rangeRow({ action, label, prev, next, n, back, backLabel }) {
+  const arrow = (dir, aria, name) => `<button class="mini" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}">${icon(name)}</button>`;
+  const backBtn = n ? `<button class="pill" data-a="${back}">${icon(n < 0 ? 'right' : 'left')}${backLabel}</button>` : '';
+  return `<div class="plan-range">${arrow(-1, prev, 'left')}<b>${label}</b>${arrow(1, next, 'right')}${backBtn}</div>`;
 }
 
 export function planView() {
-  const isWeek = U.weekMode === 'week', thisWeek = iso(monday(new Date()));
-  // «Volver a esta semana»: junto a Ajustes, como «‹ Hoy» en Hoy; en el celular se muestra junto a las fechas (ver styles.css).
-  const back = isWeek && U.week !== thisWeek ? `<button class="pill" data-a="thisweek">${icon(U.week < thisWeek ? 'right' : 'left')}${tr('Esta semana', 'This week')}</button>` : '';
-  const subtitle = isWeek
-    ? `<span class="range"><button class="mini" data-a="shiftplan" data-n="-1" aria-label="${tr('Semana anterior', 'Previous week')}">${icon('left')}</button>${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}<button class="mini" data-a="shiftplan" data-n="1" aria-label="${tr('Semana siguiente', 'Next week')}">${icon('right')}</button>${back}</span>`
-    : tr('Lo que viene, de un vistazo', 'What’s ahead, at a glance');
-  const side = `<div class="head-actions">${back}${settingsButton()}</div>`;
-  const title = isWeek ? weekTitle(U.week, thisWeek) : tr('Mes', 'Month');
-  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
+  const isWeek = U.weekMode === 'week', thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
+  const n = isWeek ? Math.round((parseDate(U.week) - parseDate(thisWeek)) / (7 * 864e5)) : monthIndex(U.month) - monthIndex(thisMonth);
+  const row = isWeek
+    ? rangeRow({ action: 'shiftplan', label: `${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}`, prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week') })
+    : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(U.month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), n, back: 'thismonth', backLabel: tr('Este mes', 'This month') });
+  const head = pageHead({ title: relativeTitle(n, isWeek ? 'week' : 'month') });
+  return `<div class="view">${stickyHead(head + row + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
