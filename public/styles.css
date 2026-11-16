@@ -88,8 +88,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .page-head > div { min-width: 0; }
 .head-actions { display: flex; align-items: center; gap: 6px; flex: none; min-width: 0; }
 .eyebrow { font-size: calc(12px * var(--ts)); font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--mute); margin: 0 0 4px; }
-.title { font: 400 34px/1.1 var(--serif); letter-spacing: -.01em; margin: 0; }
+.title { font: 400 34px/1.1 var(--serif); letter-spacing: -.01em; margin: 0; min-height: 42px; } /* al menos el alto de Ajustes: la línea de abajo cae igual en todas las pantallas */
 .subtitle { color: var(--ink-2); font-size: calc(14px * var(--ts)); margin: 6px 0 0; }
+.subtitle .period { display: inline-flex; align-items: center; min-height: 30px; } /* misma altura que la fila ‹ fechas › de Plan y Diario */
+/* El periodo que muestra cada pantalla (el día en Hoy, el mes en Diario, la semana o el mes en Plan) va en negrita, con la misma letra. */
+.subtitle .period, .subtitle .range > span, .plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); }
 .icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); flex: none; position: relative; transition: background .2s; }
 .icon-btn:hover { background: var(--sunken); }
 .icon-btn .icon { width: 22px; height: 22px; }

@@ -188,7 +188,8 @@ function notes(date) {
 
 export function todayView() {
   const date = U.date, d = parseDate(date), T = today(), isToday = date === T;
-  const eyebrow = `${DAYS[(d.getDay() + 6) % 7]} · ${dayMonth(d)}`;
+  // La fecha va bajo el saludo, como las fechas bajo el título en Plan y Diario: así el título queda a la misma altura en todas las pantallas.
+  const subtitle = `<span class="period">${DAYS[(d.getDay() + 6) % 7]}, ${dayMonth(d)}</span>`;
   const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
   // «Volver a hoy» va junto a Ajustes (no en una línea extra), para que la cabecera fija mida lo mismo cualquier día.
   const side = `<div class="head-actions">${isToday ? '' : `<button class="pill" data-a="date" data-k="${T}">${icon('left')}${tr('Hoy', 'Today')}</button>`}${settingsButton()}</div>`;
@@ -205,5 +206,5 @@ export function todayView() {
         <div class="col">${habits}${agendaSection(date)}${section(pad)}</div></div>`
     : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
         <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
-  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}${planSwitch(date, T)}${body}</div>`;
+  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + weekStrip(date))}${planSwitch(date, T)}${body}</div>`;
 }
