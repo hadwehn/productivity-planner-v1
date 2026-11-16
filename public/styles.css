@@ -435,6 +435,18 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .lock-msg { min-height: 20px; margin: 4px 0 14px; color: var(--danger); font-size: calc(13px * var(--ts)); }
 .keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 22px; margin-bottom: 14px; }
 .key { width: 72px; height: 72px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); font: 400 28px/1 var(--sans); font-variant-numeric: tabular-nums; transition: background .12s, transform .12s var(--ease); }
+/* Diario con código: pantalla completa, sin cabecera. Ajustes queda donde está en las demás pantallas
+   y el teclado se achica en pantallas bajas para caber sin desplazarse. */
+.lock-top { display: flex; justify-content: flex-end; padding-top: calc(20px + env(safe-area-inset-top)); }
+.locked .lock { --k: clamp(52px, 8.6dvh, 72px); padding: 0 0 4px; }
+.locked .lock-sub { margin-bottom: 14px; }
+.locked .keys { grid-template-columns: repeat(3, var(--k)); gap: calc(var(--k) / 6) calc(var(--k) / 3.2); margin-bottom: 10px; }
+.locked .key { width: var(--k); height: var(--k); font-size: calc(var(--k) * .39); }
+@media (max-height: 720px) {
+  .locked .lock-sub { display: none; }
+  .locked .lock-icon { width: 44px; height: 44px; margin-bottom: 10px; }
+  .locked .lock-title { margin-bottom: 12px; }
+}
 .key:active { background: var(--sunken); transform: scale(.94); }
 .key.quiet { background: transparent; border-color: transparent; font-size: 22px; color: var(--ink-2); }
 .shake .pin-dots { animation: shake .4s; }
@@ -624,6 +636,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   #planner { padding-left: 232px; }
   main { max-width: 760px; --gutter: 36px; padding-bottom: 64px; }
   .sticky-head { padding-top: 30px; min-height: calc(190px + (var(--ts) - 1) * 36px); }
+  .lock-top { padding-top: 36px; }
   .sticky-head .seg { max-width: 340px; }
   .plan-controls .seg { flex: 0 1 340px; }
   .strip-wrap { display: flex; align-items: center; gap: 6px; margin: 0 -8px; }

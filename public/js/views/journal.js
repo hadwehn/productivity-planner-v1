@@ -5,7 +5,7 @@ import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
-import { navPair, pageHead, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
+import { navPair, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 import { dayTasks } from '../tasks.js';
 import { isDone, isDue } from '../habits.js';
 import { isUnlocked, showUnlock } from '../lock.js';
@@ -109,7 +109,8 @@ function entry(date, d) {
 
 export function journalView() {
   const title = tr('Diario', 'Journal');
-  if (!isUnlocked()) return `<div class="view">${stickyHead(pageHead({ title }))}${showUnlock()}</div>`;
+  // Con código: sin cabecera. Solo Ajustes arriba y el teclado, que cabe en la pantalla sin desplazarse.
+  if (!isUnlocked()) return `<div class="view locked"><h1 class="sr-only">${title}</h1><div class="lock-top">${settingsButton()}</div>${showUnlock()}</div>`;
   const m = U.journalMonth, T = today();
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
   // Bajo el título, el mes en tres paneles (anterior, actual, siguiente): se cambia deslizando, como en Plan.
