@@ -634,6 +634,12 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .access-intro h1 br, .access-lead br, .access-detail, .access-symbol { display: none; }
   .access-card { padding: 26px 22px; }
 }
+/* «‹ Esta semana»: junto a Ajustes; en el celular, al lado de las fechas (junto a Ajustes no cabe sin partir el título). */
+.range .pill { display: none; margin-left: 6px; }
+@media (max-width: 480px) {
+  .head-actions .pill[data-a="thisweek"] { display: none; }
+  .range .pill { display: inline-flex; }
+}
 @media (max-width: 380px) {
   main { --gutter: 14px; }
   .title { font-size: 30px; }

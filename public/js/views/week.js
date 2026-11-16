@@ -9,7 +9,7 @@ import { dayMonthShort, monthYear, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
-import { checkButton, field, foldable, pageHead, sectionHead, segmented, stickyHead } from './common.js';
+import { checkButton, field, foldable, pageHead, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week) {
   const T = today();
@@ -111,11 +111,24 @@ function monthView() {
     </div></div>`;
 }
 
+/** Nombre de la semana relativo a la actual: «Esta semana», «Semana pasada», «Próxima semana», «Hace 3 semanas»… */
+function weekTitle(week, thisWeek) {
+  const n = Math.round((parseDate(week) - parseDate(thisWeek)) / (7 * 864e5));
+  if (n === 0) return tr('Esta semana', 'This week');
+  if (n === -1) return tr('Semana pasada', 'Last week');
+  if (n === 1) return tr('Próxima semana', 'Next week');
+  return n < 0 ? tr(`Hace ${-n} semanas`, `${-n} weeks ago`) : tr(`En ${n} semanas`, `In ${n} weeks`);
+}
+
 export function planView() {
   const isWeek = U.weekMode === 'week', thisWeek = iso(monday(new Date()));
+  // «Volver a esta semana»: junto a Ajustes, como «‹ Hoy» en Hoy; en el celular se muestra junto a las fechas (ver styles.css).
+  const back = isWeek && U.week !== thisWeek ? `<button class="pill" data-a="thisweek">${icon(U.week < thisWeek ? 'right' : 'left')}${tr('Esta semana', 'This week')}</button>` : '';
   const subtitle = isWeek
-    ? `<span class="range"><button class="mini" data-a="shiftplan" data-n="-1" aria-label="${tr('Semana anterior', 'Previous week')}">${icon('left')}</button>${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}<button class="mini" data-a="shiftplan" data-n="1" aria-label="${tr('Semana siguiente', 'Next week')}">${icon('right')}</button>${U.week !== thisWeek ? `<button class="link" data-a="thisweek">${tr('Esta semana', 'This week')}</button>` : ''}</span>`
+    ? `<span class="range"><button class="mini" data-a="shiftplan" data-n="-1" aria-label="${tr('Semana anterior', 'Previous week')}">${icon('left')}</button>${dayMonthShort(parseDate(U.week))} – ${dayMonthShort(parseDate(shiftDate(U.week, 6)))}<button class="mini" data-a="shiftplan" data-n="1" aria-label="${tr('Semana siguiente', 'Next week')}">${icon('right')}</button>${back}</span>`
     : tr('Lo que viene, de un vistazo', 'What’s ahead, at a glance');
-  return `<div class="view">${stickyHead(pageHead({ title: isWeek ? tr('Semana', 'Week') : tr('Mes', 'Month'), subtitle }) + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
+  const side = `<div class="head-actions">${back}${settingsButton()}</div>`;
+  const title = isWeek ? weekTitle(U.week, thisWeek) : tr('Mes', 'Month');
+  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
