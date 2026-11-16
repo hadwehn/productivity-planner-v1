@@ -1,7 +1,7 @@
 // Estado de la interfaz (no se guarda en la nube), avisos y tema visual.
 import { S, get } from './state.js';
 import { tr } from './i18n.js';
-import { $, esc, today, iso, monday } from './util.js';
+import { $, esc, today, iso, monday, shiftDate } from './util.js';
 
 export const U = {
   tab: 'today',          // today · week · habits · journal
@@ -34,6 +34,22 @@ export function rollDay() {
   if (U.journalMonth === old.slice(0, 7)) U.journalMonth = T.slice(0, 7);
   openRitualForNow();
   return true;
+}
+
+// ——— De noche: organizar hoy o mañana ———
+// Desde las 20:00, «Hoy» ofrece pasar al día de mañana para planificarlo. Si esa noche se eligió
+// «Mañana», la app vuelve a abrir en mañana hasta la medianoche (se recuerda en el dispositivo).
+const PLAN_KEY = 'diario-organizar-manana', PLAN_HOUR = 20;
+export const planningTime = () => new Date().getHours() >= PLAN_HOUR;
+export function rememberPlan(tomorrow) {
+  try { if (tomorrow) localStorage.setItem(PLAN_KEY, today()); else localStorage.removeItem(PLAN_KEY); } catch { /* almacenamiento bloqueado */ }
+}
+/** Al abrir la app de noche: si hoy se eligió organizar mañana, se abre en mañana. */
+export function openOnPlannedDay() {
+  if (!planningTime() || U.date !== today()) return;
+  let chosen = '';
+  try { chosen = localStorage.getItem(PLAN_KEY) || ''; } catch { /* almacenamiento bloqueado */ }
+  if (chosen === today()) U.date = shiftDate(today(), 1);
 }
 
 // ——— Rituales según la hora ———

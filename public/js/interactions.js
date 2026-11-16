@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, applyTheme, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
+import { U, applyTextSize, applyTheme, rememberPlan, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -81,6 +81,7 @@ const ACTIONS = {
   // Tocar «Hoy» estando en Hoy vuelve al día de hoy.
   go: navigate(d => { if (d.k === 'today' && U.tab === 'today') U.date = today(); U.tab = d.k; }),
   date: update(d => { U.date = d.k; }),
+  planday: update(d => { const tomorrow = d.k === 'tomorrow'; U.date = shiftDate(today(), tomorrow ? 1 : 0); rememberPlan(tomorrow); }),
   openday: navigate(d => openDay(d.k)),
   shiftweek: d => shiftWeek(+d.n),
   fold: update(d => { U[d.k] = !U[d.k]; }),

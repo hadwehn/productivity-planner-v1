@@ -1,7 +1,7 @@
 // «Hoy»: lo que importa del día en una sola pantalla.
 // Orden pensado para el uso real: empezar (intención, gratitud) → tareas → agenda → hábitos → cerrar (ánimo, reflexión) → notas.
 import { S, get } from '../state.js';
-import { U, nudgeOnce, showToday, swipeHint } from '../ui.js';
+import { U, nudgeOnce, planningTime, showToday, swipeHint } from '../ui.js';
 import { dayTasks, overdue } from '../tasks.js';
 import { isDue, isDone, isWeekly, weekCount } from '../habits.js';
 import { categoryColor, MOOD_LEVELS, moodColor, moodName } from '../categories.js';
@@ -171,6 +171,15 @@ function notices(T) {
   return `<div class="notices">${rows.map(([ic, text, action, label]) => `<div class="notice">${ic}<p>${text}</p><button class="btn small" data-a="${action}">${label}</button></div>`).join('')}</div>`;
 }
 
+/** De noche, estando en hoy o en mañana: elegir cuál de los dos días organizar. */
+function planSwitch(date, T) {
+  const next = shiftDate(T, 1);
+  if (!planningTime() || (date !== T && date !== next)) return '';
+  const option = (k, label, on) => `<button role="tab" class="${on ? 'on' : ''}" data-a="planday" data-k="${k}" aria-selected="${on}">${label}</button>`;
+  return `<div class="plan-switch">${icon('moon')}<span>${tr('¿Qué día quieres organizar?', 'Which day do you want to plan?')}</span>
+    <div class="seg" role="tablist">${option('today', tr('Hoy', 'Today'), date === T)}${option('tomorrow', tr('Mañana', 'Tomorrow'), date === next)}</div></div>`;
+}
+
 function notes(date) {
   const text = get(`d.${date}.n`, '');
   return foldable({ key: 'notes', open: U.notes, iconName: 'note', title: tr('Notas', 'Notes'), summary: text.trim() ? esc(preview(text)) : tr('Ideas y apuntes del día', 'Ideas and notes for the day'), body: notesEditor(date) });
@@ -195,5 +204,5 @@ export function todayView() {
         <div class="col">${habits}${agendaSection(date)}${section(pad)}</div></div>`
     : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
         <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
-  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}${body}</div>`;
+  return `<div class="view">${stickyHead(pageHead({ eyebrow, title, side }) + weekStrip(date))}${planSwitch(date, T)}${body}</div>`;
 }
