@@ -173,7 +173,7 @@ const ACTIONS = {
   calday: update(d => { U.calDay = d.k; }),
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
   shiftmonth: update(d => shiftMonthBy(+d.n)),
-  shiftjournal: update(d => { U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
+  shiftjournal: update(d => { if (canMove('journal', +d.n)) U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
   journaltab: navigate(d => { U.journalTab = d.k; }),
 
   // Ajustes
@@ -414,11 +414,14 @@ function shiftMonthBy(n) { U.month = shiftMonth(U.month, n); U.calDay = U.month 
 const MOVE = {
   // La semana nueva se abre en su lunes (o en hoy, si es la semana actual).
   week: n => { swipeLearned(); U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); },
-  month: n => shiftMonthBy(n),
-  plan: n => { if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
+  month: n => { swipeLearned('plan'); shiftMonthBy(n); },
+  plan: n => { swipeLearned('plan'); if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
+  journal: n => { swipeLearned('journal'); U.journalMonth = shiftMonth(U.journalMonth, n); },
 };
+const canMove = (kind, n) => !(kind === 'journal' && n > 0 && U.journalMonth >= today().slice(0, 7));
 /** Termina el paso al vecino (con animación) y vuelve a dibujar. `el`: los paneles que se arrastraron. */
 function shiftZone(kind, n, el = $(`[data-swipe="${kind}"] > .strip-track`)) {
+  if (!canMove(kind, n)) { if (el?.isConnected) place(el, 0, true); return; } // el Diario no pasa de este mes
   const go = () => { MOVE[kind](n); render(); };
   if (!el || reduceMotion()) { go(); return; }
   const width = el.parentElement.offsetWidth;

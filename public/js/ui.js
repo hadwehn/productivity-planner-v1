@@ -72,24 +72,27 @@ export function openRitualForNow() {
   U[which] = true;
 }
 
-// ——— Pista «Desliza para cambiar de semana» ———
-// Se muestra en las 3 primeras aperturas de la app, hasta que la persona deslice una vez.
-const HINT_KEY = 'diario-pista-deslizar', HINT_TIMES = 3, HINT_LEARNED = 99;
-let hint = null, nudged = false;
-export function swipeHint() {
-  if (hint === null) {
+// ——— Pistas «Desliza para cambiar de semana/mes» ———
+// Cada pantalla que se desliza (Hoy, Plan, Diario) muestra su pista en sus 3 primeras aperturas,
+// hasta que la persona deslice ahí una vez.
+const HINT_KEYS = { today: 'diario-pista-deslizar', plan: 'diario-pista-plan', journal: 'diario-pista-diario' };
+const HINT_TIMES = 3, HINT_LEARNED = 99;
+const hints = {};
+let nudged = false;
+export function swipeHint(screen = 'today') {
+  if (hints[screen] === undefined) {
     let seen = 0;
-    try { seen = Number(localStorage.getItem(HINT_KEY)) || 0; } catch { /* almacenamiento bloqueado */ }
-    hint = seen < HINT_TIMES;
-    if (hint) try { localStorage.setItem(HINT_KEY, String(seen + 1)); } catch { /* almacenamiento bloqueado */ }
+    try { seen = Number(localStorage.getItem(HINT_KEYS[screen])) || 0; } catch { /* almacenamiento bloqueado */ }
+    hints[screen] = seen < HINT_TIMES;
+    if (hints[screen]) try { localStorage.setItem(HINT_KEYS[screen], String(seen + 1)); } catch { /* almacenamiento bloqueado */ }
   }
-  return hint;
+  return hints[screen];
 }
 /** Un pequeño vaivén de la franja, solo la primera vez que se dibuja con la pista. */
 export function nudgeOnce() { if (nudged || !swipeHint()) return false; nudged = true; return true; }
-export function swipeLearned() {
-  hint = false;
-  try { localStorage.setItem(HINT_KEY, String(HINT_LEARNED)); } catch { /* almacenamiento bloqueado */ }
+export function swipeLearned(screen = 'today') {
+  hints[screen] = false;
+  try { localStorage.setItem(HINT_KEYS[screen], String(HINT_LEARNED)); } catch { /* almacenamiento bloqueado */ }
 }
 
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */

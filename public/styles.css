@@ -176,6 +176,13 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .plan-swipe { margin-right: 0; }
 .strip-track > .plan-head-panel { padding-right: 0; }
 .plan-head-panel .plan-range { margin: 6px 0 12px; }
+.plan-head > .title { padding-right: 54px; } /* Diario: el título queda fijo y solo el mes se desliza */
+/* En el celular se cambia de semana o de mes deslizando (como en Hoy): las flechas no se ven, pero
+   siguen disponibles para el teclado y los lectores de pantalla. */
+@media (max-width: 999px) {
+  .plan-range .nav-arrow { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .plan-range b { padding-left: 0; }
+}
 .strip-track.nudge { animation: strip-nudge 1.1s .7s var(--ease, ease-in-out); }
 @keyframes strip-nudge { 0%, 100% { transform: translateX(-100%); } 30% { transform: translateX(calc(-100% - 22px)); } 60% { transform: translateX(calc(-100% + 8px)); } }
 .swipe-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0 -8px; font-size: calc(12px * var(--ts)); color: var(--mute); }
@@ -682,7 +689,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .plan-range { display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; white-space: nowrap; }
 .plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); padding: 0 2px; font-variant-numeric: tabular-nums; }
 .plan-range .cap { text-transform: capitalize; }
-.plan-range .pill { margin-left: 10px; }
+.plan-range .pill { margin-left: 10px; min-height: 30px; padding-block: 4px; } /* mismo alto que la fila: la línea no se mueve al aparecer */
 @media (max-width: 600px) { .plan-range .pill { margin-left: auto; } } /* en el celular, alineado bajo Ajustes */
   .range .pill { display: inline-flex; }
 }

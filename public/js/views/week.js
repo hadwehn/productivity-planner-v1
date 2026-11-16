@@ -1,11 +1,11 @@
 // «Semana»: dirección (intención y foco), reparto en los días y revisión. Incluye la vista «Mes».
 import { S, get } from '../state.js';
-import { U } from '../ui.js';
+import { U, swipeHint } from '../ui.js';
 import { dayTasks, weekTasks } from '../tasks.js';
 import { categoryColor } from '../categories.js';
 import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
-import { dayMonthShort, monthYear, tr } from '../i18n.js';
+import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { reviewState, weekClosed } from '../rituals.js';
@@ -133,7 +133,7 @@ const monthIndex = ym => { const [y, m] = ym.split('-').map(Number); return y * 
 /** Fila bajo el título: ‹ fechas › y, si no es el presente, el botón para volver (siempre en la misma línea). */
 function rangeRow({ action, label, prev, next, n, back, backLabel, side }) {
   const skip = side ? ' tabindex="-1"' : '';
-  const arrow = (dir, aria, name) => `<button class="mini" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}"${skip}>${icon(name)}</button>`;
+  const arrow = (dir, aria, name) => `<button class="mini nav-arrow" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}"${skip}>${icon(name)}</button>`;
   const backBtn = n ? `<button class="pill" data-a="${back}"${skip}>${icon(n < 0 ? 'right' : 'left')}${backLabel}</button>` : '';
   return `<div class="plan-range">${arrow(-1, prev, 'left')}<b>${label}</b>${arrow(1, next, 'right')}${backBtn}</div>`;
 }
@@ -144,7 +144,7 @@ function headPanel(isWeek, o) {
   const week = shiftDate(U.week, 7 * o), month = shiftMonth(U.month, o), side = o !== 0;
   const n = isWeek ? Math.round((parseDate(week) - parseDate(thisWeek)) / (7 * 864e5)) : monthIndex(month) - monthIndex(thisMonth);
   const row = isWeek
-    ? rangeRow({ action: 'shiftplan', label: `${dayMonthShort(parseDate(week))} – ${dayMonthShort(parseDate(shiftDate(week, 6)))}`, prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week'), side })
+    ? rangeRow({ action: 'shiftplan', label: weekRange(parseDate(week), parseDate(shiftDate(week, 6))), prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), n, back: 'thisweek', backLabel: tr('Esta semana', 'This week'), side })
     : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), n, back: 'thismonth', backLabel: tr('Este mes', 'This month'), side });
   return `<div class="plan-head-panel"${side ? ' aria-hidden="true"' : ''}><h1 class="title">${relativeTitle(n, isWeek ? 'week' : 'month')}</h1>${row}</div>`;
 }
@@ -153,6 +153,7 @@ export function planView() {
   const isWeek = U.weekMode === 'week';
   // Al deslizar la cabecera se ve la semana (o el mes) vecino, como la franja de días en Hoy.
   const head = `<header class="plan-head"><div class="plan-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => headPanel(isWeek, o)).join('')}</div></div>${settingsButton()}</header>`;
-  return `<div class="view">${stickyHead(head + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}
+  const hint = swipeHint('plan') ? `<p class="swipe-hint">${icon('left')}${isWeek ? tr('Desliza para cambiar de semana', 'Swipe to change week') : tr('Desliza para cambiar de mes', 'Swipe to change month')}${icon('right')}</p>` : '';
+  return `<div class="view">${stickyHead(head + segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode))}${hint}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
