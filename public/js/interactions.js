@@ -220,12 +220,11 @@ function onSubmit(e) {
     return;
   }
   if (!quickAdd(form)) return;
+  // Tras añadir, el campo se suelta (en el celular se cierra el teclado); para otra, se toca «Añadir» de nuevo.
+  document.activeElement?.blur?.();
   render();
-  // Se mantiene el cursor en el mismo campo para escribir la siguiente.
-  addInput(form)?.focus({ preventScroll: true });
 }
 
-const addInput = form => form.dataset.form === 'addtask' ? $('[data-form="addtask"] input') : $(`[data-form="addweek"][data-list="${form.dataset.list}"] input`);
 /** Guarda lo escrito en una fila «Añadir…» (Hoy o Semana). Devuelve true si se añadió. */
 function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
