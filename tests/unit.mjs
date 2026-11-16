@@ -289,6 +289,21 @@ test('las cuatro vistas se dibujan con datos y vacías', () => {
     ok(journalView().includes('Diario'));
   }
 });
+test('navegación: «Flechas» se guarda, se valida y las vistas se dibujan en los dos modos', () => {
+  const data = fixture();
+  data.cfg.nav = 'arrows';
+  load(data);
+  eq(S.cfg.nav, 'arrows', 'se conserva al cargar');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  Object.assign(U, { date: DAY, week: WEEK, weekMode: 'week', month: '2026-10', calDay: DAY, journalMonth: '2026-10' });
+  ok(todayView().includes('strip-nav') && !todayView().includes('plan-switch') && !todayView().includes('swipe-hint'), 'Hoy con flechas, sin tarjeta ni pista');
+  ok(planView().includes('nav-pair') && journalView().includes('nav-pair'), 'par de flechas en Plan y Diario');
+  const bad = JSON.parse(JSON.stringify(S)); bad.cfg.nav = 'otra';
+  let failed = false; try { checkedState(bad); } catch { failed = true; }
+  eq(failed, true, 'valor inválido');
+  delete S.cfg.nav;
+  ok(planView().includes('data-swipe="plan"'), 'modo por defecto: deslizar');
+});
 test('Hoy: rituales plegados por defecto y texto escapado', () => {
   const data = fixture();
   data.d[DAY].k = { 0: { t: '<img src=x onerror=alert(1)>' } };

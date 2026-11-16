@@ -37,3 +37,8 @@ export const foldable = ({ key, open, iconName, iconCls = '', title, summary, wr
     </button>
     ${open ? `<div class="ritual-body">${body}</div>` : ''}
   </section>`;
+
+/** Par de flechas ‹ › para cambiar de periodo. En el celular con «Navegación: Flechas» va junto al selector. */
+export const navPair = (action, prev, next, nextOff = false) => `<span class="nav-pair">
+  <button type="button" data-a="${action}" data-n="-1" aria-label="${esc(prev)}" title="${esc(prev)}">${icon('left')}</button>
+  <button type="button" data-a="${action}" data-n="1" aria-label="${esc(next)}" title="${esc(next)}"${nextOff ? ' disabled' : ''}>${icon('right')}</button></span>`;

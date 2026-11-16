@@ -5,7 +5,7 @@ import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
-import { pageHead, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
+import { navPair, pageHead, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 import { dayTasks } from '../tasks.js';
 import { isDone, isDue } from '../habits.js';
 import { isUnlocked, showUnlock } from '../lock.js';
@@ -128,5 +128,6 @@ export function journalView() {
         : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write one line when you close the day; over time, this becomes your best record.')}</p></div>`}
     </section>`
     : `<div class="cols"><div class="col">${m === T.slice(0, 7) ? memory(T) : ''}${monthSummary(m, T)}</div><div class="col">${moodMonth(m)}</div></div>`;
-  return `<div class="view">${stickyHead(head + tabs)}${hint}${body}</div>`;
+  const controls = `<div class="plan-controls">${tabs}${navPair('shiftjournal', tr('Mes anterior', 'Previous month'), tr('Mes siguiente', 'Next month'), m >= T.slice(0, 7))}</div>`;
+  return `<div class="view">${stickyHead(head + controls)}${hint}${body}</div>`;
 }

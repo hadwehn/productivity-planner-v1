@@ -37,11 +37,17 @@ export function rollDay() {
   return true;
 }
 
+// ——— Navegación: deslizar o flechas ———
+// Dos variantes para probar con usuarios (Ajustes → Navegación). «Deslizar» (por defecto): en el
+// celular se cambia de semana o de mes deslizando, y desde la tarde aparece la tarjeta «¿Qué día
+// quieres organizar?». «Flechas» (cfg.nav = 'arrows'): flechas visibles, sin deslizado y sin tarjeta.
+export const arrowsNav = () => S.cfg.nav === 'arrows';
+
 // ——— De noche: organizar hoy o mañana ———
 // Desde las 18:00, «Hoy» ofrece pasar al día de mañana para planificarlo. Si esa noche se eligió
 // «Mañana», la app vuelve a abrir en mañana hasta la medianoche (se recuerda en el dispositivo).
 const PLAN_KEY = 'diario-organizar-manana', PLAN_HOUR = 18;
-export const planningTime = () => new Date().getHours() >= PLAN_HOUR;
+export const planningTime = () => !arrowsNav() && new Date().getHours() >= PLAN_HOUR;
 export function rememberPlan(tomorrow) {
   try { if (tomorrow) localStorage.setItem(PLAN_KEY, today()); else localStorage.removeItem(PLAN_KEY); } catch { /* almacenamiento bloqueado */ }
 }
@@ -80,6 +86,7 @@ const HINT_TIMES = 3, HINT_LEARNED = 99;
 const hints = {};
 let nudged = false;
 export function swipeHint(screen = 'today') {
+  if (arrowsNav()) return false; // con flechas no hay nada que deslizar
   if (hints[screen] === undefined) {
     let seen = 0;
     try { seen = Number(localStorage.getItem(HINT_KEYS[screen])) || 0; } catch { /* almacenamiento bloqueado */ }

@@ -154,6 +154,7 @@ export function checkedState(raw) {
   for (const v of Object.values(o.cfg.hide)) if (typeof v !== 'boolean') fail('Visibilidad incorrecta.');
   if (o.cfg.lang !== undefined && !['es', 'en'].includes(o.cfg.lang)) fail('Idioma incorrecto.');
   if (o.cfg.textSize !== undefined && o.cfg.textSize !== 'large') fail('Tamaño de texto incorrecto.');
+  if (o.cfg.nav !== undefined && o.cfg.nav !== 'arrows') fail('Navegación incorrecta.');
   if (o.cfg.journalLock !== undefined && (!plain(o.cfg.journalLock) || !/^[0-9a-f]{64}$/.test(o.cfg.journalLock.hash) || !/^[0-9a-f]{32}$/.test(o.cfg.journalLock.salt))) fail('Código del Diario incorrecto.');
   if (o.cfg.today !== undefined && (!plain(o.cfg.today) || Object.values(o.cfg.today).some(x => typeof x !== 'boolean'))) fail('Preferencias de Hoy incorrectas.');
   for (const [k, v] of Object.entries(o.cfg.days)) {

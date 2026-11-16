@@ -95,7 +95,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .eyebrow { font-size: calc(12px * var(--ts)); font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--mute); margin: 0 0 4px; }
 .title { font: 400 34px/1.1 var(--serif); letter-spacing: -.01em; margin: 0; min-height: 42px; } /* al menos el alto de Ajustes: la línea de abajo cae igual en todas las pantallas */
 .subtitle { color: var(--ink-2); font-size: calc(14px * var(--ts)); margin: 6px 0 0; }
-.subtitle .period { display: inline-flex; align-items: center; min-height: 30px; } /* misma altura que la fila ‹ fechas › de Plan y Diario */
+.subtitle .period { display: inline-flex; align-items: center; min-height: 30px; white-space: nowrap; } /* misma altura que la fila ‹ fechas › de Plan y Diario */
 /* El periodo que muestra cada pantalla (el día en Hoy, el mes en Diario, la semana o el mes en Plan) va en negrita, con la misma letra. */
 .subtitle .period, .subtitle .range > span, .plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); }
 .icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); flex: none; position: relative; transition: background .2s; }
@@ -182,6 +182,21 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 @media (max-width: 999px) {
   .plan-range .nav-arrow { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .plan-range b { padding-left: 0; }
+}
+/* «Navegación: Flechas» en el celular. Hoy: flechas a los lados de la franja de días. Plan y Diario:
+   un par ‹ › junto al selector (al lado de las fechas no caben las semanas más largas). */
+.nav-pair { display: none; }
+@media (max-width: 999px) {
+  :root[data-nav="arrows"] .strip-wrap { display: flex; align-items: center; gap: 2px; margin-inline: -8px; }
+  :root[data-nav="arrows"] .strip-wrap [data-swipe="week"] { flex: 1; min-width: 0; margin-bottom: 0; }
+  :root[data-nav="arrows"] .strip-nav { display: grid; place-items: center; width: 30px; height: 44px; flex: none; border-radius: 12px; color: var(--ink-2); }
+  :root[data-nav="arrows"] .strip-nav:active { background: var(--sunken); }
+  :root[data-nav="arrows"] .strip-nav .icon { width: 18px; height: 18px; }
+  :root[data-nav="arrows"] .plan-range .nav-arrow { display: none; } /* las reemplaza el par ‹ › */
+  :root[data-nav="arrows"] .nav-pair { display: flex; gap: 4px; flex: none; }
+  .nav-pair button { display: grid; place-items: center; width: 38px; height: 44px; border-radius: 12px; background: var(--sunken); color: var(--ink-2); }
+  .nav-pair button:active { transform: scale(.96); }
+  .nav-pair .icon { width: 17px; height: 17px; }
 }
 .strip-track.nudge { animation: strip-nudge 1.1s .7s var(--ease, ease-in-out); }
 @keyframes strip-nudge { 0%, 100% { transform: translateX(-100%); } 30% { transform: translateX(calc(-100% - 22px)); } 60% { transform: translateX(calc(-100% + 8px)); } }
@@ -698,6 +713,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 }
 @media (max-width: 380px) {
   main { --gutter: 14px; }
+  .page-head:has(.pill) .title { font-size: 27px; } /* con «‹ Hoy» al lado, el título cabe en una línea */
   .title { font-size: 30px; }
   .moods { gap: 4px; }
   .mood { font-size: calc(11px * var(--ts)); }

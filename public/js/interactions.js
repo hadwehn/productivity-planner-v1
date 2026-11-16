@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, applyTheme, rememberPlan, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
+import { U, applyTextSize, applyTheme, arrowsNav, rememberPlan, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -29,6 +29,8 @@ export function drawSettings() {
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+  const nav = arrowsNav() ? 'arrows' : 'swipe';
+  $$('[data-a=navmode]').forEach(b => { const on = b.dataset.k === nav; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
   $$('[data-a=textsize]').forEach(b => { const on = b.dataset.k === size; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   for (const b of document.querySelectorAll('[data-a=lang]')) { const on = b.dataset.k === getLang(); b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
@@ -181,6 +183,11 @@ const ACTIONS = {
     S.cfg.appearance = d.k; save(); applyTheme(); drawSettings();
     const picker = $('#sheet [data-looks]'); // la bienvenida también permite elegirla
     if (picker) picker.outerHTML = appearancePicker();
+  },
+  navmode: d => {
+    if (d.k === 'arrows') S.cfg.nav = 'arrows'; else delete S.cfg.nav;
+    if (arrowsNav()) { rememberPlan(false); if (U.tab === 'today' && U.date === shiftDate(today(), 1)) U.date = today(); }
+    save(); drawSettings(); render();
   },
   textsize: d => {
     if (d.k === 'large') S.cfg.textSize = 'large'; else delete S.cfg.textSize;
@@ -436,7 +443,7 @@ function swipeZones() {
   let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
     const zone = zoneOf(e);
-    if (!zone || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
+    if (!zone || arrowsNav() || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
     const kind = zone.dataset.swipe;
     drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: zone.querySelector(':scope > .strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
@@ -472,7 +479,7 @@ function swipeZones() {
   }, true);
   document.addEventListener('wheel', e => {
     const zone = zoneOf(e);
-    if (!zone || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    if (!zone || arrowsNav() || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (Date.now() - wheelAt < 600) return;
     wheel += e.deltaX;
