@@ -37,18 +37,14 @@ export function rollDay() {
   return true;
 }
 
-// ——— Navegación: deslizar o flechas ———
-// Dos variantes para probar con usuarios (Ajustes → Navegación). «Deslizar» (por defecto): en el
-// celular se cambia de semana o de mes deslizando, y desde la tarde aparece la tarjeta «¿Qué día
-// quieres organizar?». «Flechas» (cfg.nav = 'arrows'): flechas visibles y sin tarjeta; solo la franja
-// de días de Hoy se puede deslizar además.
-export const arrowsNav = () => S.cfg.nav === 'arrows';
-
 // ——— De noche: organizar hoy o mañana ———
-// Desde las 18:00, «Hoy» ofrece pasar al día de mañana para planificarlo. Si esa noche se eligió
+// Desde las 18:00, «Hoy» ofrece pasar al día de mañana para planificarlo (se puede apagar en Ajustes →
+// Qué ver en «Hoy»; es la opción que se está probando con usuarios). Si esa noche se eligió
 // «Mañana», la app vuelve a abrir en mañana hasta la medianoche (se recuerda en el dispositivo).
 const PLAN_KEY = 'diario-organizar-manana', PLAN_HOUR = 18;
-export const planningTime = () => !arrowsNav() && new Date().getHours() >= PLAN_HOUR;
+/** ¿Está encendida la tarjeta? (cfg.today.tomorrow; las cuentas que probaron el modo «Flechas» la tenían apagada). */
+export const tomorrowCard = () => (S.cfg.today?.tomorrow !== undefined ? S.cfg.today.tomorrow !== false : S.cfg.nav !== 'arrows');
+export const planningTime = () => tomorrowCard() && new Date().getHours() >= PLAN_HOUR;
 export function rememberPlan(tomorrow) {
   try { if (tomorrow) localStorage.setItem(PLAN_KEY, today()); else localStorage.removeItem(PLAN_KEY); } catch { /* almacenamiento bloqueado */ }
 }
@@ -77,30 +73,6 @@ export function openRitualForNow() {
   if (last === `${T}:${which}`) return;
   try { localStorage.setItem(RITUAL_KEY, `${T}:${which}`); } catch { /* almacenamiento bloqueado */ }
   U[which] = true;
-}
-
-// ——— Pistas «Desliza para cambiar de semana/mes» ———
-// Cada pantalla que se desliza (Hoy, Plan, Diario) muestra su pista en sus 3 primeras aperturas,
-// hasta que la persona deslice ahí una vez.
-const HINT_KEYS = { today: 'diario-pista-deslizar', plan: 'diario-pista-plan', journal: 'diario-pista-diario' };
-const HINT_TIMES = 3, HINT_LEARNED = 99;
-const hints = {};
-let nudged = false;
-export function swipeHint(screen = 'today') {
-  if (arrowsNav()) return false; // con flechas no hay nada que deslizar
-  if (hints[screen] === undefined) {
-    let seen = 0;
-    try { seen = Number(localStorage.getItem(HINT_KEYS[screen])) || 0; } catch { /* almacenamiento bloqueado */ }
-    hints[screen] = seen < HINT_TIMES;
-    if (hints[screen]) try { localStorage.setItem(HINT_KEYS[screen], String(seen + 1)); } catch { /* almacenamiento bloqueado */ }
-  }
-  return hints[screen];
-}
-/** Un pequeño vaivén de la franja, solo la primera vez que se dibuja con la pista. */
-export function nudgeOnce() { if (nudged || !swipeHint()) return false; nudged = true; return true; }
-export function swipeLearned(screen = 'today') {
-  hints[screen] = false;
-  try { localStorage.setItem(HINT_KEYS[screen], String(HINT_LEARNED)); } catch { /* almacenamiento bloqueado */ }
 }
 
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */

@@ -1,6 +1,6 @@
 // «Diario»: mirar hacia atrás. Ánimo del mes, un recuerdo y lo escrito cada día.
 import { S } from '../state.js';
-import { U, swipeHint } from '../ui.js';
+import { U } from '../ui.js';
 import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
@@ -116,11 +116,10 @@ export function journalView() {
   // Bajo el título, el mes en tres paneles (anterior, actual, siguiente): se cambia deslizando, como en Plan.
   const monthPanel = o => {
     const mm = shiftMonth(m, o), side = o !== 0, skip = side ? ' tabindex="-1"' : '';
-    const arrow = (n, label, name, off) => `<button class="mini nav-arrow" data-a="shiftjournal" data-n="${n}" aria-label="${label}" title="${label}"${skip}${off ? ' disabled' : ''}>${icon(name)}</button>`;
-    return `<div class="plan-head-panel"${side ? ' aria-hidden="true"' : ''}><div class="plan-range">${arrow(-1, tr('Mes anterior', 'Previous month'), 'left')}<b><span class="cap">${monthYear(mm)}</span></b>${arrow(1, tr('Mes siguiente', 'Next month'), 'right', mm >= T.slice(0, 7))}</div></div>`;
+    const arrow = (n, label, name, off) => `<button type="button" data-a="shiftjournal" data-n="${n}" aria-label="${label}" title="${label}"${skip}${off ? ' disabled' : ''}>${icon(name)}</button>`;
+    return `<div class="plan-head-panel"${side ? ' aria-hidden="true"' : ''}><div class="plan-range short"><b><span class="cap">${monthYear(mm)}</span></b><span class="range-nav">${arrow(-1, tr('Mes anterior', 'Previous month'), 'left')}${arrow(1, tr('Mes siguiente', 'Next month'), 'right', mm >= T.slice(0, 7))}</span></div></div>`;
   };
   const head = `<header class="plan-head"><h1 class="title">${title}</h1><div class="plan-swipe" data-swipe="journal"><div class="strip-track">${[-1, 0, 1].map(monthPanel).join('')}</div></div>${settingsButton()}</header>`;
-  const hint = swipeHint('journal') ? `<p class="swipe-hint">${icon('left')}${tr('Desliza para cambiar de mes', 'Swipe to change month')}${icon('right')}</p>` : '';
   // Dos pestañas, como «Semana | Mes» en Plan: el resumen del mes y lo que escribiste.
   const tabs = segmented('journaltab', [['summary', tr('Resumen', 'Summary')], ['entries', tr('Escritos', 'Entries')]], U.journalTab);
   const body = U.journalTab === 'entries'
@@ -129,5 +128,5 @@ export function journalView() {
         : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write one line when you close the day; over time, this becomes your best record.')}</p></div>`}
     </section>`
     : `<div class="cols"><div class="col">${m === T.slice(0, 7) ? memory(T) : ''}${monthSummary(m, T)}</div><div class="col">${moodMonth(m)}</div></div>`;
-  return `<div class="view">${stickyHead(head + tabs)}${hint}${body}</div>`;
+  return `<div class="view">${stickyHead(head + tabs)}${body}</div>`;
 }

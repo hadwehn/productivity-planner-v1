@@ -1,6 +1,6 @@
 // «Semana»: dirección (intención y foco), reparto en los días y revisión. Incluye la vista «Mes».
 import { S, get } from '../state.js';
-import { U, swipeHint } from '../ui.js';
+import { U } from '../ui.js';
 import { dayTasks, weekTasks } from '../tasks.js';
 import { categoryColor } from '../categories.js';
 import { weekQuestions } from '../prefs.js';
@@ -130,11 +130,11 @@ function relativeTitle(n, unit) {
 }
 const monthIndex = ym => { const [y, m] = ym.split('-').map(Number); return y * 12 + m; };
 
-/** Fila bajo el título: ‹ fechas › y, si no es el presente, el botón para volver (siempre en la misma línea). */
-function rangeRow({ action, label, prev, next, side }) {
+/** Fila bajo el título: las fechas y, fijas a la derecha, las flechas para cambiar de semana o de mes. */
+function rangeRow({ action, label, prev, next, side, short = false }) {
   const skip = side ? ' tabindex="-1"' : '';
-  const arrow = (dir, aria, name) => `<button class="mini nav-arrow" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}"${skip}>${icon(name)}</button>`;
-  return `<div class="plan-range">${arrow(-1, prev, 'left')}<b>${label}</b>${arrow(1, next, 'right')}</div>`;
+  const arrow = (dir, aria, name) => `<button type="button" data-a="${action}" data-n="${dir}" aria-label="${aria}" title="${aria}"${skip}>${icon(name)}</button>`;
+  return `<div class="plan-range${short ? ' short' : ''}"><b>${label}</b><span class="range-nav">${arrow(-1, prev, 'left')}${arrow(1, next, 'right')}</span></div>`;
 }
 
 /** Título y fechas de la semana (o el mes) a `o` pasos de la elegida. `o` ≠ 0: panel vecino, solo visible al deslizar. */
@@ -144,7 +144,7 @@ function headPanel(isWeek, o) {
   const n = isWeek ? Math.round((parseDate(week) - parseDate(thisWeek)) / (7 * 864e5)) : monthIndex(month) - monthIndex(thisMonth);
   const row = isWeek
     ? rangeRow({ action: 'shiftplan', label: weekRange(parseDate(week), parseDate(shiftDate(week, 6))), prev: tr('Semana anterior', 'Previous week'), next: tr('Semana siguiente', 'Next week'), side })
-    : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), side });
+    : rangeRow({ action: 'shiftmonth', label: `<span class="cap">${monthYear(month)}</span>`, prev: tr('Mes anterior', 'Previous month'), next: tr('Mes siguiente', 'Next month'), side, short: true });
   return `<div class="plan-head-panel"${side ? ' aria-hidden="true"' : ''}><h1 class="title">${relativeTitle(n, isWeek ? 'week' : 'month')}</h1>${row}</div>`;
 }
 
@@ -152,12 +152,11 @@ export function planView() {
   const isWeek = U.weekMode === 'week';
   // Al deslizar la cabecera se ve la semana (o el mes) vecino, como la franja de días en Hoy.
   const head = `<header class="plan-head"><div class="plan-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => headPanel(isWeek, o)).join('')}</div></div>${settingsButton()}</header>`;
-  const hint = swipeHint('plan') ? `<p class="swipe-hint">${icon('left')}${isWeek ? tr('Desliza para cambiar de semana', 'Swipe to change week') : tr('Desliza para cambiar de mes', 'Swipe to change month')}${icon('right')}</p>` : '';
   // «‹ Hoy» vuelve al presente (como en la pantalla Hoy) y va junto al selector Semana | Mes.
   const thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
   const away = isWeek ? U.week !== thisWeek : U.month !== thisMonth, toPast = isWeek ? U.week > thisWeek : U.month > thisMonth;
   const back = away ? `<button class="pill" data-a="${isWeek ? 'thisweek' : 'thismonth'}" aria-label="${isWeek ? tr('Volver a esta semana', 'Back to this week') : tr('Volver a este mes', 'Back to this month')}">${icon(toPast ? 'left' : 'right')}${tr('Hoy', 'Today')}</button>` : '';
   const controls = `<div class="plan-controls">${segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode)}${back}</div>`;
-  return `<div class="view">${stickyHead(head + controls)}${hint}
+  return `<div class="view">${stickyHead(head + controls)}
     ${isWeek ? weekView() : monthView()}</div>`;
 }

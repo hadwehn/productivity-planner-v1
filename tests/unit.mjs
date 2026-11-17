@@ -7,7 +7,7 @@ import {
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
-import { U } from '../public/js/ui.js';
+import { U, tomorrowCard } from '../public/js/ui.js';
 import { todayView } from '../public/js/views/today.js';
 import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
@@ -289,20 +289,22 @@ test('las cuatro vistas se dibujan con datos y vacías', () => {
     ok(journalView().includes('Diario'));
   }
 });
-test('navegación: «Flechas» se guarda, se valida y las vistas se dibujan en los dos modos', () => {
-  const data = fixture();
-  data.cfg.nav = 'arrows';
-  load(data);
-  eq(S.cfg.nav, 'arrows', 'se conserva al cargar');
-  checkedState(JSON.parse(JSON.stringify(S)));
+test('navegación única (días vecinos asomados y flechas fijas) y opción de la tarjeta «organizar mañana»', () => {
+  load(fixture());
   Object.assign(U, { date: DAY, week: WEEK, weekMode: 'week', month: '2026-10', calDay: DAY, journalMonth: '2026-10' });
-  ok(todayView().includes('strip-nav') && !todayView().includes('plan-switch') && !todayView().includes('swipe-hint'), 'Hoy con flechas, sin tarjeta ni pista');
-  ok(planView().includes('nav-arrow') && journalView().includes('nav-arrow'), 'flechas junto a las fechas en Plan y Diario');
-  const bad = JSON.parse(JSON.stringify(S)); bad.cfg.nav = 'otra';
-  let failed = false; try { checkedState(bad); } catch { failed = true; }
-  eq(failed, true, 'valor inválido');
-  delete S.cfg.nav;
-  ok(planView().includes('data-swipe="plan"'), 'modo por defecto: deslizar');
+  const html = todayView();
+  ok(html.includes('data-a="shiftweek" data-n="-1" tabindex="-1"') && html.includes('data-a="shiftweek" data-n="1" tabindex="-1"'), 'los días vecinos llevan a su semana');
+  ok(!html.includes('swipe-hint'), 'sin pista de texto');
+  ok(planView().includes('range-nav') && planView().includes('data-swipe="plan"') && journalView().includes('range-nav'), 'flechas y deslizado en Plan y Diario');
+  eq(tomorrowCard(), true, 'tarjeta encendida por defecto');
+  S.cfg.nav = 'arrows'; // cuentas que probaron el modo «Flechas»
+  eq(tomorrowCard(), false, 'venía apagada con «Flechas»');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  S.cfg.today = { ...(S.cfg.today || {}), tomorrow: true };
+  eq(tomorrowCard(), true, 'la opción nueva manda');
+  S.cfg.today.tomorrow = false; delete S.cfg.nav;
+  eq(tomorrowCard(), false);
+  checkedState(JSON.parse(JSON.stringify(S)));
 });
 test('Hoy: rituales plegados por defecto y texto escapado', () => {
   const data = fixture();

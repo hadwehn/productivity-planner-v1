@@ -1,5 +1,5 @@
 // Dibuja la pestaña activa conservando scroll y foco.
-import { U, arrowsNav } from './ui.js';
+import { U } from './ui.js';
 import { $, $$ } from './util.js';
 import { icon } from './icons.js';
 import { tr } from './i18n.js';
@@ -66,7 +66,6 @@ let shownTab = null;
 export function render(toTop = false) {
   journalTab(shownTab, U.tab);
   shownTab = U.tab;
-  document.documentElement.dataset.nav = arrowsNav() ? 'arrows' : 'swipe'; // los estilos muestran u ocultan las flechas
   const y = scrollY, active = document.activeElement;
   const focusKey = active?.dataset?.p || active?.dataset?.taskText || active?.dataset?.weekText;
   const caret = active?.selectionStart;

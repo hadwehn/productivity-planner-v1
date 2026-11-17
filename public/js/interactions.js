@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, applyTheme, arrowsNav, rememberPlan, runUndo, showToday, swipeLearned, toast, toastUndo } from './ui.js';
+import { U, applyTextSize, applyTheme, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -23,14 +23,12 @@ let canEdit = () => false;
 let settleTimer = 0;
 
 // ——— Ajustes ———
-const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')]];
+const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')], ['tomorrow', tr('Ofrecer organizar mañana (desde las 18:00)', 'Offer to plan tomorrow (from 6 pm)')]];
 export function drawSettings() {
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
-    `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
+    `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${(k === 'tomorrow' ? tomorrowCard() : showToday(k)) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = S.cfg.appearance || 'auto';
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
-  const nav = arrowsNav() ? 'arrows' : 'swipe';
-  $$('[data-a=navmode]').forEach(b => { const on = b.dataset.k === nav; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
   $$('[data-a=textsize]').forEach(b => { const on = b.dataset.k === size; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   for (const b of document.querySelectorAll('[data-a=lang]')) { const on = b.dataset.k === getLang(); b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
@@ -184,17 +182,19 @@ const ACTIONS = {
     const picker = $('#sheet [data-looks]'); // la bienvenida también permite elegirla
     if (picker) picker.outerHTML = appearancePicker();
   },
-  navmode: d => {
-    if (d.k === 'arrows') S.cfg.nav = 'arrows'; else delete S.cfg.nav;
-    if (arrowsNav()) { rememberPlan(false); if (U.tab === 'today' && U.date === shiftDate(today(), 1)) U.date = today(); }
-    save(); drawSettings(); render();
-  },
   textsize: d => {
     if (d.k === 'large') S.cfg.textSize = 'large'; else delete S.cfg.textSize;
     save(); applyTextSize(); drawSettings(); render();
   },
   lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },
-  todaypref: (d, b) => { S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked }; save(); render(); },
+  todaypref: (d, b) => {
+    S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked };
+    if (d.k === 'tomorrow') { // la tarjeta «¿Qué día quieres organizar?»
+      delete S.cfg.nav; // reemplaza a la opción «Navegación» de la prueba anterior
+      if (!b.checked) { rememberPlan(false); if (U.tab === 'today' && U.date === shiftDate(today(), 1)) U.date = today(); }
+    }
+    save(); render();
+  },
 };
 
 function onClick(e) {
@@ -415,23 +415,24 @@ const reduceMotion = () => matchMedia?.('(prefers-reduced-motion: reduce)').matc
 const zoneOf = e => e.target.closest?.('[data-swipe]');
 const place = (el, px, animate) => {
   el.style.transition = animate ? 'transform .26s cubic-bezier(.2,.7,.3,1)' : 'none';
-  el.style.transform = `translateX(calc(-100% + ${px}px))`;
+  el.style.transform = `translateX(calc(-100% + 3 * var(--peek, 0px) + ${px}px))`; // --peek: lo que asoman los paneles vecinos
 };
 function shiftMonthBy(n) { U.month = shiftMonth(U.month, n); U.calDay = U.month === today().slice(0, 7) ? today() : U.month + '-01'; }
 const MOVE = {
   // La semana nueva se abre en su lunes (o en hoy, si es la semana actual).
-  week: n => { swipeLearned(); U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); },
-  month: n => { swipeLearned('plan'); shiftMonthBy(n); },
-  plan: n => { swipeLearned('plan'); if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
-  journal: n => { swipeLearned('journal'); U.journalMonth = shiftMonth(U.journalMonth, n); },
+  week: n => { U.date = weekLanding(shiftDate(iso(monday(parseDate(U.date))), 7 * n)); },
+  month: n => shiftMonthBy(n),
+  plan: n => { if (U.weekMode === 'month') shiftMonthBy(n); else U.week = shiftDate(U.week, 7 * n); },
+  journal: n => { U.journalMonth = shiftMonth(U.journalMonth, n); },
 };
 const canMove = (kind, n) => !(kind === 'journal' && n > 0 && U.journalMonth >= today().slice(0, 7));
 /** Termina el paso al vecino (con animación) y vuelve a dibujar. `el`: los paneles que se arrastraron. */
 function shiftZone(kind, n, el = $(`[data-swipe="${kind}"] > .strip-track`)) {
-  if (!canMove(kind, n)) { if (el?.isConnected) place(el, 0, true); return; } // el Diario no pasa de este mes
+  if (!canMove(kind, n)) { if (el?.isConnected) { place(el, 0, true); el.parentElement.classList.remove('swiping'); } return; } // el Diario no pasa de este mes
   const go = () => { MOVE[kind](n); render(); };
   if (!el || reduceMotion()) { go(); return; }
-  const width = el.parentElement.offsetWidth;
+  const width = el.firstElementChild.offsetWidth; // ancho de un panel
+  el.parentElement.classList.add('swiping');
   let finished = false;
   const done = () => { if (!finished) { finished = true; go(); } };
   el.addEventListener('transitionend', done, { once: true });
@@ -439,13 +440,11 @@ function shiftZone(kind, n, el = $(`[data-swipe="${kind}"] > .strip-track`)) {
   place(el, -n * width, true);
 }
 const shiftWeek = n => shiftZone('week', n);
-// Con «Navegación: Flechas» solo se desliza la franja de días de Hoy; Plan y Diario cambian con sus flechas.
-const canSwipe = zone => !arrowsNav() || zone.dataset.swipe === 'week';
 function swipeZones() {
   let drag = null, swipedAt = 0, wheel = 0, wheelAt = 0;
   document.addEventListener('pointerdown', e => {
     const zone = zoneOf(e);
-    if (!zone || !canSwipe(zone) || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
+    if (!zone || e.button > 0 || !canEdit() || e.target.closest('input, textarea, [contenteditable]') || !zone.querySelector(':scope > .strip-track')) return;
     const kind = zone.dataset.swipe;
     drag = { kind, x: e.clientX, y: e.clientY, id: e.pointerId, width: zone.offsetWidth, el: zone.querySelector(':scope > .strip-track'), moving: false, last: [[e.clientX, e.timeStamp]] };
   }, { passive: true });
@@ -456,6 +455,7 @@ function swipeZones() {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
       if (Math.abs(dx) < Math.abs(dy) * 1.2) { drag = null; return; } // es scroll vertical
       drag.moving = true;
+      drag.el.parentElement.classList.add('swiping'); // los vecinos se ven completos mientras se arrastra
       try { e.target.setPointerCapture?.(e.pointerId); } catch { /* el puntero ya no está activo */ }
     }
     drag.last = [...drag.last.slice(-4), [e.clientX, e.timeStamp]];
@@ -471,7 +471,7 @@ function swipeZones() {
     const [x0, t0] = last[0], speed = (e.clientX - x0) / Math.max(1, e.timeStamp - t0); // px por ms
     const flick = Math.abs(speed) > 0.45 && Math.sign(speed) === Math.sign(dx);
     if (e.type === 'pointerup' && (Math.abs(dx) > width * 0.25 || (flick && Math.abs(dx) > 20))) shiftZone(kind, dx < 0 ? 1 : -1, el);
-    else if (el?.isConnected) place(el, 0, true); // no alcanzó: vuelve a su lugar
+    else if (el?.isConnected) { place(el, 0, true); el.parentElement.classList.remove('swiping'); } // no alcanzó: vuelve a su lugar
   };
   document.addEventListener('pointerup', end);
   document.addEventListener('pointercancel', end);
@@ -481,7 +481,7 @@ function swipeZones() {
   }, true);
   document.addEventListener('wheel', e => {
     const zone = zoneOf(e);
-    if (!zone || !canSwipe(zone) || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    if (!zone || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (Date.now() - wheelAt < 600) return;
     wheel += e.deltaX;
