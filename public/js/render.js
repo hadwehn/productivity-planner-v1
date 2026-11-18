@@ -30,7 +30,7 @@ let lastScroll = 0, scrollIdle = 0;
 addEventListener('scroll', () => {
   const y = scrollY, root = document.documentElement, dy = y - lastScroll;
   clearTimeout(scrollIdle);
-  scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 750); // espera un momento antes de volver a agrandarse
+  scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 600); // espera un momento antes de volver a agrandarse
   if (y > 4 && Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
   lastScroll = y;
   root.classList.toggle('nav-compact', dy > 0 && y > 60);
