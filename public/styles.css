@@ -483,7 +483,7 @@ nav.tabbar button { transition: color .2s, background .2s, padding .28s var(--ea
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */
-dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: 92dvh; border-radius: 26px 26px 0 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-up); overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box; }
+dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: calc(100dvh - 100px - env(safe-area-inset-top)); border-radius: 26px 26px 0 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-up); overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box; }
 /* Las hojas solo se desplazan en vertical: nada puede quedar más ancho que la pantalla
    (en iPhone los campos de fecha y hora traen un ancho propio que se salía). */
 dialog.sheet .sheet-body { overflow-x: hidden; }
@@ -493,7 +493,10 @@ dialog.sheet[open] { animation: sheet-in .32s var(--ease); }
 @keyframes sheet-in { from { transform: translateY(40px); opacity: 0; } }
 dialog.sheet::backdrop { background: #10131266; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
-.sheet-grip { width: 40px; height: 5px; border-radius: 5px; background: var(--line-strong); margin: 8px auto 0; }
+/* La barrita: arrastrarla hacia abajo cierra la hoja (también desde la cabecera). El relleno transparente
+   agranda la zona que se puede tomar con el dedo sin agrandar la barrita. */
+.sheet-grip { width: 40px; height: 5px; border-radius: 5px; background: var(--line-strong); background-clip: content-box; padding: 8px 30px; margin: 0 auto -8px; box-sizing: content-box; touch-action: none; cursor: grab; }
+dialog.sheet .sheet-head { touch-action: none; }
 .sheet-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 6px 22px; background: var(--surface); }
 .sheet-head h2 { font: 500 22px/1.25 var(--serif); margin: 0; overflow-wrap: anywhere; }
 .sheet-body { padding: 6px 22px calc(26px + env(safe-area-inset-bottom)); }

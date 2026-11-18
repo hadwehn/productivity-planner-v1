@@ -511,9 +511,51 @@ function swipeZones() {
   }, { passive: false });
 }
 
+// ——— Hojas: arrastrar hacia abajo la barrita (o la cabecera) las cierra, como en las apps del celular ———
+function sheetDrag() {
+  let drag = null;
+  const reset = dlg => { dlg.style.transition = ''; dlg.style.transform = ''; };
+  document.addEventListener('pointerdown', e => {
+    const handle = e.target.closest?.('dialog.sheet .sheet-grip, dialog.sheet .sheet-head');
+    if (!handle || e.target.closest('button, a, input') || matchMedia('(min-width: 900px)').matches) return;
+    drag = { dlg: handle.closest('dialog'), y: e.clientY, id: e.pointerId, moving: false, last: [[e.clientY, e.timeStamp]] };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dy = Math.max(0, e.clientY - drag.y);
+    if (!drag.moving) {
+      if (dy < 6) return;
+      drag.moving = true;
+      try { e.target.setPointerCapture?.(e.pointerId); } catch { /* el puntero ya no está activo */ }
+    }
+    drag.last = [...drag.last.slice(-4), [e.clientY, e.timeStamp]];
+    drag.dlg.style.transition = 'none';
+    drag.dlg.style.transform = `translateY(${dy}px)`;
+  });
+  const end = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const { dlg, moving, y, last } = drag;
+    drag = null;
+    if (!moving) return;
+    const dy = Math.max(0, e.clientY - y), [y0, t0] = last[0], speed = (e.clientY - y0) / Math.max(1, e.timeStamp - t0);
+    if (e.type === 'pointerup' && (dy > 90 || (speed > 0.5 && dy > 30))) {
+      dlg.style.transition = 'transform .2s ease-in';
+      dlg.style.transform = 'translateY(100%)';
+      setTimeout(() => { dlg.close(); reset(dlg); }, 190);
+    } else {
+      dlg.style.transition = 'transform .22s var(--ease)';
+      dlg.style.transform = '';
+      setTimeout(() => reset(dlg), 230);
+    }
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+}
+
 export function initInteractions(isReady) {
   canEdit = isReady;
   watchSheetClose();
+  sheetDrag();
   document.addEventListener('click', onClick);
   document.addEventListener('submit', onSubmit);
   document.addEventListener('input', onInput);
