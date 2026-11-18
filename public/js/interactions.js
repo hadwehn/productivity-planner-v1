@@ -314,10 +314,10 @@ function shortcut(e) {
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (k === '?') { shortcutsSheet(); return true; }
   if (/^[1-4]$/.test(k)) { ACTIONS.go({ k: SHORTCUT_TABS[k - 1] }); return true; }
-  // Mayús + ↑/↓: sección anterior o siguiente, en el orden de la barra lateral; en los extremos da la vuelta.
+  // Mayús + ↑/↓: sección anterior o siguiente, en el orden de la barra lateral; se detiene en los extremos.
   if (e.shiftKey && (k === 'ArrowUp' || k === 'ArrowDown')) {
-    const n = SHORTCUT_TABS.length, i = (SHORTCUT_TABS.indexOf(U.tab) + (k === 'ArrowDown' ? 1 : -1) + n) % n;
-    ACTIONS.go({ k: SHORTCUT_TABS[i] });
+    const i = SHORTCUT_TABS.indexOf(U.tab) + (k === 'ArrowDown' ? 1 : -1);
+    if (i >= 0 && i < SHORTCUT_TABS.length) ACTIONS.go({ k: SHORTCUT_TABS[i] });
     return true;
   }
   if (k === 'h') { U.date = today(); U.week = iso(monday(new Date())); U.month = U.journalMonth = today().slice(0, 7); U.calDay = today(); render(); return true; }
