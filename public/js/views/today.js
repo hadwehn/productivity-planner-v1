@@ -129,10 +129,10 @@ function morning(date) {
   if (showToday('gratitude')) parts.push(ritualField(editable, Z + 'g', tr('¿Qué agradeces hoy?', 'What are you grateful for today?'), tr('Una persona, un momento, algo simple…', 'A person, a moment, something simple…'), '', 'f-grat'));
   if (!showToday('intention') && !showToday('gratitude')) return '';
   const done = state === 'done';
-  const summary = done ? tr('Listo', 'Done')
+  const summary = done ? tr('Listo', 'Done') + (intent.trim() ? ` · “${esc(preview(intent, 70))}”` : '')
     : intent.trim() ? `“${esc(preview(intent))}”` : grat.trim() ? tr('Gratitud escrita', 'Gratitude written')
       : state === 'future' ? tr('Disponible ese día', 'Available on that day') : date < today() ? tr('Sin escribir · puedes completarlo', 'Not written · you can still fill it in') : tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute');
-  return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: done ? 'done' : 'evening', title: tr('Empieza tu día', 'Start your day'), summary, written: done || !!intent.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'm', state) });
+  return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: 'evening', title: tr('Empieza tu día', 'Start your day'), summary, written: !done && !!intent.trim(), body: parts.join('') + ritualFoot(date, 'm', state) });
 }
 
 function evening(date) {
@@ -151,10 +151,10 @@ function evening(date) {
   }
   if (!showToday('mood') && !showToday('reflection')) return '';
   const done = state === 'done';
-  const summary = done ? tr('Listo', 'Done')
+  const summary = done ? tr('Listo', 'Done') + (reflection.trim() ? ` · “${esc(preview(reflection, 70))}”` : mood ? ` · ${moodName(mood)}` : '')
     : reflection.trim() ? `“${esc(preview(reflection))}”` : mood ? moodName(mood)
       : state === 'future' ? tr('Disponible ese día', 'Available on that day') : date < today() ? tr('Sin escribir · puedes completarlo', 'Not written · you can still fill it in') : tr('Ánimo y reflexión · 1 minuto', 'Mood and reflection · 1 minute');
-  return foldable({ key: 'evening', open: U.evening, iconName: done ? 'check' : 'moon', iconCls: done ? 'done' : 'evening', title: tr('Cierra tu día', 'Close your day'), summary, written: done || !!reflection.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'e', state) });
+  return foldable({ key: 'evening', open: U.evening, iconName: done ? 'check' : 'moon', iconCls: 'evening', title: tr('Cierra tu día', 'Close your day'), summary, written: !done && !!reflection.trim(), body: parts.join('') + ritualFoot(date, 'e', state) });
 }
 
 /**
