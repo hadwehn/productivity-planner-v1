@@ -62,14 +62,16 @@ function taskItem(date, { key, row }, focus, closed) {
   </div>`;
 }
 
-// Las tareas hechas se muestran al final de su grupo (sin cambiar el orden guardado: al desmarcar
-// una tarea vuelve a su lugar). La recién marcada espera un momento antes de bajar (U.settling).
+// Las tareas hechas cambian de lugar sin tocar el orden guardado (al desmarcar una tarea vuelve a su
+// lugar): en foco suben, en el resto bajan. La recién marcada espera un momento antes de moverse (U.settling).
 const pendingFirst = list => [...list].sort((a, b) => done(a) - done(b));
+/** En foco es al revés: las hechas suben (el logro del día queda a la vista) y las pendientes quedan debajo. */
+const doneFirst = list => [...list].sort((a, b) => done(b) - done(a));
 const done = t => (t.row.c && t.key !== U.settling ? 1 : 0);
 
 function tasksSection(date) {
   const { focus: focusRaw, rest: restRaw } = dayTasks(date);
-  const focus = pendingFirst(focusRaw), rest = pendingFirst(restRaw);
+  const focus = doneFirst(focusRaw), rest = pendingFirst(restRaw);
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
   const closed = dayClosed(date);
   const items = (list, focus) => list.map(t => taskItem(date, t, focus, closed)).join('');
