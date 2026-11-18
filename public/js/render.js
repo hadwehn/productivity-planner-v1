@@ -24,18 +24,16 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
-// La barra de pestañas se achica mientras se baja y vuelve a su tamaño al subir, al llegar
-// arriba o al dejar de desplazarse (no se queda achicada a mitad de página).
-let lastScroll = 0, scrollIdle = 0;
+// La barra de pestañas se achica al bajar y solo vuelve a su tamaño al subir o al llegar arriba, como en
+// Instagram (no se agranda sola después de un rato).
+let lastScroll = 0;
 addEventListener('scroll', () => {
   const y = scrollY, root = document.documentElement, dy = y - lastScroll;
-  clearTimeout(scrollIdle);
-  scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 500); // espera un momento antes de volver a agrandarse
+  if (y <= 4) { lastScroll = y; root.classList.remove('nav-compact'); return; }
   // En el final de la página (y al estirarla más allá con el dedo) no se cambia nada: el rebote del
-  // celular mueve la página arriba y abajo, y la barra se achicaba y agrandaba sin parar. Ahí la
-  // barra solo vuelve a su tamaño con la espera de arriba.
+  // celular mueve la página arriba y abajo, y la barra se achicaba y agrandaba sin parar.
   if (y >= root.scrollHeight - innerHeight - 24) { lastScroll = y; return; }
-  if (y > 4 && Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
+  if (Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
   lastScroll = y;
   root.classList.toggle('nav-compact', dy > 0 && y > 60);
 }, { passive: true });
