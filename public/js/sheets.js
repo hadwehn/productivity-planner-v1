@@ -35,6 +35,16 @@ function datePicker(action, attrs, from = today()) {
 }
 
 // ——— Tarea del día ———
+/**
+ * «Pasar a mañana» solo si el día de destino es realmente mañana; si no, se nombra el día
+ * («Pasar al viernes 20»). También «hoy» cuando corresponde.
+ */
+function dayName(target, es, en) {
+  const T = today(), pd = parseDate(target);
+  if (target === T) return tr(`${es} hoy`, `${en} today`);
+  if (target === shiftDate(T, 1)) return tr(`${es} mañana`, `${en} tomorrow`);
+  return tr(`${es}l ${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `${en} ${DAYS[weekday(pd)]} ${pd.getDate()}`);
+}
 export function taskMenu(date, key) {
   const row = getTask(date, key);
   if (!row) return;
@@ -42,7 +52,7 @@ export function taskMenu(date, key) {
   // En un día pasado solo se puede mover la tarea (a hoy o a otro día); no se edita ni se borra.
   const moveFirst = closed
     ? `<button data-a="taskmove" data-k="${key}" data-date="${T}">${icon('tomorrow')}${tr('Pasar a hoy', 'Move to today')}</button>`
-    : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`;
+    : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${dayName(tomorrow, 'Pasar a', 'Move to')}</button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveFirst}
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir otro día', 'Pick another day')}</button>
@@ -63,7 +73,7 @@ export function doMoveTask(date, key, target) {
   if (result.error) { toast(result.error); return; }
   render();
   const pd = parseDate(target);
-  const message = target === shiftDate(date, 1) ? tr('Pasada a mañana', 'Moved to tomorrow') : tr(`Movida al ${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `Moved to ${DAYS[weekday(pd)]} ${pd.getDate()}`);
+  const message = dayName(target, 'Pasada a', 'Moved to');
   toastUndo(message, () => { restore(result.undo); render(); });
 }
 export function doDeleteTask(date, key) {
