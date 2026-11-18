@@ -4,6 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
+  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -247,6 +248,31 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   finishRitual(R, 'e');
   eq([ritualState(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'm', at('2026-11-11T22:00'))], ['done', false, true], 'terminado queda para leer');
   eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-13T09:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
+});
+
+test('sin fecha: dejar una tarea sin fecha, deshacer, llevarla a un día y validar', () => {
+  load(fixture());
+  const key = addTask(DAY, 'Renovar el pasaporte');
+  const r = leaveUndated(DAY, key);
+  ok(!r.error, 'sin error');
+  eq(noDate().map(x => [x.t, x.from]), [['Renovar el pasaporte', DAY]], 'queda sin fecha con su día de origen');
+  ok(!dayTasks(DAY).rest.some(x => x.row.t === 'Renovar el pasaporte'), 'sale del día');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  restore(r.undo);
+  eq(noDate().length, 0, 'deshacer vacía la lista');
+  ok(dayTasks(DAY).rest.some(x => x.row.t === 'Renovar el pasaporte'), 'y la devuelve al día');
+  addUndated('Llamar al dentista');
+  const s2 = scheduleUndated(0, NEXT);
+  ok(dayTasks(NEXT).rest.some(x => x.row.t === 'Llamar al dentista') && noDate().length === 0, 'llevar a un día');
+  restore(s2.undo);
+  eq(noDate().map(x => x.t), ['Llamar al dentista'], 'deshacer la vuelve a dejar sin fecha');
+  removeUndated(0);
+  eq(S.nd, undefined, 'lista vacía no se guarda');
+  for (const bad of [{ nd: 'x' }, { nd: [{ t: 3 }] }, { nd: [{ t: 'a', from: 'ayer' }] }]) {
+    let failed = false; try { checkedState({ ...JSON.parse(JSON.stringify(S)), ...bad }); } catch { failed = true; }
+    eq(failed, true, 'inválido ' + JSON.stringify(bad));
+  }
+  eq(v1Accepts(S), true);
 });
 
 // ——— Hábitos ———

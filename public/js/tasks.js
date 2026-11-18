@@ -4,6 +4,7 @@
 //   d[fecha].k: claves 0, 501, 502 = tareas en foco (máx. 3); 1…500 = el resto, en orden.
 //   w[lunes].a / .b: índices 0…4 = foco de la semana / otras tareas de la semana.
 //   Una tarea del día traída de la semana guarda source = 'w.LUNES.a|b.i'.
+//   nd: tareas «Sin fecha» [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
 import { tr } from './i18n.js';
@@ -126,11 +127,12 @@ export function reorderTask(date, fromKey, toKey) {
 
 /** Copia de seguridad mínima para deshacer. */
 export function snapshot(dates) {
-  return { days: Object.fromEntries(dates.map(d => [d, S.d[d] ? structuredClone(S.d[d]) : null])), weeks: structuredClone(S.w) };
+  return { days: Object.fromEntries(dates.map(d => [d, S.d[d] ? structuredClone(S.d[d]) : null])), weeks: structuredClone(S.w), nd: structuredClone(S.nd || []) };
 }
 export function restore(snap) {
   for (const [date, day] of Object.entries(snap.days)) { if (day) S.d[date] = day; else delete S.d[date]; }
   S.w = snap.weeks;
+  if (snap.nd) { if (snap.nd.length) S.nd = snap.nd; else delete S.nd; }
   save();
 }
 
@@ -326,4 +328,45 @@ export function moveWeekTaskToNext(week, list, i, next = shiftDate(week, 7)) {
   removeWeekTask(week, list, i);
   addWeekTask(next, list, row.t);
   return { week: next };
+}
+
+// ——— Sin fecha ———
+export const MAX_NO_DATE = 200;
+export const noDate = () => S.nd || [];
+const setNoDate = list => { if (list.length) S.nd = list; else delete S.nd; };
+/** Saca una tarea del día y la deja «sin fecha». Devuelve { undo } o { error }. */
+export function leaveUndated(date, key) {
+  const row = getTask(date, key);
+  if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
+  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas sin fecha. Elimina o agenda alguna.', 'You have too many undated tasks. Delete or schedule some.') };
+  const undo = snapshot([date]);
+  setNoDate([...noDate(), { t: text(row), from: date }]);
+  removeTask(date, key);
+  return { undo };
+}
+/** Anota directamente una tarea sin fecha. */
+export function addUndated(value) {
+  const t = String(value || '').trim();
+  if (!t) return { error: '' };
+  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas sin fecha. Elimina o agenda alguna.', 'You have too many undated tasks. Delete or schedule some.') };
+  setNoDate([...noDate(), { t }]);
+  save();
+  return {};
+}
+/** Lleva una tarea sin fecha a un día. */
+export function scheduleUndated(i, date) {
+  const row = noDate()[i];
+  if (!row) return { error: tr('Esa tarea ya no está.', 'That task is no longer there.') };
+  const undo = snapshot([date]);
+  addTask(date, row.t);
+  setNoDate(noDate().filter((_, j) => j !== i));
+  save();
+  return { undo };
+}
+export function removeUndated(i) {
+  if (!noDate()[i]) return null;
+  const undo = snapshot([]);
+  setNoDate(noDate().filter((_, j) => j !== i));
+  save();
+  return { undo };
 }

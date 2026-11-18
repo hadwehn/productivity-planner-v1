@@ -788,3 +788,12 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 
 /* «Texto más grande» en Ajustes: sube el texto de lectura (los títulos grandes quedan igual). */
 :root[data-text="large"] { --ts: 1.14; }
+
+/* «Sin fecha»: botón en el selector de día y filas de la lista en Plan. */
+.undated-btn { margin-top: 12px; }
+.undated-btn .icon { width: 18px; height: 18px; }
+.task.undated .task-main > span { color: var(--ink-2); }
+.overdue-row { display: grid; gap: 8px; padding: 10px 0; }
+.overdue-actions { display: flex; gap: 6px; }
+.overdue-actions .btn.small { flex: 1; }
+@media (min-width: 560px) { .overdue-row { grid-template-columns: 1fr auto; align-items: center; } .overdue-actions .btn.small { flex: none; } }

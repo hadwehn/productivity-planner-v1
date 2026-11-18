@@ -3,8 +3,8 @@
 import { S, save } from './state.js';
 import { U, toast, toastUndo } from './ui.js';
 import {
-  bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask, removeWeekTask, restore,
-  snapshot, toggleFocus, toggleWeekFocus,
+  bringOverdue, dayTasks, dropTask, getTask, isFocusKey, leaveUndated, moveTask, movePendingTo, moveWeekTaskToNext, noDate, overdue, removeTask,
+  removeUndated, removeWeekTask, restore, scheduleUndated, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -52,7 +52,9 @@ export function taskMenu(date, key) {
 }
 export function taskPick(date, key) {
   const row = getTask(date, key);
-  if (row) openSheet(tr('¿A qué día?', 'Which day?'), datePicker('taskmove', `data-k="${key}"`, date));
+  if (row) openSheet(tr('¿A qué día?', 'Which day?'), datePicker('taskmove', `data-k="${key}"`, date)
+    + `<button class="btn quiet undated-btn" data-a="taskundated" data-k="${key}">${icon('inbox')}${tr('Aún no sé · dejar sin fecha', 'Not sure yet · leave undated')}</button>
+    <p class="muted small" style="margin:8px 2px 0;text-align:center">${tr('Queda en «Sin fecha», en Plan, hasta que sepas cuándo hacerla.', 'It waits in “Undated”, in Plan, until you know when to do it.')}</p>`);
 }
 export function doMoveTask(date, key, target) {
   if (!target) { toast(tr('Elige una fecha.', 'Pick a date.')); return; }
@@ -83,11 +85,13 @@ export function overdueSheet() {
   if (!items.length) { closeSheet(); render(); return; }
   const rows = items.map(({ date, key, row }) => {
     const pd = parseDate(date);
-    return `<div class="task" style="padding-left:0"><div class="task-main"><span style="padding:8px 0 2px;overflow-wrap:anywhere">${esc(row.t)}</span><span class="task-meta" style="margin:0 0 6px">${DAYS[weekday(pd)]} ${pd.getDate()}</span></div>
+    // Nombre arriba y las tres acciones debajo: así el nombre no se aprieta en el celular.
+    return `<div class="overdue-row"><div class="task-main"><span class="caps" style="overflow-wrap:anywhere">${esc(row.t)}</span><span class="task-meta" style="margin:2px 0 0">${DAYS[weekday(pd)]} ${pd.getDate()}</span></div><div class="overdue-actions">
       <button class="btn small secondary" data-a="overduebring" data-date="${date}" data-k="${key}">${tr('Traer', 'Bring')}</button>
-      <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Soltar', 'Let go')}</button></div>`;
+      <button class="btn small quiet" data-a="overdueundated" data-date="${date}" data-k="${key}" title="${tr('Hay que hacerla, pero aún no sabes cuándo', 'It needs doing, but you don’t know when yet')}">${tr('Sin fecha', 'Undated')}</button>
+      <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Soltar', 'Let go')}</button></div></div>`;
   }).join('<div class="divider" style="margin:0"></div>');
-  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Trae a hoy lo que sigue importando. Suelta lo que ya no: queda guardado en su día, sin culpa.', 'Bring to today what still matters. Let go of what doesn’t: it stays saved on its day, no guilt.')}</p>${rows}
+  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Trae a hoy lo que sigue importando. Si aún no sabes cuándo, déjalo sin fecha. Suelta lo que ya no: queda guardado en su día, sin culpa.', 'Bring to today what still matters. If you don’t know when yet, leave it undated. Let go of what doesn’t: it stays saved on its day, guilt-free.')}</p>${rows}
     <div class="row-actions"><button class="btn" data-a="overdueall">${tr('Traer todo a hoy', 'Bring all to today')}</button></div>`);
 }
 export function overdueAction(kind, date, key) {
@@ -99,7 +103,7 @@ export function overdueAction(kind, date, key) {
     toastUndo(tr(`${count} ${count === 1 ? 'tarea traída' : 'tareas traídas'} a hoy`, `${count} ${plural(count, '', '', 'task', 'tasks')} brought to today`), () => { restore(undo); render(); });
     return;
   }
-  if (kind === 'bring') moveTask(date, key, T); else dropTask(date, key);
+  if (kind === 'bring') moveTask(date, key, T); else if (kind === 'undated') leaveUndated(date, key); else dropTask(date, key);
   overdueSheet();
   render();
 }
@@ -356,4 +360,40 @@ export function shortcutsSheet() {
     ['?', tr('Ver estos atajos', 'Show these shortcuts')],
   ];
   openSheet(tr('Atajos de teclado', 'Keyboard shortcuts'), `<dl class="shortcuts">${rows.map(([k, text]) => `<div><dt><kbd>${k}</kbd></dt><dd>${text}</dd></div>`).join('')}</dl>`);
+}
+
+// ——— Sin fecha ———
+export function undatedTask(date, key) {
+  const result = leaveUndated(date, key);
+  closeSheet();
+  if (result.error) { toast(result.error); return; }
+  render();
+  toastUndo(tr('Quedó sin fecha · está en Plan', 'Left undated · it’s in Plan'), () => { restore(result.undo); render(); });
+}
+export function undatedMenu(i) {
+  const row = noDate()[i];
+  if (!row) return;
+  const T = today(), from = row.from ? parseDate(row.from) : null;
+  openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+    <button data-a="undatedmove" data-i="${i}" data-date="${T}">${icon('tomorrow')}${tr('Llevar a hoy', 'Move to today')}</button>
+    <button data-a="undatedpick" data-i="${i}">${icon('calendar')}${tr('Elegir un día', 'Pick a day')}</button>
+    <button class="danger" data-a="undateddelete" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
+  </div>${from ? `<p class="muted small" style="margin:14px 2px 0">${tr(`Estaba en el ${DAYS[weekday(from)].toLowerCase()} ${dayMonth(from)}.`, `It was on ${DAYS[weekday(from)]}, ${dayMonth(from)}.`)}</p>` : ''}`);
+}
+export const undatedPick = i => { if (noDate()[i]) openSheet(tr('¿A qué día?', 'Which day?'), datePicker('undatedmove', `data-i="${i}"`, '')); };
+export function undatedMove(i, target) {
+  if (!target) { toast(tr('Elige una fecha.', 'Pick a date.')); return; }
+  const result = scheduleUndated(i, target);
+  closeSheet();
+  if (result.error) { toast(result.error); return; }
+  render();
+  const pd = parseDate(target);
+  toastUndo(target === today() ? tr('Llevada a hoy', 'Moved to today') : tr(`Llevada al ${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `Moved to ${DAYS[weekday(pd)]} ${pd.getDate()}`), () => { restore(result.undo); render(); });
+}
+export function undatedDelete(i) {
+  const result = removeUndated(i);
+  closeSheet();
+  if (!result) return;
+  render();
+  toastUndo(tr('Tarea eliminada', 'Task deleted'), () => { restore(result.undo); render(); });
 }

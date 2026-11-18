@@ -2,13 +2,14 @@
 import { S, save, setPath } from './state.js';
 import { U, applyTextSize, applyTheme, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
 import {
-  addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
+  addTask, addUndated, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, weekAction, weekMenu,
+  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, undatedDelete, undatedMenu, undatedMove, undatedPick, undatedTask,
+  weekAction, weekMenu,
 } from './sheets.js';
 import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
 import {
@@ -104,10 +105,16 @@ const ACTIONS = {
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
+  taskundated: d => undatedTask(U.date, +d.k),
+  undatedmenu: d => undatedMenu(+d.i),
+  undatedpick: d => undatedPick(+d.i),
+  undatedmove: d => undatedMove(+d.i, d.fromInput ? $('#pickDate')?.value : d.date),
+  undateddelete: d => undatedDelete(+d.i),
   taskdelete: d => { if (!dayClosed(U.date)) doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
+  overdueundated: d => overdueAction('undated', d.date, +d.k),
   overdueall: () => overdueAction('all'),
 
   // Ánimo
@@ -237,7 +244,10 @@ function onSubmit(e) {
 function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return false;
-  if (form.dataset.form === 'addtask') {
+  if (form.dataset.form === 'addundated') {
+    const r = addUndated(value);
+    if (r.error) { toast(r.error); return false; }
+  } else if (form.dataset.form === 'addtask') {
     if (dayClosed(U.date)) return false; // un día pasado no recibe tareas nuevas
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
@@ -284,7 +294,7 @@ function onInput(e) {
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {
   const el = e.target;
-  const addForm = el.closest?.('form[data-form="addtask"], form[data-form="addweek"]');
+  const addForm = el.closest?.('form[data-form="addtask"], form[data-form="addweek"], form[data-form="addundated"]');
   if (addForm) { if (canEdit() && !addForm.contains(e.relatedTarget)) addOnLeave(addForm); return; }
   if (!canEdit() || el.value === undefined || el.value.trim()) return;
   if (el.dataset.taskText) { removeTask(U.date, +el.dataset.taskText); setTimeout(render); }

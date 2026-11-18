@@ -11,6 +11,7 @@
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
 //       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), evento.to (último día). Las versiones anteriores ignoran estos campos.
+//   nd  tareas sin fecha [{ t, from? }] (ver tasks.js)
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
 
@@ -149,6 +150,10 @@ export function checkedState(raw) {
     if (v.closed !== undefined && (!plain(v.closed) || Object.entries(v.closed).some(([x, y]) => !['m', 'e'].includes(x) || y !== true))) fail('Cierre del día incorrecto.');
     texts(v.c, 'agenda');
   }
+  if (o.nd !== undefined) {
+    if (!Array.isArray(o.nd) || o.nd.length > 200) fail('Tareas sin fecha incorrectas.');
+    for (const x of o.nd) { if (!plain(x) || typeof x.t !== 'string') fail('Tarea sin fecha incorrecta.'); if (x.from !== undefined) date(x.from); }
+  }
   if (!Number.isInteger(o.cfg.acc) || o.cfg.acc < 0 || o.cfg.acc >= LEGACY_ACCENTS) fail('Color anterior incorrecto.');
   if (!['modern', 'soft'].includes(o.cfg.theme)) fail('Estilo incorrecto.');
   for (const v of Object.values(o.cfg.hide)) if (typeof v !== 'boolean') fail('Visibilidad incorrecta.');
@@ -177,6 +182,7 @@ export function summary(o) {
     dias: Object.keys(o.d).length,
     tareasDiarias: rows(o.d).length,
     tareasSemanales: Object.values(o.w).reduce((n, x) => n + ['a', 'b'].reduce((m, k) => m + Object.values(x[k] || {}).filter(Boolean).length, 0), 0),
+    sinFecha: (o.nd || []).length,
     vinculos: links.length,
     origenesAusentes: links.filter(x => { const [, k, r, i] = x.source.split('.'); return !o.w[k]?.[r]?.[i]; }).length,
     bytesUTF8: new Blob([JSON.stringify(o)]).size,
