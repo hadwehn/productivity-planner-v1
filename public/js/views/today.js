@@ -124,14 +124,15 @@ function ritualFoot(date, which, state) {
 function morning(date) {
   const Z = `d.${date}.`, intent = get(Z + 'i'), grat = get(Z + 'g'), state = ritualState(date, 'm'), editable = state === 'open';
   const parts = [];
-  if (showToday('intention')) parts.push(ritualField(editable, Z + 'i', tr('¿Cómo quieres vivir este día?', 'How do you want to live today?'), tr('Con calma, presente…', 'Calm, present…'), 'serif', 'f-intent'));
-  if (showToday('gratitude')) parts.push(ritualField(editable, Z + 'g', tr('Gratitud', 'Gratitude'), tr('Agradece a tu manera…', 'Be grateful your way…'), '', 'f-grat', `<p class="prompt-hint">${tr('Una persona, un momento, algo simple. No hace falta más.', 'A person, a moment, something simple. That is enough.')}</p>`));
+  if (showToday('intention')) parts.push(ritualField(editable, Z + 'i', tr('¿Cómo quieres vivir este día?', 'How do you want to live today?'), tr('Con calma, presente…', 'Calm, present…'), '', 'f-intent'));
+  // Mismo formato que «Cierra tu día»: dos preguntas, sin texto de ayuda aparte.
+  if (showToday('gratitude')) parts.push(ritualField(editable, Z + 'g', tr('¿Qué agradeces hoy?', 'What are you grateful for today?'), tr('Una persona, un momento, algo simple…', 'A person, a moment, something simple…'), '', 'f-grat'));
   if (!showToday('intention') && !showToday('gratitude')) return '';
   const done = state === 'done';
   const summary = done ? tr('Listo', 'Done')
     : intent.trim() ? `“${esc(preview(intent))}”` : grat.trim() ? tr('Gratitud escrita', 'Gratitude written')
       : state === 'future' ? tr('Disponible ese día', 'Available on that day') : date < today() ? tr('Sin escribir · puedes completarlo', 'Not written · you can still fill it in') : tr('Intención y gratitud · 1 minuto', 'Intention and gratitude · 1 minute');
-  return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: done ? 'done' : '', title: tr('Empieza tu día', 'Start your day'), summary, written: done || !!intent.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'm', state) });
+  return foldable({ key: 'morning', open: U.morning, iconName: done ? 'check' : 'sunrise', iconCls: done ? 'done' : 'evening', title: tr('Empieza tu día', 'Start your day'), summary, written: done || !!intent.trim(), compact: done, body: parts.join('') + ritualFoot(date, 'm', state) });
 }
 
 function evening(date) {
