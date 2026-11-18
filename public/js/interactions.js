@@ -352,7 +352,10 @@ function onKeydown(e) {
     if (/^\d$/.test(e.key)) { e.preventDefault(); pressDigit(e.key); return; }
     if (e.key === 'Backspace') { e.preventDefault(); pressDelete(); return; }
   }
-  if (!typing && canEdit() && !e.metaKey && !e.ctrlKey && !e.altKey && !$('dialog[open]') && !$('[data-keypad]') && shortcut(e)) { e.preventDefault(); return; }
+  // Con el teclado del código del Diario a la vista, los números van al código: ahí solo se permite
+  // cambiar de sección con Mayús + ↑/↓.
+  const sectionKey = e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown');
+  if (!typing && canEdit() && !e.metaKey && !e.ctrlKey && !e.altKey && !$('dialog[open]') && (!$('[data-keypad]') || sectionKey) && shortcut(e)) { e.preventDefault(); return; }
   if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !(el instanceof HTMLTextAreaElement)) return;
   if (!(el.dataset.p || el.dataset.taskText || el.dataset.weekText)) return;
   e.preventDefault();
