@@ -24,17 +24,18 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
-// La barra de pestañas se achica al bajar y vuelve a su tamaño al subir, al llegar arriba o al dejar de
-// desplazarse por 0,45 s (en cualquier parte de la página).
+// La barra de pestañas se achica al bajar y vuelve a su tamaño al subir, al llegar arriba o 0,4 s
+// después de dejar de desplazarse (igual a mitad de página que al final).
+const NAV_IDLE = 400;
 let lastScroll = 0, scrollIdle = 0;
+const regrowLater = () => { clearTimeout(scrollIdle); scrollIdle = setTimeout(() => { scrollIdle = 0; document.documentElement.classList.remove('nav-compact'); }, NAV_IDLE); };
 addEventListener('scroll', () => {
   const y = scrollY, root = document.documentElement, dy = y - lastScroll;
-  clearTimeout(scrollIdle);
-  scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 450);
-  if (y <= 4) { lastScroll = y; root.classList.remove('nav-compact'); return; }
-  // En el final (y al estirar la página más allá con el dedo) los rebotes no cambian nada: la barra
-  // se achicaba y agrandaba sin parar. Ahí solo vuelve a su tamaño con la espera de arriba.
-  if (y >= root.scrollHeight - innerHeight - 24) { lastScroll = y; return; }
+  if (y <= 4) { lastScroll = y; clearTimeout(scrollIdle); scrollIdle = 0; root.classList.remove('nav-compact'); return; }
+  // En el final (y al estirar la página más allá con el dedo) los rebotes del celular no cambian la
+  // barra ni alargan la espera: vuelve a su tamaño a los 0,4 s de llegar, igual que a mitad de página.
+  if (y >= root.scrollHeight - innerHeight - 24) { lastScroll = y; if (!scrollIdle) regrowLater(); return; }
+  regrowLater();
   if (Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
   lastScroll = y;
   root.classList.toggle('nav-compact', dy > 0 && y > 60);
