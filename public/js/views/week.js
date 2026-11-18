@@ -48,9 +48,10 @@ function weekList(week, list, title, hint) {
     </div></section>`;
 }
 
-/** «Sin fecha»: lo que hay que hacer pero aún no se sabe cuándo. Es una sola lista, igual en todas las semanas. */
+/** «Sin fecha»: lo que hay que hacer pero aún no se sabe cuándo. Una sola lista, igual en todas las semanas; vacía, no se muestra. */
 function undatedList() {
   const items = noDate(), placeholder = tr('Añadir sin fecha', 'Add undated');
+  if (!items.length) return ''; // solo aparece cuando hay algo sin fecha (se deja así desde «Elegir otro día» o «Pendientes»)
   const rows = items.map((x, i) => `<div class="task undated" data-undated="${i}">
       <div class="task-main"><span>${esc(x.t)}</span></div>
       <button class="task-btn" data-a="undatedmenu" data-i="${i}" aria-label="${tr('Llevar a un día o eliminar', 'Schedule or delete')}" title="${tr('Llevar a un día o eliminar', 'Schedule or delete')}">${icon('more')}</button>
