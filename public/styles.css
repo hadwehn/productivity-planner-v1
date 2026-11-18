@@ -529,6 +529,9 @@ dialog.sheet .sheet-head { touch-action: none; }
 .date-grid button.today b { color: var(--acc); }
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line); font-size: calc(15px * var(--ts)); }
 .toggle-row:last-child { border-bottom: 0; }
+/* Fila que depende de la anterior (p. ej., «Desde las» bajo «Ofrecer organizar mañana»). */
+.toggle-row.sub-row { padding-left: 16px; color: var(--ink-2); }
+.hour-select { -webkit-appearance: none; appearance: none; font: inherit; font-variant-numeric: tabular-nums; color: var(--ink); background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2385857D' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E") no-repeat right 8px center / 16px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 30px 6px 12px; min-height: 36px; cursor: pointer; }
 .switch { position: relative; width: 50px; height: 30px; flex: none; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
 .switch i { position: absolute; inset: 0; border-radius: 30px; background: var(--line-strong); transition: background .2s; }
