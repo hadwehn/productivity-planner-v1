@@ -196,8 +196,10 @@ export function todayView() {
   const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
   // «Volver a hoy» va junto a Ajustes (no en una línea extra), para que la cabecera fija mida lo mismo cualquier día.
   const side = `<div class="head-actions">${isToday ? '' : `<button class="pill" data-a="date" data-k="${T}">${icon('left')}${tr('Hoy', 'Today')}</button>`}${settingsButton()}</div>`;
-  const [q, author] = quoteFor(date);
-  const quote = showToday('quote') ? `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>` : '';
+  // La frase del día se ve siempre. Con «Ver la frase de los días futuros» apagado, un día futuro
+  // repite la de hoy (no se adelantan las frases que vienen).
+  const [q, author] = quoteFor(date > T && !showToday('futureQuotes') ? T : date);
+  const quote = `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>`;
   const section = html => (html ? `<div class="section">${html}</div>` : '');
   const start = section(morning(date)), close = evening(date), pad = notes(date);
   const nudge = isToday ? notices(T) : '', habits = showToday('habits') ? habitsSection(date) : '';

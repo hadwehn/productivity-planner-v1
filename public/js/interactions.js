@@ -24,7 +24,7 @@ let canEdit = () => false;
 let settleTimer = 0;
 
 // ——— Ajustes ———
-const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['quote', tr('Frase del día', 'Quote of the day')], ['tomorrow', tr('Ofrecer organizar mañana (desde las 18:00)', 'Offer to plan tomorrow (from 6 pm)')]];
+const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Ver la frase de los días futuros', 'Show quotes for future days')], ['tomorrow', tr('Ofrecer organizar mañana (desde las 18:00)', 'Offer to plan tomorrow (from 6 pm)')]];
 export function drawSettings() {
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${(k === 'tomorrow' ? tomorrowCard() : showToday(k)) ? ' checked' : ''}><i></i></span></label>`).join('');
