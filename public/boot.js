@@ -1,3 +1,6 @@
+// Safari del iPhone no siempre respeta «user-scalable=no»: se bloquea también el gesto de pellizcar.
+for (const type of ['gesturestart', 'gesturechange']) document.addEventListener(type, e => e.preventDefault(), { passive: false });
+
 import('./app.js').catch(() => {
   const en = document.documentElement.lang === 'en';
   document.querySelector('#auth-status').textContent = en

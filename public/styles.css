@@ -57,7 +57,9 @@
 html, body, dialog.sheet { scrollbar-width: none; }
 html::-webkit-scrollbar, body::-webkit-scrollbar, dialog.sheet::-webkit-scrollbar { display: none; width: 0; height: 0; }
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { -webkit-text-size-adjust: 100%; }
+/* Sin zoom con los dedos ni con doble toque: la app se ve siempre al mismo tamaño (para leer más grande
+   está Ajustes → Tamaño del texto). */
+html { -webkit-text-size-adjust: 100%; touch-action: pan-x pan-y; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: calc(16px * var(--ts))/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 button:disabled { opacity: .35; cursor: default; }
