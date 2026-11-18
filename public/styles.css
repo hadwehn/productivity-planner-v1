@@ -517,6 +517,8 @@ html:has(dialog[open]), body:has(dialog[open]) { overflow: hidden; }
 .menu button:hover { background: var(--sunken); }
 .menu button .icon { color: var(--ink-2); }
 .menu button.danger, .menu button.danger .icon { color: var(--danger); }
+.menu-text { display: flex; flex-direction: column; gap: 1px; }
+.menu-text small { color: var(--mute); font-size: calc(13px * var(--ts)); }
 .date-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 4px 0 8px; }
 .date-grid button { display: flex; flex-direction: column; align-items: center; padding: 8px 0; border-radius: 12px; background: var(--sunken); font-size: calc(11px * var(--ts)); color: var(--mute); }
 .date-grid button b { font-size: calc(16px * var(--ts)); color: var(--ink); font-weight: 600; }

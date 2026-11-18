@@ -36,9 +36,10 @@ function datePicker(action, attrs, from = today()) {
 
 // ——— Tarea del día ———
 /**
- * «Pasar a mañana» solo si el día de destino es realmente mañana; si no, se nombra el día
- * («Pasar al viernes 20»). También «hoy» cuando corresponde.
+ * Aviso tras mover: «Pasada a mañana» solo si el destino es realmente mañana; si no, se nombra el
+ * día («Pasada al viernes 20»). También «hoy» cuando corresponde.
  */
+const shortDay = date => { const pd = parseDate(date); return tr(`${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `${DAYS[weekday(pd)]} ${pd.getDate()}`); };
 function dayName(target, es, en) {
   const T = today(), pd = parseDate(target);
   if (target === T) return tr(`${es} hoy`, `${en} today`);
@@ -52,7 +53,10 @@ export function taskMenu(date, key) {
   // En un día pasado solo se puede mover la tarea (a hoy o a otro día); no se edita ni se borra.
   const moveFirst = closed
     ? `<button data-a="taskmove" data-k="${key}" data-date="${T}">${icon('tomorrow')}${tr('Pasar a hoy', 'Move to today')}</button>`
-    : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${dayName(tomorrow, 'Pasar a', 'Move to')}</button>`;
+    : tomorrow === shiftDate(T, 1)
+      ? `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`
+      // En un día futuro, «mañana» no es el día siguiente: se dice así y se muestra la fecha.
+      : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}<span class="menu-text">${tr('Pasar al día siguiente', 'Move to the next day')}<small>${shortDay(tomorrow)}</small></span></button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveFirst}
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir otro día', 'Pick another day')}</button>
