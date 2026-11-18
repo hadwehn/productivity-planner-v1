@@ -31,12 +31,12 @@ addEventListener('scroll', () => {
   const y = scrollY, root = document.documentElement, dy = y - lastScroll;
   clearTimeout(scrollIdle);
   scrollIdle = setTimeout(() => root.classList.remove('nav-compact'), 500); // espera un momento antes de volver a agrandarse
+  // En el final de la página (y al estirarla más allá con el dedo) no se cambia nada: el rebote del
+  // celular mueve la página arriba y abajo, y la barra se achicaba y agrandaba sin parar. Ahí la
+  // barra solo vuelve a su tamaño con la espera de arriba.
+  if (y >= root.scrollHeight - innerHeight - 24) { lastScroll = y; return; }
   if (y > 4 && Math.abs(dy) < 6) return; // movimientos mínimos: se acumulan
   lastScroll = y;
-  // Al llegar al final, el rebote del celular mueve la página un poco hacia arriba: eso no cuenta como
-  // «subir», así la barra vuelve con la misma espera que en el resto de la página.
-  const atEnd = y >= root.scrollHeight - innerHeight - 24;
-  if (dy < 0 && atEnd) return;
   root.classList.toggle('nav-compact', dy > 0 && y > 60);
 }, { passive: true });
 
