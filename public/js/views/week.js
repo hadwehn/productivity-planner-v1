@@ -8,7 +8,7 @@ import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { reviewState, weekClosed } from '../rituals.js';
+import { reviewState } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
@@ -24,17 +24,15 @@ function overview(week, side = false) {
 }
 
 function weekList(week, list, title, hint) {
-  const T = today(), items = weekTasks(week, list), closed = weekClosed(week);
-  // En una semana ya pasada las tareas solo se marcan o se mueven (desde ⋯); no se añaden ni se editan.
+  const T = today(), items = weekTasks(week, list);
   const rows = items.map(({ i, row, days, done }) => {
     // Cada día programado es independiente: los ya hechos llevan ✓ y al lado se ve el avance («2/5»).
     const toggles = DAY_SHORT.map((label, w) => {
       const d = shiftDate(week, w), on = days.includes(d), ok = done.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
       const cls = `day-toggle${on ? ' on' : ''}${ok ? ' ok' : ''}`, face = ok ? icon('check') : label.slice(0, 1);
-      return closed ? `<span class="${cls} past" aria-hidden="true">${face}</span>`
-        : `<button class="${cls}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}" title="${what} ${DAYS[w]}">${face}</button>`;
+      return `<button class="${cls}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}" title="${what} ${DAYS[w]}">${face}</button>`;
     }).join('') + (days.length > 1 ? `<span class="day-count">${done.filter(d => days.includes(d)).length}/${days.length}</span>` : '');
-    const text = closed ? `<span>${esc(row.t)}</span>` : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
+    const text = `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
       <div class="task-main">${text}</div>
@@ -43,10 +41,10 @@ function weekList(week, list, title, hint) {
   }).join('');
   const full = items.length >= 5;
   const placeholder = list === 'a' ? tr('Añadir al foco de la semana', 'Add to this week’s focus') : tr('Añadir otra tarea', 'Add another task');
-  const empty = closed ? tr('No hubo tareas en esta lista.', 'No tasks in this list.') : hint;
+  const empty = hint;
   return `<section class="section">${sectionHead(title, `<span class="muted small">${items.length}/5</span>`, list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${empty}</p>`}
-      ${full || closed ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
+      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div></section>`;
 }
 
@@ -93,9 +91,8 @@ function weekView() {
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     ${undatedList()}
-    ${weekClosed(week) ? `<p class="muted small" style="margin:8px 4px 0">${tr('Es una semana pasada: puedes marcar sus tareas o moverlas a esta semana desde ⋯.', 'This week has passed: you can check off its tasks or move them to this week from ⋯.')}</p>` : ''}
     </div><div class="col">
-    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${weekClosed(week) ? tr('Toca un día para abrirlo.', 'Tap a day to open it.') : tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
+    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
       body: questions.map((q, i) => {

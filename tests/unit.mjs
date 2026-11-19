@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo,
+  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -13,7 +13,7 @@ import { todayView } from '../public/js/views/today.js';
 import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
 import { journalView } from '../public/js/views/journal.js';
-import { shiftDate, today } from '../public/js/util.js';
+import { shiftDate, today, weekdayOf } from '../public/js/util.js';
 import { eventsOn } from '../public/js/events.js';
 import { canEditRitual, finishRitual, reopenReview, reopenRitual, reviewState, ritualState } from '../public/js/rituals.js';
 
@@ -197,8 +197,12 @@ test('semana: una tarea programada de lunes a viernes se marca por día y no se 
   bringOverdue(WED, pending);
   eq(copies(WED).length, 1, 'traer no duplica');
   // Todas hechas → la semanal queda hecha; marcarla en Plan marca todas.
+  // El sábado salió pendiente a la otra semana: aunque se hagan todas las copias que quedan, la
+  // semanal no se da por hecha sola (ese trabajo no se hizo en su semana). Marcarla en Plan, sí.
   for (const d of scheduledDays(path)) setDone(d, key(d), true);
-  eq(weekTasks(WEEK, 'b').find(x => x.i === i).row.c, true, 'todas hechas: semanal hecha');
+  eq(weekTasks(WEEK, 'b').find(x => x.i === i).row.c, false, 'parte salió de la semana: sigue pendiente');
+  setWeekDone(WEEK, 'b', i, true);
+  eq(weekTasks(WEEK, 'b').find(x => x.i === i).row.c, true, 'marcarla en Plan la da por hecha');
   setWeekDone(WEEK, 'b', i, false);
   eq(scheduledDays(path).map(d => S.d[d].k[key(d)].c).some(Boolean), false, 'desmarcar en Plan desmarca todas');
   toggleWeekDay(WEEK, 'b', i, FRI);
@@ -314,6 +318,68 @@ test('sin fecha: dejar una tarea sin fecha, deshacer, llevarla a un día y valid
   eq(v1Accepts(S), true);
 });
 
+test('semana: si una copia pendiente sale de su semana, la semanal no se marca hecha sola', () => {
+  load(fixture());
+  const MON = WEEK, FRI = shiftDate(MON, 4), NEXT_MON = shiftDate(MON, 7);
+  addWeekTask(WEEK, 'a', 'Informe');
+  const i = weekTasks(WEEK, 'a').find(x => x.row.t === 'Informe').i, path = `w.${WEEK}.a.${i}`;
+  toggleWeekDay(WEEK, 'a', i, MON);
+  toggleWeekDay(WEEK, 'a', i, FRI);
+  const key = d => +Object.entries(S.d[d].k).find(([, r]) => r?.source === path)[0];
+  const weekly = () => S.w[WEEK].a[i];
+  setDone(MON, key(MON), true);
+  // Traer los pendientes al lunes siguiente: el viernes se va y solo queda el lunes, hecho.
+  const r = bringOverdue(NEXT_MON, overdue(NEXT_MON).filter(x => x.row.source === path));
+  eq([weekly().c, weekly().moved], [false, true], 'traer pendientes a otra semana');
+  eq(checkedState(S).w[WEEK].a[i].moved, true, 'se valida');
+  restore(r.undo);
+  eq([weekly().c, weekly().moved], [false, undefined], 'deshacer');
+  // Dejarla sin fecha, igual.
+  leaveUndated(FRI, key(FRI));
+  eq(weekly().c, false, 'sin fecha: sigue pendiente');
+  // Volver a programarla en su semana la deja completarse sola otra vez.
+  toggleWeekDay(WEEK, 'a', i, FRI);
+  setDone(FRI, key(FRI), true);
+  eq([weekly().c, weekly().moved], [true, undefined], 'programada de nuevo y hecha');
+  // Pasar una copia dentro de la misma semana no cuenta como salir.
+  load(fixture());
+  addWeekTask(WEEK, 'b', 'Llamar');
+  const j = weekTasks(WEEK, 'b').find(x => x.row.t === 'Llamar').i, p2 = `w.${WEEK}.b.${j}`;
+  toggleWeekDay(WEEK, 'b', j, MON);
+  moveTask(MON, +Object.entries(S.d[MON].k).find(([, r]) => r?.source === p2)[0], FRI);
+  setDone(FRI, +Object.entries(S.d[FRI].k).find(([, r]) => r?.source === p2)[0], true);
+  eq(S.w[WEEK].b[j].c, true, 'dentro de la semana se completa sola');
+  let bad = structuredClone(S); bad.w[WEEK].b[j].moved = 'sí';
+  let failed = false; try { checkedState(bad); } catch { failed = true; }
+  eq(failed, true, 'moved inválido se rechaza');
+});
+test('pendientes de más de 21 días pasan solos a «Sin fecha»', () => {
+  load(fixture());
+  const T = today(), old = shiftDate(T, -22), recent = shiftDate(T, -21);
+  S.d = {}; delete S.nd;
+  addTask(old, 'Vieja');
+  addTask(old, 'Hecha');
+  setDone(old, 2, true);
+  addTask(old, 'Soltada');
+  dropTask(old, 3);
+  addTask(recent, 'Reciente');
+  eq(archiveOverdue(T), 1, 'solo la pendiente vieja');
+  eq(noDate().map(x => [x.t, x.from]), [['Vieja', old]]);
+  eq(dayTasks(old).rest.map(x => x.row.t), ['Hecha', 'Soltada'], 'las hechas y soltadas quedan en su día');
+  eq(overdue(T).map(x => x.row.t), ['Reciente'], 'la de hace 21 días sigue como aviso');
+  eq(archiveOverdue(T), 0, 'no repite');
+});
+test('días pasados: se pueden añadir, renombrar y borrar tareas', () => {
+  load(fixture());
+  const past = shiftDate(today(), -10);
+  const k = addTask(past, 'Olvidé anotarla');
+  setDone(past, k, true);
+  renameTask(past, k, 'La anoté después');
+  eq(dayTasks(past).rest.map(x => [x.row.t, x.row.c]), [['La anoté después', true]]);
+  removeTask(past, k);
+  eq(dayTasks(past).rest.length, 0);
+});
+
 // ——— Hábitos ———
 test('hábitos por días: racha amable (hoy sin marcar no la rompe) y constancia', () => {
   load(fixture());
@@ -325,6 +391,32 @@ test('hábitos por días: racha amable (hoy sin marcar no la rompe) y constancia
   toggle(h, T);
   eq(streak(h, T).n, 3);
   ok(consistency(h, T) > 0 && consistency(h, T) <= 100);
+});
+test('hábitos: cambiar la frecuencia no reescribe la racha ni la constancia pasadas', () => {
+  load(fixture());
+  const T = today(), h = saveHabit({ name: 'Correr', color: 1, days: [0, 1, 2, 3, 4, 5, 6] });
+  h.createdOn = shiftDate(T, -30);
+  // Hecho todos los días de los últimos 10 (sin hoy).
+  for (let b = 1; b <= 10; b++) toggle(h, shiftDate(T, -b));
+  eq(streak(h, T).n, 10);
+  // Pasa a un solo día de la semana que no es ninguno de los ya marcados... la historia no cambia.
+  const other = (weekdayOf(T) + 1) % 7;
+  saveHabit({ id: h.id, name: 'Correr', color: 1, days: [other] });
+  eq([h.past.length, h.past[0].to, h.past[0].days.length], [1, shiftDate(T, -1), 7], 'se guarda la frecuencia anterior');
+  eq(isDue(h, shiftDate(T, -1)), true, 'ayer regía la frecuencia anterior');
+  eq(isDue(h, T), weekdayOf(T) === other, 'hoy rige la nueva');
+  eq(streak(h, T).n, 10, 'la racha no se pierde');
+  // Varios cambios el mismo día cuentan como uno.
+  saveHabit({ id: h.id, name: 'Correr', color: 1, days: [0, other] });
+  eq(h.past.length, 1);
+  // Cambiar a veces por semana: la racha cuenta desde el cambio.
+  saveHabit({ id: h.id, name: 'Correr', color: 1, perWeek: 3 });
+  eq([h.past.length, isDue(h, shiftDate(T, -3))], [1, true]);
+  eq(checkedState(S).h.find(x => x.id === h.id).past.length, 1, 'se valida');
+  const bad = structuredClone(S); bad.h.find(x => x.id === h.id).past = [{ to: 'ayer' }];
+  let failed = false; try { checkedState(bad); } catch { failed = true; }
+  eq(failed, true, 'frecuencia anterior inválida se rechaza');
+  eq(v1Accepts(S), true);
 });
 test('hábitos semanales: cuentan en cualquier día y la versión anterior los ve como diarios', () => {
   load(fixture());

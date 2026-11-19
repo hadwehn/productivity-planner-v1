@@ -5,16 +5,10 @@
 import { S, save, get } from './state.js';
 import { iso, parseDate, shiftDate } from './util.js';
 
-export const LOCK_HOUR = 3;
-
-/** El día ya pasó (son más de las 3:00 del día siguiente): sus tareas solo se marcan o se mueven. */
-export function dayClosed(date, now = new Date()) {
-  const end = parseDate(shiftDate(date, 1));
-  end.setHours(LOCK_HOUR);
-  return now >= end;
-}
-/** La semana (que empieza el lunes `week`) ya pasó: desde las 3:00 del lunes siguiente. */
-export const weekClosed = (week, now) => dayClosed(shiftDate(week, 6), now);
+// Los días y semanas pasados se pueden editar igual que los actuales (tareas incluidas): no hay
+// bloqueo por hora. Solo cambia qué se ofrece primero al mover (p. ej., «Pasar a hoy»).
+/** La semana (que empieza el lunes `week`) ya terminó. */
+export const isPastWeek = (week, now = new Date()) => shiftDate(week, 6) < iso(now);
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
 /** 'open' | 'done' | 'future' (todavía no llega el día) */
 export function ritualState(date, which, now = new Date()) {

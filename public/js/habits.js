@@ -1,9 +1,13 @@
 // Reglas de hábitos. Dos frecuencias: días fijos de la semana (h.days) o «N veces por semana» (h.perWeek).
+// Al cambiar la frecuencia, la anterior se guarda en h.past [{ to: último día, days | perWeek }]
+// para que la racha y la constancia de los días pasados se midan con la regla que regía entonces.
 import { S, save } from './state.js';
 import { DAY_SHORT, addDays, iso, newId, parseDate, shiftDate, today, weekdayOf } from './util.js';
 import { plural, tr } from './i18n.js';
 
 export const isWeekly = h => Number.isInteger(h.perWeek);
+/** Frecuencia vigente ese día: { days } o { perWeek }. */
+export const ruleAt = (h, date) => (h.past || []).find(x => date <= x.to) || h;
 export const isDone = (h, date) => (S.hl[date] || {})[h.id] === 1;
 const started = (h, date) => !h.createdOn || date >= h.createdOn;
 const mondayOf = date => shiftDate(date, -weekdayOf(date));
@@ -11,8 +15,9 @@ const mondayOf = date => shiftDate(date, -weekdayOf(date));
 /** ¿Tiene sentido mostrar el hábito ese día? (los semanales, todos los días). */
 export function isDue(h, date) {
   if (!started(h, date)) return false;
-  if (isWeekly(h)) return true;
-  return !Array.isArray(h.days) || h.days.includes(weekdayOf(date));
+  const rule = ruleAt(h, date);
+  if (isWeekly(rule)) return true;
+  return !Array.isArray(rule.days) || rule.days.includes(weekdayOf(date));
 }
 
 export function toggle(h, date) {
@@ -40,25 +45,29 @@ export function frequencyLabel(h) {
   return days.map(d => DAY_SHORT[d]).join(' · ');
 }
 
+/** Meta semanal de la semana que empieza `mon` (null si esa semana el hábito iba por días). */
+const weekGoal = (h, mon) => { const rule = ruleAt(h, shiftDate(mon, 6)); return isWeekly(rule) ? rule.perWeek : null; };
+
 /**
  * Racha amable: días programados seguidos (o semanas que cumplieron la meta).
- * Hoy sin marcar no rompe la racha: todavía hay tiempo.
+ * Hoy sin marcar no rompe la racha: todavía hay tiempo. Si antes el hábito tenía otro tipo de
+ * frecuencia (días ↔ veces por semana), la racha cuenta desde el cambio.
  */
 export function streak(h, T = today()) {
-  if (isWeekly(h)) {
+  if (isWeekly(ruleAt(h, T))) {
     let n = 0, mon = mondayOf(T);
-    if (weekCount(h, mon) >= h.perWeek) n++;
+    if (weekCount(h, mon) >= weekGoal(h, mon)) n++;
     for (let back = 1; back < 60; back++) {
-      const m = shiftDate(mon, -7 * back);
-      if (h.createdOn && shiftDate(m, 6) < h.createdOn) break;
-      if (weekCount(h, m) >= h.perWeek) n++; else break;
+      const m = shiftDate(mon, -7 * back), goal = weekGoal(h, m);
+      if ((h.createdOn && shiftDate(m, 6) < h.createdOn) || goal === null) break;
+      if (weekCount(h, m) >= goal) n++; else break;
     }
     return { n, unit: plural(n, 'semana', 'semanas', 'week', 'weeks') };
   }
   let n = 0;
   for (let back = 0; back < 400; back++) {
     const date = iso(addDays(parseDate(T), -back));
-    if (!started(h, date)) break;
+    if (!started(h, date) || isWeekly(ruleAt(h, date))) break;
     if (!isDue(h, date)) continue;
     if (isDone(h, date)) n++; else if (date !== T) break;
   }
@@ -68,21 +77,21 @@ export function streak(h, T = today()) {
 /** Constancia de los últimos 28 días (0-100). Perdona: cuenta lo hecho, no castiga lo que falta. */
 export function consistency(h, T = today()) {
   let due = 0, done = 0;
-  if (isWeekly(h)) {
+  if (isWeekly(ruleAt(h, T))) {
     for (let w = 0; w < 4; w++) {
-      const mon = shiftDate(mondayOf(T), -7 * w);
-      if (h.createdOn && shiftDate(mon, 6) < h.createdOn) break;
-      const achieved = Math.min(h.perWeek, weekCount(h, mon));
+      const mon = shiftDate(mondayOf(T), -7 * w), goal = weekGoal(h, mon);
+      if ((h.createdOn && shiftDate(mon, 6) < h.createdOn) || goal === null) break;
+      const achieved = Math.min(goal, weekCount(h, mon));
       done += achieved;
       // La semana en curso solo suma lo que ya se hizo: todavía hay tiempo.
-      due += w === 0 ? achieved : h.perWeek;
+      due += w === 0 ? achieved : goal;
     }
     if (!due) return null;
     return Math.round(done / due * 100);
   }
   for (let back = 0; back < 28; back++) {
     const date = shiftDate(T, -back);
-    if (!started(h, date)) break;
+    if (!started(h, date) || isWeekly(ruleAt(h, date))) break;
     if (!isDue(h, date)) continue;
     if (back === 0 && !isDone(h, date)) continue;
     due++;
@@ -96,12 +105,29 @@ export function saveHabit({ id, name, color, days, perWeek }) {
   if (perWeek) { data.perWeek = perWeek; data.days = undefined; }
   else { data.days = days; data.perWeek = undefined; }
   let habit = S.h.find(x => x.id === id);
-  if (habit) Object.assign(habit, data);
+  if (habit) {
+    rememberRule(habit, data);
+    Object.assign(habit, data);
+  }
   else S.h.push(habit = { id: newId(), createdOn: today(), ...data });
   if (habit.perWeek === undefined) delete habit.perWeek;
   if (habit.days === undefined) delete habit.days;
   save();
   return habit;
+}
+
+const sameRule = (a, b) => (isWeekly(a) || isWeekly(b)
+  ? a.perWeek === b.perWeek
+  : (a.days || [0, 1, 2, 3, 4, 5, 6]).slice().sort().join() === (b.days || [0, 1, 2, 3, 4, 5, 6]).slice().sort().join());
+export const MAX_PAST_RULES = 50;
+/** Si cambia la frecuencia, guarda la anterior hasta ayer (varios cambios el mismo día cuentan como uno). */
+function rememberRule(habit, next) {
+  const T = today(), yesterday = shiftDate(T, -1);
+  if (sameRule(habit, next) || (habit.createdOn && habit.createdOn >= T)) return;
+  const past = habit.past || [];
+  if (past.at(-1)?.to === yesterday) return; // ya cambió hoy: la regla que rigió hasta ayer está guardada
+  const old = isWeekly(habit) ? { to: yesterday, perWeek: habit.perWeek } : { to: yesterday, ...(Array.isArray(habit.days) ? { days: habit.days.slice() } : {}) };
+  habit.past = [...past, old].slice(-MAX_PAST_RULES);
 }
 
 export function deleteHabit(id) {

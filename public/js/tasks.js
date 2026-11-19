@@ -7,6 +7,9 @@
 //   independiente: marcarla hecha no marca las de otros días. La tarea semanal queda hecha cuando
 //   todas sus copias lo están (o al marcarla en Plan, que marca todas). Un día no tiene dos copias
 //   de la misma tarea semanal: al moverla a un día que ya la tiene, quedan en una.
+//   Si una copia pendiente sale de su semana (a otro día fuera de ella o a «Sin fecha»), la semanal
+//   guarda moved = true y ya no se da por hecha sola: ese trabajo no se hizo en su semana.
+//   Pendientes de más de 21 días pasan solos a «Sin fecha» (archiveOverdue, al abrir la app).
 //   nd: tareas «Sin fecha» [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
@@ -151,10 +154,11 @@ export function moveTask(date, key, target) {
     removeTask(date, key);
     return { undo, merged: true };
   }
+  if (!inWeekOf(row.source, target)) leavesWeek(row);
   const copy = { ...row, c: false };
   delete copy.drop;
   delete copy.carriedFrom;
-  if (copy.source && !inWeekOf(copy.source, target)) delete copy.source; // fuera de su semana deja de ser una copia
+  if (!inWeekOf(copy.source, target)) delete copy.source; // fuera de su semana deja de ser una copia
   const dest = rowsOf(target);
   if (isFocusKey(key) && dest.focus.length < MAX_FOCUS) dest.focus.push(copy); else dest.rest.push(copy);
   writeDay(target, dest.focus, dest.rest);
@@ -199,6 +203,19 @@ export function bringOverdue(date, items = overdue(date)) {
     if (Number.isFinite(key)) moveTask(from, key, date);
   }
   return { undo, count: items.length };
+}
+/** Pasa a «Sin fecha» las pendientes de días anteriores a la ventana de avisos. Devuelve cuántas. */
+export function archiveOverdue(date) {
+  const limit = shiftDate(date, -LOOKBACK_DAYS);
+  const stale = d => { const { focus, rest } = dayTasks(d); return [...focus, ...rest].find(t => !t.row.c && !t.row.drop); };
+  let count = 0;
+  for (const d of Object.keys(S.d).filter(d => d < limit).sort()) {
+    for (let next = stale(d); next; next = stale(d)) {
+      if (leaveUndated(d, next.key).error) return count; // «Sin fecha» llena: el resto sigue en su día
+      count++;
+    }
+  }
+  return count;
 }
 /** «Soltar» una tarea: deja de aparecer como pendiente, sin borrarla de su día. */
 export function dropTask(date, key) {
@@ -274,6 +291,7 @@ export function setWeekDone(week, list, i, value) {
   const row = weekList(week, list)[i];
   if (!row) return;
   row.c = !!value;
+  if (row.c) delete row.moved; // marcarla en Plan la da por hecha, aunque parte saliera de la semana
   syncLinked(weekPath(week, list, i), row.c);
   save();
 }
@@ -308,6 +326,7 @@ export function toggleWeekDay(week, list, i, date) {
   if (!row || !text(row)) return { error: tr('Escribe la tarea primero.', 'Write the task first.') };
   const existing = Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path);
   if (existing) { removeTask(date, +existing[0]); return { removed: true }; }
+  delete row.moved; // se vuelve a programar dentro de su semana
   addTask(date, row.t, { focus: list === 'a', source: path });
   refreshWeekly(path); // la copia nueva llega pendiente: la semanal deja de estar hecha si lo estaba
   save();
@@ -324,14 +343,22 @@ function syncLinked(source, value) {
 }
 /** Copias de los días de una tarea semanal. */
 const copiesOf = source => Object.values(S.d).flatMap(day => Object.values(day.k || {})).filter(r => r?.source === source && text(r));
-/** La tarea semanal está hecha cuando todas sus copias de los días lo están (si no tiene copias, no cambia). */
+const weeklyOf = source => { if (!source || !/^w\./.test(source)) return null; const [, week, list, i] = source.split('.'); return S.w[week]?.[list]?.[i] || null; };
+/**
+ * La tarea semanal está hecha cuando todas sus copias de los días lo están (si no tiene copias, no
+ * cambia). Si parte de ella salió de la semana sin hacerse (moved), queda pendiente.
+ */
 function refreshWeekly(source) {
-  if (!source || !/^w\./.test(source)) return;
-  const [, week, list, i] = source.split('.'), weekly = S.w[week]?.[list]?.[i], copies = copiesOf(source);
-  if (weekly && copies.length) weekly.c = copies.every(r => r.c);
+  const weekly = weeklyOf(source), copies = copiesOf(source);
+  if (weekly && (copies.length || weekly.moved)) weekly.c = !weekly.moved && copies.every(r => r.c);
 }
-/** ¿`date` cae en la semana de la tarea semanal `source`? */
-const inWeekOf = (source, date) => { const week = source.split('.')[1]; return date >= week && date <= shiftDate(week, 6); };
+/** Una copia pendiente sale de su semana: la semanal ya no puede darse por hecha sola. */
+function leavesWeek(row) {
+  const weekly = row.c ? null : weeklyOf(row.source);
+  if (weekly) weekly.moved = true;
+}
+/** ¿`date` cae en la semana de la tarea semanal `source`? (sin `source`, sí: no hay semana que dejar) */
+const inWeekOf = (source, date) => { if (!source) return true; const week = source.split('.')[1]; return date >= week && date <= shiftDate(week, 6); };
 /** Días de esta tarea semanal ya hechos. */
 export function doneDays(path) {
   const out = [];
@@ -369,6 +396,7 @@ export function leaveUndated(date, key) {
   if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas sin fecha. Elimina o agenda alguna.', 'You have too many undated tasks. Delete or schedule some.') };
   const undo = snapshot([date]);
   setNoDate([...noDate(), { t: text(row), from: date }]);
+  leavesWeek(row);
   removeTask(date, key);
   return { undo };
 }
