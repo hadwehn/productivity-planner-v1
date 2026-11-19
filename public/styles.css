@@ -674,9 +674,9 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .strip-nav { position: static; clip: auto; overflow: visible; display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; color: var(--mute); transition: background .15s, color .15s; }
   .strip-nav:hover { background: var(--sunken); color: var(--ink); }
   .strip-nav .icon { width: 18px; height: 18px; }
-  /* Las flechas quedan en un lugar fijo, cerca de las fechas: se reserva el ancho del texto más largo. */
+  /* Las flechas quedan en un lugar fijo, cerca de las fechas: se reserva el ancho del texto más largo
+     (la semana). El mes y el Diario usan el mismo ancho, así las flechas no saltan al cambiar de vista. */
   .plan-head-panel .plan-range b { flex: 0 0 auto; min-width: 18em; }
-  .plan-head-panel .plan-range.short b { min-width: 10em; }
   .range-nav button:hover { background: var(--line); }
 
   nav.tabbar, .nav-compact nav.tabbar { left: 0; right: auto; margin: 0; top: 0; bottom: 0; transform: none; -webkit-transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
