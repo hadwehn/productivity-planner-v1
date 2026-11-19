@@ -111,7 +111,7 @@ dispositivo, en `localStorage`.
   `moved` y ya no se marca hecha sola; marcarla en Plan o volver a programarla en su semana lo quita.
 - Objetivo (sin días): opción del menú ⋯ de una tarea semanal («Convertir en objetivo» / «Repartir
   en días», debajo de la opción de foco). Guarda `goal`, oculta las letras de los días y muestra
-  la marca «Objetivo» como texto (sin fondo, para que no parezca botón); se marca a
+  la marca «Objetivo» como etiqueta verde en mayúsculas con bandera (estilo «EN FOCO», sin fondo para que no parezca botón); se marca a
   mano. Al convertirla se quitan sus copias pendientes de los días (las hechas quedan, sueltas) y
   se puede deshacer. Sigue siendo objetivo al pasar a otra semana. Idea para después: mostrar los
   objetivos en «Empieza tu día» o en la revisión semanal para que no se olviden.

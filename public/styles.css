@@ -386,9 +386,10 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .day-toggle.on { background: var(--acc); color: var(--acc-ink); }
 .day-toggle.past:not(.on) { opacity: .4; }
 .day-toggle.ok .icon { width: 14px; height: 14px; stroke-width: 2.4; }
-/* Marca de objetivo: solo texto, sin fondo ni borde, para que no parezca un botón. */
-.goal-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 22px; font-size: calc(12px * var(--ts)); font-weight: 500; color: var(--mute); }
-.goal-tag .icon { width: 13px; height: 13px; stroke-width: 1.8; }
+/* Marca de objetivo: con el lenguaje de las etiquetas («EN FOCO»), en verde y con la bandera
+   rellena, para que se note; sin fondo ni borde, para que no parezca un botón. */
+.goal-tag { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; font-size: calc(12px * var(--ts)); font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--acc); }
+.goal-tag .icon { width: 15px; height: 15px; stroke-width: 1.8; fill: currentColor; }
 .day-count { align-self: center; margin-left: 4px; font-size: calc(12px * var(--ts)); color: var(--mute); font-variant-numeric: tabular-nums; }
 .review-q { font: 500 calc(16px * var(--ts))/1.4 var(--serif); margin: 0 0 8px; }
 .progress-line { display: flex; align-items: center; gap: 10px; }
