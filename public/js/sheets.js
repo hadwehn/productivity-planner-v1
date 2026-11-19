@@ -4,7 +4,7 @@ import { S, save } from './state.js';
 import { U, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, leaveUndated, moveTask, movePendingTo, moveWeekTaskToNext, noDate, overdue, removeTask,
-  removeUndated, removeWeekTask, restore, scheduleUndated, snapshot, toggleFocus, toggleWeekFocus,
+  removeUndated, removeWeekTask, restore, scheduleUndated, setWeekGoal, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -133,6 +133,9 @@ export function weekMenu(list, i) {
     : `<button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveOn}
+    ${row.goal
+      ? `<button data-a="weekgoal" data-list="${list}" data-i="${i}">${icon('calendar')}${tr('Repartir en días', 'Split into days')}</button>`
+      : `<button data-a="weekgoal" data-list="${list}" data-i="${i}" data-on="1">${icon('flag')}${tr('Objetivo (sin días)', 'Goal (no days)')}</button>`}
     <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
     <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
@@ -146,6 +149,18 @@ export function weekAction(kind, list, i) {
     if (r.error) { toast(r.error); return; }
     render();
     toastUndo(tr('Pasó a esta semana', 'Moved to this week'), () => { restore(undo); render(); });
+    return;
+  }
+  if (kind === 'goal' || kind === 'ungoal') {
+    const r = setWeekGoal(U.week, list, i, kind === 'goal');
+    closeSheet();
+    if (r.error) { toast(r.error); return; }
+    render();
+    if (kind === 'ungoal') { toast(tr('Ya puedes llevarla a días concretos.', 'You can now place it on specific days.')); return; }
+    const msg = r.removed === 0 ? tr('Ahora es un objetivo de la semana', 'Now it’s a goal for the week')
+      : r.removed === 1 ? tr('Ahora es un objetivo. Se quitó de 1 día.', 'Now it’s a goal. Removed from 1 day.')
+        : tr(`Ahora es un objetivo. Se quitó de ${r.removed} días.`, `Now it’s a goal. Removed from ${r.removed} days.`);
+    toastUndo(msg, () => { restore(undo); render(); });
     return;
   }
   if (kind === 'next') {

@@ -26,6 +26,8 @@ function overview(week, side = false) {
 function weekList(week, list, title, hint) {
   const T = today(), items = weekTasks(week, list);
   const rows = items.map(({ i, row, days, done }) => {
+    // Un objetivo no se reparte en días: en vez de las letras, una marca que lo distingue.
+    const goal = `<div class="day-toggles"><span class="goal-tag">${icon('flag')}${tr('Objetivo', 'Goal')}</span></div>`;
     // Cada día programado es independiente: los ya hechos llevan ✓ y al lado se ve el avance («2/5»).
     const toggles = DAY_SHORT.map((label, w) => {
       const d = shiftDate(week, w), on = days.includes(d), ok = done.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
@@ -37,7 +39,7 @@ function weekList(week, list, title, hint) {
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
       <div class="task-main">${text}</div>
       <button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="${tr('Más opciones', 'More options')}">${icon('more')}</button>
-    </div><div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div></div>`;
+    </div>${row.goal ? goal : `<div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div>`}</div>`;
   }).join('');
   const full = items.length >= 5;
   const placeholder = list === 'a' ? tr('Añadir al foco de la semana', 'Add to this week’s focus') : tr('Añadir otra tarea', 'Add another task');

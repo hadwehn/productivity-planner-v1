@@ -11,7 +11,7 @@
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
 //       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), evento.to (último día),
-//       fila semanal.moved (parte salió de su semana sin hacerse), h.past (frecuencias anteriores). Las versiones anteriores ignoran estos campos.
+//       fila semanal.moved (parte salió de su semana sin hacerse), fila semanal.goal (objetivo sin días), h.past (frecuencias anteriores). Las versiones anteriores ignoran estos campos.
 //   nd  tareas sin fecha [{ t, from? }] (ver tasks.js)
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
@@ -119,6 +119,7 @@ export function checkedState(raw) {
       if (t.s !== undefined && (!Number.isInteger(t.s) || t.s < 0 || t.s > 5)) fail('Sesiones incorrectas.');
       if (t.drop !== undefined && typeof t.drop !== 'boolean') fail('Estado de tarea incorrecto.');
       if (t.moved !== undefined && t.moved !== true) fail('Estado de tarea semanal incorrecto.');
+      if (t.goal !== undefined && t.goal !== true) fail('Objetivo semanal incorrecto.');
       if (t.carriedFrom !== undefined && (typeof t.carriedFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}:(?:0|[1-9]\d{0,2})$/.test(t.carriedFrom))) fail('Origen del traslado incorrecto.');
       if (t.source !== undefined) {
         if (typeof t.source !== 'string' || !/^w\.\d{4}-\d{2}-\d{2}\.[ab]\.[0-4]$/.test(t.source)) fail('Origen de tarea incorrecto.');

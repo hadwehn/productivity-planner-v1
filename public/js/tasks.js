@@ -9,6 +9,7 @@
 //   de la misma tarea semanal: al moverla a un día que ya la tiene, quedan en una.
 //   Si una copia pendiente sale de su semana (a otro día fuera de ella o a «Sin fecha»), la semanal
 //   guarda moved = true y ya no se da por hecha sola: ese trabajo no se hizo en su semana.
+//   Una tarea semanal puede ser un objetivo (goal = true): no se reparte en días y se marca a mano.
 //   Pendientes de más de 21 días pasan solos a «Sin fecha» (archiveOverdue, al abrir la app).
 //   nd: tareas «Sin fecha» [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
 import { S, save } from './state.js';
@@ -324,6 +325,7 @@ export function toggleWeekFocus(week, list, i) {
 export function toggleWeekDay(week, list, i, date) {
   const path = weekPath(week, list, i), row = weekList(week, list)[i];
   if (!row || !text(row)) return { error: tr('Escribe la tarea primero.', 'Write the task first.') };
+  if (row.goal) return { error: tr('Es un objetivo: no se reparte en días.', 'It’s a goal: it isn’t split into days.') };
   const existing = Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path);
   if (existing) { removeTask(date, +existing[0]); return { removed: true }; }
   delete row.moved; // se vuelve a programar dentro de su semana
@@ -350,6 +352,7 @@ const weeklyOf = source => { if (!source || !/^w\./.test(source)) return null; c
  */
 function refreshWeekly(source) {
   const weekly = weeklyOf(source), copies = copiesOf(source);
+  if (weekly?.goal) return; // un objetivo se marca a mano
   if (weekly && (copies.length || weekly.moved)) weekly.c = !weekly.moved && copies.every(r => r.c);
 }
 /** Una copia pendiente sale de su semana: la semanal ya no puede darse por hecha sola. */
@@ -381,8 +384,29 @@ export function moveWeekTaskToNext(week, list, i, next = shiftDate(week, 7)) {
   const pendingCopy = date => Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path && !r.c)?.[0];
   for (const date of Object.keys(S.d)) for (let key = pendingCopy(date); key !== undefined; key = pendingCopy(date)) removeTask(date, +key);
   removeWeekTask(week, list, i);
-  addWeekTask(next, list, row.t);
+  const added = addWeekTask(next, list, row.t);
+  if (row.goal && added.i !== undefined) S.w[next][list][added.i].goal = true; // sigue siendo objetivo
   return { week: next };
+}
+
+/**
+ * Convierte una tarea semanal en objetivo (sin días) o la vuelve a repartir en días.
+ * Al convertirla, sus copias pendientes se quitan de los días y las hechas quedan como registro,
+ * sin vínculo. Devuelve { removed } (copias quitadas) o { error }.
+ */
+export function setWeekGoal(week, list, i, on) {
+  const row = weekList(week, list)[i];
+  if (!row || !text(row)) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
+  if (!on) { delete row.goal; save(); return { removed: 0 }; }
+  const path = weekPath(week, list, i);
+  row.goal = true; // antes de quitar copias: un objetivo no se marca hecho solo
+  delete row.moved;
+  let removed = 0;
+  const pendingCopy = date => Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path && !r.c)?.[0];
+  for (const date of Object.keys(S.d)) for (let key = pendingCopy(date); key !== undefined; key = pendingCopy(date)) { removeTask(date, +key); removed++; }
+  relink(path, null); // las ya hechas quedan en su día, sueltas
+  save();
+  return { removed };
 }
 
 // ——— Sin fecha ———

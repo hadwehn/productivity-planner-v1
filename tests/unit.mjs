@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue,
+  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue, setWeekGoal,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -352,6 +352,38 @@ test('semana: si una copia pendiente sale de su semana, la semanal no se marca h
   let bad = structuredClone(S); bad.w[WEEK].b[j].moved = 'sí';
   let failed = false; try { checkedState(bad); } catch { failed = true; }
   eq(failed, true, 'moved inválido se rechaza');
+});
+test('semana: objetivo (sin días) quita las copias pendientes, se marca a mano y se puede deshacer', () => {
+  load(fixture());
+  const MON = WEEK, TUE = shiftDate(MON, 1), WED = shiftDate(MON, 2);
+  addWeekTask(WEEK, 'a', 'Avanzar tesis');
+  const i = weekTasks(WEEK, 'a').find(x => x.row.t === 'Avanzar tesis').i, path = `w.${WEEK}.a.${i}`;
+  for (const d of [MON, TUE, WED]) toggleWeekDay(WEEK, 'a', i, d);
+  setDone(MON, +Object.entries(S.d[MON].k).find(([, r]) => r?.source === path)[0], true);
+  const undo = snapshot(Object.keys(S.d));
+  eq(setWeekGoal(WEEK, 'a', i, true).removed, 2, 'quita las dos pendientes');
+  eq(scheduledDays(path), [], 'sin días vinculados');
+  eq(dayTasks(MON).focus.map(x => [x.row.t, x.row.c, x.row.source]), [['Avanzar tesis', true, undefined]], 'la hecha queda como registro, suelta');
+  eq([S.w[WEEK].a[i].goal, S.w[WEEK].a[i].c], [true, false], 'es objetivo y sigue pendiente (no la marca la copia hecha que queda)');
+  eq(toggleWeekDay(WEEK, 'a', i, TUE).error !== undefined, true, 'un objetivo no se reparte en días');
+  setWeekDone(WEEK, 'a', i, true);
+  eq(S.w[WEEK].a[i].c, true, 'se marca a mano');
+  eq(checkedState(S).w[WEEK].a[i].goal, true, 'se valida');
+  const bad = structuredClone(S); bad.w[WEEK].a[i].goal = 1;
+  let failed = false; try { checkedState(bad); } catch { failed = true; }
+  eq(failed, true, 'goal inválido se rechaza');
+  // Pasar a la próxima semana: sigue siendo objetivo.
+  setWeekDone(WEEK, 'a', i, false);
+  moveWeekTaskToNext(WEEK, 'a', i);
+  const NEXT = shiftDate(WEEK, 7);
+  eq(weekTasks(NEXT, 'a').map(x => [x.row.t, x.row.goal]), [['Avanzar tesis', true]]);
+  restore(undo);
+  eq([scheduledDays(path).length, S.w[WEEK].a[i].goal], [3, undefined], 'deshacer');
+  // Volver a repartir en días.
+  setWeekGoal(WEEK, 'a', i, true);
+  setWeekGoal(WEEK, 'a', i, false);
+  eq(toggleWeekDay(WEEK, 'a', i, TUE).added, true, 'se vuelve a llevar a días');
+  eq(v1Accepts(S), true);
 });
 test('pendientes de más de 21 días pasan solos a «Sin fecha»', () => {
   load(fixture());

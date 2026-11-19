@@ -386,6 +386,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .day-toggle.on { background: var(--acc); color: var(--acc-ink); }
 .day-toggle.past:not(.on) { opacity: .4; }
 .day-toggle.ok .icon { width: 14px; height: 14px; stroke-width: 2.4; }
+.goal-tag { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 8px; border-radius: 9px; font-size: calc(12px * var(--ts)); font-weight: 600; color: var(--ink-2); background: var(--sunken); }
+.goal-tag .icon { width: 14px; height: 14px; stroke-width: 2; }
 .day-count { align-self: center; margin-left: 4px; font-size: calc(12px * var(--ts)); color: var(--mute); font-variant-numeric: tabular-nums; }
 .review-q { font: 500 calc(16px * var(--ts))/1.4 var(--serif); margin: 0 0 8px; }
 .progress-line { display: flex; align-items: center; gap: 10px; }
