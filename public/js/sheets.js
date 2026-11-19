@@ -19,7 +19,8 @@ const sheet = () => $('#sheet');
 export function openSheet(title, body, onMount) {
   const dlg = sheet();
   dlg.innerHTML = `<div class="sheet-grip" aria-hidden="true"></div><div class="sheet-head"><h2>${title}</h2><button class="icon-btn" data-a="dismiss" aria-label="${tr('Cerrar', 'Close')}">${icon('close')}</button></div><div class="sheet-body">${body}</div>`;
-  if (!dlg.open) dlg.showModal();
+  // La hoja se enfoca a sí misma (no la «X»): sin anillo de foco suelto en el celular; Tab entra al contenido.
+  if (!dlg.open) { dlg.showModal(); dlg.focus(); }
   onMount?.(dlg);
 }
 export const closeSheet = () => { if (sheet().open) sheet().close(); };
