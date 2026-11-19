@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, applyTheme, planHour, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
+import { U, applyTextSize, planHour, setAppearance, storedAppearance, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
 import {
   addTask, addUndated, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -37,7 +37,7 @@ export function drawSettings() {
     if (h === 18) delete S.cfg.planHour; else S.cfg.planHour = h;
     save(); render();
   });
-  const pref = S.cfg.appearance || 'auto';
+  const pref = storedAppearance();
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
   $$('[data-a=textsize]').forEach(b => { const on = b.dataset.k === size; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
@@ -195,7 +195,7 @@ const ACTIONS = {
 
   // Ajustes
   appearance: d => {
-    S.cfg.appearance = d.k; save(); applyTheme(); drawSettings();
+    setAppearance(d.k); drawSettings();
     const picker = $('#sheet [data-looks]'); // la bienvenida también permite elegirla
     if (picker) picker.outerHTML = appearancePicker();
   },

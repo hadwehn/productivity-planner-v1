@@ -108,19 +108,21 @@ export function runUndo() {
 
 // ——— Tema: automático (sigue al sistema), claro u oscuro ———
 const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
-// La apariencia se recuerda en el dispositivo para pintar la pantalla de carga antes de tener
-// los datos de la cuenta (ver theme-init.js, que lee esta misma clave).
-const STORED = 'diario-apariencia';
+// La apariencia es de cada dispositivo, no de la cuenta: elegir «Oscura» en el computador no
+// cambia el celular. Por defecto, «Automática» (sigue el modo claro u oscuro del sistema).
+// theme-init.js lee esta misma clave para pintar la pantalla de carga sin destellos.
+// La clave es nueva (antes 'diario-apariencia' copiaba la de la cuenta): todos parten en «Automática».
+const STORED = 'focus-apariencia';
 export function storedAppearance() {
-  try { return localStorage.getItem(STORED) || 'auto'; } catch { return 'auto'; }
+  try { const v = localStorage.getItem(STORED); return v === 'light' || v === 'dark' ? v : 'auto'; } catch { return 'auto'; }
+}
+export function setAppearance(pref) {
+  try { localStorage.setItem(STORED, pref); } catch { /* almacenamiento bloqueado */ }
+  applyTheme(pref);
 }
 let currentPref = 'auto';
-/** Sin argumento usa la preferencia de la cuenta y la recuerda; con argumento solo la aplica. */
-export function applyTheme(pref) {
-  if (pref === undefined) {
-    pref = S.cfg.appearance || 'auto';
-    try { localStorage.setItem(STORED, pref); } catch { /* almacenamiento bloqueado */ }
-  }
+/** Sin argumento usa la apariencia guardada en este dispositivo. */
+export function applyTheme(pref = storedAppearance()) {
   currentPref = pref;
   const dark = pref === 'dark' || (pref === 'auto' && !!media?.matches);
   const root = document.documentElement;

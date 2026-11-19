@@ -125,6 +125,8 @@ dispositivo, en `localStorage`.
   Supabase); si se promete privacidad real, hay que cifrar.
 
 **Estilo**
+- Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
+  cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.

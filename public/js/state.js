@@ -90,7 +90,7 @@ export function normalize(o) {
   v.cfg.hide = v.cfg.hide || {};
   v.cfg.days = v.cfg.days || {};
   v.cfg.theme = v.cfg.theme === 'soft' ? 'soft' : 'modern';
-  // 'auto' sigue al sistema. Las versiones anteriores solo conocían 'light' y 'dark'.
+  // Ya no se usa: la apariencia es de cada dispositivo (ver ui.js). Se conserva por compatibilidad.
   v.cfg.appearance = ['light', 'dark'].includes(v.cfg.appearance) ? v.cfg.appearance : 'auto';
   for (const k of Object.keys(v.ev)) {
     v.ev[k] = v.ev[k].map(x => (typeof x === 'string'

@@ -1,7 +1,7 @@
 // Hojas inferiores: opciones de tarea, pendientes, hábito, evento, bienvenida.
 // Todas usan el mismo <dialog id="sheet">; los ajustes tienen su propio diálogo en index.html.
 import { S, save } from './state.js';
-import { U, toast, toastUndo } from './ui.js';
+import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, leaveUndated, moveTask, movePendingTo, moveWeekTaskToNext, noDate, overdue, removeTask,
   removeUndated, removeWeekTask, restore, scheduleUndated, setWeekGoal, snapshot, toggleFocus, toggleWeekFocus,
@@ -337,7 +337,7 @@ function swatch(mode) {
     <i class="sw-title"></i><span class="sw-card"><i class="sw-check"></i><i class="sw-line"></i></span><span class="sw-card"><i class="sw-check on"></i><i class="sw-line short"></i></span></span>`;
 }
 export function appearancePicker() {
-  const pref = S.cfg.appearance || 'auto';
+  const pref = storedAppearance();
   const card = (k, label) => `<button type="button" class="look${pref === k ? ' on' : ''}" data-a="appearance" data-k="${k}" aria-pressed="${pref === k}">${swatch(k)}<span>${label}</span></button>`;
   return `<div class="look-picker" data-looks><span class="field-label">${tr('¿Cómo prefieres verla?', 'How would you like it to look?')}</span>
     <div class="looks">${card('light', tr('Clara', 'Light'))}${card('dark', tr('Oscura', 'Dark'))}</div>
