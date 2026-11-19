@@ -133,10 +133,10 @@ export function weekMenu(list, i) {
     : `<button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveOn}
+    <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
     ${row.goal
       ? `<button data-a="weekgoal" data-list="${list}" data-i="${i}">${icon('calendar')}${tr('Repartir en días', 'Split into days')}</button>`
-      : `<button data-a="weekgoal" data-list="${list}" data-i="${i}" data-on="1">${icon('flag')}${tr('Objetivo (sin días)', 'Goal (no days)')}</button>`}
-    <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
+      : `<button data-a="weekgoal" data-list="${list}" data-i="${i}" data-on="1">${icon('flag')}${tr('Convertir en objetivo', 'Turn into a goal')}</button>`}
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
     <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
 }

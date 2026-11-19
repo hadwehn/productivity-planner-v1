@@ -386,8 +386,9 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .day-toggle.on { background: var(--acc); color: var(--acc-ink); }
 .day-toggle.past:not(.on) { opacity: .4; }
 .day-toggle.ok .icon { width: 14px; height: 14px; stroke-width: 2.4; }
-.goal-tag { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 8px; border-radius: 9px; font-size: calc(12px * var(--ts)); font-weight: 600; color: var(--ink-2); background: var(--sunken); }
-.goal-tag .icon { width: 14px; height: 14px; stroke-width: 2; }
+/* Marca de objetivo: solo texto, sin fondo ni borde, para que no parezca un botón. */
+.goal-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 22px; font-size: calc(12px * var(--ts)); font-weight: 500; color: var(--mute); }
+.goal-tag .icon { width: 13px; height: 13px; stroke-width: 1.8; }
 .day-count { align-self: center; margin-left: 4px; font-size: calc(12px * var(--ts)); color: var(--mute); font-variant-numeric: tabular-nums; }
 .review-q { font: 500 calc(16px * var(--ts))/1.4 var(--serif); margin: 0 0 8px; }
 .progress-line { display: flex; align-items: center; gap: 10px; }
@@ -480,7 +481,10 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .notes-editable:focus-visible { outline: none; }
 
 /* ===== Navegación ===== */
-nav.tabbar { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 10; display: flex; gap: 2px; padding: 6px; width: min(calc(100vw - 24px), 420px); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-up); }
+/* Se centra con márgenes y no con transform: en Safari del iPhone un elemento fijo con transform y
+   desenfoque de fondo, que además cambia de ancho al desplazarse, podía quedar a mitad de pantalla.
+   translateZ(0) le da su propia capa para que se mantenga pegado abajo. */
+nav.tabbar { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateZ(0); -webkit-transform: translateZ(0); z-index: 10; display: flex; gap: 2px; padding: 6px; width: min(calc(100vw - 24px), 420px); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-up); }
 nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 18px; font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); transition: color .2s, background .2s; }
 nav.tabbar button .icon { width: 23px; height: 23px; }
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
@@ -674,7 +678,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .plan-head-panel .plan-range.short b { min-width: 10em; }
   .range-nav button:hover { background: var(--line); }
 
-  nav.tabbar, .nav-compact nav.tabbar { left: 0; top: 0; bottom: 0; transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
+  nav.tabbar, .nav-compact nav.tabbar { left: 0; right: auto; margin: 0; top: 0; bottom: 0; transform: none; -webkit-transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
   nav.tabbar button, .nav-compact nav.tabbar button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; border-radius: 12px; font-size: calc(15px * var(--ts)); font-weight: 550; }
   nav.tabbar button span, .nav-compact nav.tabbar button span { max-height: none; opacity: 1; }
   nav.tabbar button .icon { width: 21px; height: 21px; }
