@@ -10,7 +10,8 @@
 //              c (agenda por horas), k (tareas), priorityCount, otherCount } }
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
-//       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), evento.to (último día). Las versiones anteriores ignoran estos campos.
+//       cfg.today (qué se muestra en Hoy), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), evento.to (último día),
+//       fila semanal.moved (parte salió de su semana sin hacerse), fila semanal.goal (objetivo sin días), h.past (frecuencias anteriores). Las versiones anteriores ignoran estos campos.
 //   nd  tareas sin fecha [{ t, from? }] (ver tasks.js)
 //   cfg preferencias
 import { plain, iso, parseDate } from './util.js';
@@ -117,6 +118,8 @@ export function checkedState(raw) {
       if (t.c !== undefined && typeof t.c !== 'boolean') fail('Estado de tarea incorrecto.');
       if (t.s !== undefined && (!Number.isInteger(t.s) || t.s < 0 || t.s > 5)) fail('Sesiones incorrectas.');
       if (t.drop !== undefined && typeof t.drop !== 'boolean') fail('Estado de tarea incorrecto.');
+      if (t.moved !== undefined && t.moved !== true) fail('Estado de tarea semanal incorrecto.');
+      if (t.goal !== undefined && t.goal !== true) fail('Objetivo semanal incorrecto.');
       if (t.carriedFrom !== undefined && (typeof t.carriedFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}:(?:0|[1-9]\d{0,2})$/.test(t.carriedFrom))) fail('Origen del traslado incorrecto.');
       if (t.source !== undefined) {
         if (typeof t.source !== 'string' || !/^w\.\d{4}-\d{2}-\d{2}\.[ab]\.[0-4]$/.test(t.source)) fail('Origen de tarea incorrecto.');
@@ -129,6 +132,19 @@ export function checkedState(raw) {
     if (h.createdOn !== undefined) date(h.createdOn);
     if (h.color !== undefined && (!Number.isInteger(h.color) || h.color < 0 || h.color > 5)) fail('Color de hábito incorrecto.');
     if (h.perWeek !== undefined && (!Number.isInteger(h.perWeek) || h.perWeek < 1 || h.perWeek > 7)) fail('Frecuencia de hábito incorrecta.');
+    if (h.past !== undefined) {
+      if (!Array.isArray(h.past) || h.past.length > 50) fail('Frecuencias anteriores incorrectas.');
+      let prev = '';
+      for (const x of h.past) {
+        if (!plain(x) || typeof x.to !== 'string') fail('Frecuencia anterior incorrecta.');
+        date(x.to);
+        if (x.to <= prev) fail('Frecuencias anteriores desordenadas.');
+        prev = x.to;
+        if (x.perWeek !== undefined && (!Number.isInteger(x.perWeek) || x.perWeek < 1 || x.perWeek > 7 || x.days !== undefined)) fail('Frecuencia anterior incorrecta.');
+        if (x.days !== undefined && (!Array.isArray(x.days) || x.days.some(d => !Number.isInteger(d) || d < 0 || d > 6))) fail('Frecuencia anterior incorrecta.');
+        if (Object.keys(x).some(k => !['to', 'days', 'perWeek'].includes(k))) fail('Frecuencia anterior incorrecta.');
+      }
+    }
   }
   for (const [k, v] of Object.entries(o.hl)) { date(k); for (const x of Object.values(v)) if (![0, 1, 2].includes(x)) fail('Registro de hábito incorrecto.'); }
   for (const [k, v] of Object.entries(o.ev)) {

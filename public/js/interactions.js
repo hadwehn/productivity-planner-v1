@@ -16,7 +16,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, render, renderNav } from './render.js';
-import { dayClosed, weekClosed, canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
+import { canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
@@ -110,7 +110,7 @@ const ACTIONS = {
     const { focus } = dayTasks(U.date);
     if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
   }),
-  taskfocus: d => { if (dayClosed(U.date)) return; doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
+  taskfocus: d => { doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
@@ -119,7 +119,7 @@ const ACTIONS = {
   undatedpick: d => undatedPick(+d.i),
   undatedmove: d => undatedMove(+d.i, d.fromInput ? $('#pickDate')?.value : d.date),
   undateddelete: d => undatedDelete(+d.i),
-  taskdelete: d => { if (!dayClosed(U.date)) doDeleteTask(U.date, +d.k); },
+  taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
@@ -180,12 +180,13 @@ const ACTIONS = {
   shiftplan: update(d => { U.week = shiftDate(U.week, 7 * d.n); }),
   thisweek: update(() => { U.week = iso(monday(new Date())); }),
   weekdone: update(d => { const row = S.w[U.week]?.[d.list]?.[d.i]; if (row) setWeekDone(U.week, d.list, +d.i, !row.c); }),
-  weekday: update(d => { if (weekClosed(U.week)) return; const r = toggleWeekDay(U.week, d.list, +d.i, d.k); if (r.error) toast(r.error); }),
+  weekday: update(d => { const r = toggleWeekDay(U.week, d.list, +d.i, d.k); if (r.error) toast(r.error); }),
   weekmenu: d => weekMenu(d.list, +d.i),
   weekmove: d => weekAction('move', d.list, +d.i),
   weeknext: d => weekAction('next', d.list, +d.i),
   weekthis: d => weekAction('this', d.list, +d.i),
   weekdelete: d => weekAction('delete', d.list, +d.i),
+  weekgoal: d => weekAction(d.on ? 'goal' : 'ungoal', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
   shiftmonth: update(d => shiftMonthBy(+d.n)),
@@ -258,12 +259,10 @@ function quickAdd(form) {
     const r = addUndated(value);
     if (r.error) { toast(r.error); return false; }
   } else if (form.dataset.form === 'addtask') {
-    if (dayClosed(U.date)) return false; // un día pasado no recibe tareas nuevas
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
   } else {
-    if (weekClosed(U.week)) return false; // una semana pasada no recibe tareas nuevas
     const r = addWeekTask(U.week, form.dataset.list, value);
     if (r.error) { toast(r.error); return false; }
   }
@@ -298,8 +297,8 @@ function onInput(e) {
     if (w && !canEditReview(w[1])) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
-  else if (el.dataset.taskText && !dayClosed(U.date)) renameTask(U.date, +el.dataset.taskText, el.value);
-  else if (el.dataset.weekText && !weekClosed(U.week)) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
+  else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
+  else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
 }
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {

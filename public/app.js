@@ -3,6 +3,7 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
+import { archiveOverdue } from './js/tasks.js';
 import { U, applyTextSize, applyTheme, openOnPlannedDay, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
@@ -140,6 +141,8 @@ async function loadUser(user) {
     store.revision = row?.revision || null;
     const before = JSON.stringify(S);
     migrate();
+    // Lo pendiente de hace más de tres semanas deja de avisarse y espera en «Sin fecha».
+    const archived = archiveOverdue(today());
     applyTheme();
     applyTextSize();
     setLang(S.cfg.lang || 'es'); // español es el idioma base
@@ -154,6 +157,9 @@ async function loadUser(user) {
     if (!row || JSON.stringify(S) !== before) { store.schedule(() => checkedState(S)); await store.flush(); }
     if (generation !== authGeneration) return;
     welcome();
+    if (archived) toast(archived === 1
+      ? tr('Una tarea de hace más de tres semanas pasó a «Sin fecha», en Plan.', 'A task from over three weeks ago moved to “Undated”, in Plan.')
+      : tr(`${archived} tareas de hace más de tres semanas pasaron a «Sin fecha», en Plan.`, `${archived} tasks from over three weeks ago moved to “Undated”, in Plan.`));
     void updateAccountRole(user.id, generation);
   } catch (error) {
     if (generation !== authGeneration) return;

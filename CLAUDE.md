@@ -96,17 +96,31 @@ dispositivo, en `localStorage`.
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Elegir otro día» incluye «Aún no sé · dejar sin fecha».
 - Opción «Frase en días futuros» (encendida por defecto).
+- **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
+  renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
+  tarea ofrece primero «Pasar a hoy»; en una semana pasada, «Pasar a esta semana».
+- Pendientes: Hoy avisa de los últimos 21 días. Lo pendiente más antiguo pasa solo a «Sin fecha»
+  al abrir la app (con un aviso); las tareas hechas y las soltadas se quedan en su día.
 
 **Tareas semanales y «Sin fecha»**
 - Una tarea semanal programada en varios días crea una copia independiente por día: marcar un día
   no marca los demás; la semanal queda hecha cuando todas lo están (o al marcarla en Plan, que
   marca todas). Un día nunca tiene dos copias de la misma tarea semanal: al pasarla a un día que ya
   la tiene, queda una sola. Plan muestra ✓ en los días hechos y el avance («2/5»).
+  Si una copia pendiente sale de su semana (otra semana o «Sin fecha»), la semanal guarda
+  `moved` y ya no se marca hecha sola; marcarla en Plan o volver a programarla en su semana lo quita.
+- Objetivo (sin días): opción del menú ⋯ de una tarea semanal («Convertir en objetivo» / «Repartir
+  en días», debajo de la opción de foco). Guarda `goal`, oculta las letras de los días y muestra
+  la marca «Objetivo» como etiqueta verde en mayúsculas con bandera (estilo «EN FOCO», sin fondo para que no parezca botón); se marca a
+  mano. Al convertirla se quitan sus copias pendientes de los días (las hechas quedan, sueltas) y
+  se puede deshacer. Sigue siendo objetivo al pasar a otra semana. Idea para después: mostrar los
+  objetivos en «Empieza tu día» o en la revisión semanal para que no se olviden.
 - «Sin fecha» (`nd`): lista en Plan › Semana que solo aparece si tiene algo.
 
 **Hábitos y Diario**
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
-  abajo. Diario: pestañas «Resumen | Escritos». Con código, el Diario muestra solo el teclado
+  abajo. Cambiar la frecuencia guarda la anterior en `h.past` para no reescribir la racha ni la
+  constancia pasadas; si cambia el tipo (días ↔ veces por semana), la racha cuenta desde el cambio. Diario: pestañas «Resumen | Escritos». Con código, el Diario muestra solo el teclado
   (sin cabecera). El código es un candado en pantalla, **no cifra** (los datos son legibles en
   Supabase); si se promete privacidad real, hay que cifrar.
 
