@@ -6,9 +6,9 @@
 :root {
   --ts: 1; /* escala del texto: 1 normal, 1.14 «Texto más grande» (Ajustes) */
   --bg: #F4F1EB; --surface: #FBFAF7; --sunken: #ECE8E0; --line: #E3DDD2; --line-strong: #D3CBBE;
-  --ink: #1E2321; --ink-2: #4A504C; --mute: #85857D;
+  --ink: #1E2321; --ink-2: #4A504C; --mute: #69695F; /* --mute: contraste ≥ 4,5:1 (AA) sobre fondo, superficie y hundido */
   --acc: #2F5D4E; --acc-ink: #FFFFFF; --acc-soft: #E2EBE5; --acc-line: #B9CCC1;
-  --gold: #A0702E; --gold-soft: #F2E7D4;
+  --gold: #8C6124; --gold-soft: #F2E7D4;
   --danger: #B4472C;
   --cat0: #4F6D8F; --cat1: #9C6B4E; --cat2: #4F8A66; --cat3: #8B6A9E; --cat4: #8A8A82; --cat5: #B5636E;
   --mood1: #9E6B5B; --mood2: #B79A6A; --mood3: #A8A79A; --mood4: #6F9A80; --mood5: #2F5D4E;
@@ -411,6 +411,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .mood-month i { width: 100%; max-width: 26px; aspect-ratio: 1; border-radius: 50%; background: var(--sunken); }
 .mood-month i.has { background: var(--c); }
 .mood-month i.blank { background: transparent; }
+.mood-month i.today { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--acc); }
+.mood-month i.future { background: transparent; border: 1.5px dashed var(--line-strong); }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: calc(12px * var(--ts)); color: var(--mute); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
@@ -490,6 +492,12 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
 .nav-compact nav.tabbar { width: min(calc(100vw - 96px), 300px); padding: 4px; border-radius: 20px; }
 .nav-compact nav.tabbar button { padding: 7px 0; gap: 0; border-radius: 16px; }
 .nav-compact nav.tabbar button span { max-height: 0; opacity: 0; }
+/* Áreas táctiles: los controles chicos se ven igual, pero se pueden tocar en un área de ~44 px
+   (mínimo recomendado por Apple y WCAG). El área extra es invisible y no mueve nada. */
+.check, .range-nav button, .add-btn, .day-toggle { position: relative; }
+.check::after, .range-nav button::after, .add-btn::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+.range-nav button::after { inset: -7px -2px; border-radius: 0; } /* sin pisar la flecha vecina */
+.day-toggle::after { content: ""; position: absolute; inset: -7px -2px; }
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */
@@ -497,6 +505,8 @@ dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-widt
 /* Las hojas solo se desplazan en vertical: nada puede quedar más ancho que la pantalla
    (en iPhone los campos de fecha y hora traen un ancho propio que se salía). */
 dialog.sheet .sheet-body { overflow-x: hidden; }
+/* Al abrirse, la hoja se enfoca a sí misma (ver openSheet) y no la «X»: sin anillo de foco suelto en el celular. */
+dialog.sheet:focus { outline: none; }
 .input[type="date"], .input[type="time"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; box-sizing: border-box; text-align: left; }
 .input[type="date"]::-webkit-date-and-time-value, .input[type="time"]::-webkit-date-and-time-value { text-align: left; }
 dialog.sheet[open] { animation: sheet-in .32s var(--ease); }

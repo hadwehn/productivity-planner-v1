@@ -86,10 +86,12 @@ function moodMonth(m) {
   let cells = DAY_SHORT.map(d => `<span class="muted small" style="text-align:center;font-weight:600">${d.slice(0, 1)}</span>`).join('');
   for (let i = 0; i < offset; i++) cells += '<i class="blank"></i>';
   let count = 0;
+  const T = today();
   for (let d = 1; d <= n; d++) {
-    const mood = S.d[`${m}-${p2(d)}`]?.mood;
+    // Hoy lleva un anillo y los días que faltan se ven más tenues: así el mes se lee de un vistazo.
+    const date = `${m}-${p2(d)}`, mood = S.d[date]?.mood, cls = [mood && 'has', date === T && 'today', date > T && 'future'].filter(Boolean).join(' ');
     if (mood) count++;
-    cells += `<i class="${mood ? 'has' : ''}" style="${mood ? `--c:${moodColor(mood)}` : ''}" title="${d}${mood ? ' · ' + moodName(mood) : ''}"></i>`;
+    cells += `<i class="${cls}" style="${mood ? `--c:${moodColor(mood)}` : ''}" title="${d}${mood ? ' · ' + moodName(mood) : ''}"></i>`;
   }
   return `<section class="section">${sectionHead(tr('Tu ánimo este mes', 'Your mood this month'), `<span class="muted small">${count} ${plural(count, 'día', 'días', 'day', 'days')}</span>`)}
     <div class="card"><div class="mood-month">${cells}</div><div class="legend">${MOOD_LEVELS.map(k => `<span style="--c:${moodColor(k)}"><i></i>${moodName(k)}</span>`).join('')}</div></div></section>`;

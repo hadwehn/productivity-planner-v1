@@ -46,7 +46,7 @@ export function drawSettings() {
   $('#privacy-prefs').innerHTML = `<label class="toggle-row"><span>${tr('Proteger el Diario con código', 'Lock the Journal with a code')}</span><span class="switch"><input type="checkbox" data-a="journallock"${locked ? ' checked' : ''}><i></i></span></label>`
     + (locked ? `<div class="toggle-row"><button type="button" class="link" data-a="pinchange">${tr('Cambiar código', 'Change code')}</button></div>` : '');
 }
-function openSettings() { drawSettings(); $('#settings').showModal(); }
+function openSettings() { drawSettings(); $('#settings').showModal(); $('#settings').focus(); }
 
 // ——— Código del Diario ———
 const lockSheet = html => openSheet(tr('Código del Diario', 'Journal code'), html);
