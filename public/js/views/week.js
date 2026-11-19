@@ -26,12 +26,14 @@ function overview(week, side = false) {
 function weekList(week, list, title, hint) {
   const T = today(), items = weekTasks(week, list), closed = weekClosed(week);
   // En una semana ya pasada las tareas solo se marcan o se mueven (desde ⋯); no se añaden ni se editan.
-  const rows = items.map(({ i, row, days }) => {
+  const rows = items.map(({ i, row, days, done }) => {
+    // Cada día programado es independiente: los ya hechos llevan ✓ y al lado se ve el avance («2/5»).
     const toggles = DAY_SHORT.map((label, w) => {
-      const d = shiftDate(week, w), on = days.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
-      return closed ? `<span class="day-toggle${on ? ' on' : ''} past" aria-hidden="true">${label.slice(0, 1)}</span>`
-        : `<button class="day-toggle${on ? ' on' : ''}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}" title="${what} ${DAYS[w]}">${label.slice(0, 1)}</button>`;
-    }).join('');
+      const d = shiftDate(week, w), on = days.includes(d), ok = done.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
+      const cls = `day-toggle${on ? ' on' : ''}${ok ? ' ok' : ''}`, face = ok ? icon('check') : label.slice(0, 1);
+      return closed ? `<span class="${cls} past" aria-hidden="true">${face}</span>`
+        : `<button class="${cls}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}" title="${what} ${DAYS[w]}">${face}</button>`;
+    }).join('') + (days.length > 1 ? `<span class="day-count">${done.filter(d => days.includes(d)).length}/${days.length}</span>` : '');
     const text = closed ? `<span>${esc(row.t)}</span>` : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}

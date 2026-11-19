@@ -77,7 +77,7 @@ export function doMoveTask(date, key, target) {
   if (result.error) { toast(result.error); return; }
   render();
   const pd = parseDate(target);
-  const message = dayName(target, 'Pasada a', 'Moved to');
+  const message = result.merged ? tr('Ese día ya la tenía: quedó una sola', 'That day already had it: kept just one') : dayName(target, 'Pasada a', 'Moved to');
   toastUndo(message, () => { restore(result.undo); render(); });
 }
 export function doDeleteTask(date, key) {
@@ -350,10 +350,16 @@ export function carryOverSheet(date, undo) {
 }
 export function doCarryOver(date) {
   const past = date < today();
-  const { count, undo } = movePendingTo(date, past ? today() : shiftDate(date, 1));
+  const { count, merged, undo } = movePendingTo(date, past ? today() : shiftDate(date, 1));
   closeSheet();
   render();
-  if (count) toastUndo(count === 1 ? tr(`1 tarea pasó a ${past ? 'hoy' : 'mañana'}`, `1 task moved to ${past ? 'today' : 'tomorrow'}`) : tr(`${count} tareas pasaron a ${past ? 'hoy' : 'mañana'}`, `${count} tasks moved to ${past ? 'today' : 'tomorrow'}`), () => { restore(undo); render(); });
+  if (!count) return;
+  const day = past ? tr('hoy', 'today') : tr('mañana', 'tomorrow'), moved = count - merged;
+  const movedText = moved === 1 ? tr(`1 tarea pasó a ${day}`, `1 task moved to ${day}`) : tr(`${moved} tareas pasaron a ${day}`, `${moved} tasks moved to ${day}`);
+  // Las tareas semanales que ese día ya tenía no se duplican: se avisa que ya estaban.
+  const mergedText = merged === 1 ? tr(`1 ya estaba ${day}`, `1 was already there`) : tr(`${merged} ya estaban ${day}`, `${merged} were already there`);
+  const message = !merged ? movedText : !moved ? (merged === 1 ? tr(`Ya la tenías ${day}: no se duplicó`, `Already there ${day}: not duplicated`) : tr(`Ya las tenías ${day}: no se duplicaron`, `Already there ${day}: not duplicated`)) : `${movedText} · ${mergedText}`;
+  toastUndo(message, () => { restore(undo); render(); });
 }
 export function undoDayClose() {
   closeSheet();

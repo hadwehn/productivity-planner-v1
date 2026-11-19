@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated,
+  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -164,6 +164,45 @@ test('semana: máximo cinco por lista, programar en días y marcar hecho sincron
   eq(S.d[NEXT].k[0].c, true);
   toggleWeekDay(WEEK, 'a', 1, NEXT);
   eq(scheduledDays(`w.${WEEK}.a.1`), []);
+  eq(v1Accepts(S), true);
+});
+test('semana: una tarea programada de lunes a viernes se marca por día y no se duplica al moverla', () => {
+  load(fixture());
+  const MON = WEEK, days = [0, 1, 2, 3, 4].map(n => shiftDate(MON, n)), [, TUE, WED, , FRI] = days, SAT = shiftDate(MON, 5);
+  addWeekTask(WEEK, 'b', 'Gimnasio');
+  const i = weekTasks(WEEK, 'b').find(x => x.row.t === 'Gimnasio').i, path = `w.${WEEK}.b.${i}`;
+  for (const d of days) toggleWeekDay(WEEK, 'b', i, d);
+  const key = d => +Object.entries(S.d[d].k).find(([, r]) => r?.source === path)[0];
+  const copies = d => Object.values(S.d[d]?.k || {}).filter(r => r?.source === path || r?.t === 'Gimnasio');
+  eq(scheduledDays(path), days, 'cinco días');
+  setDone(MON, key(MON), true);
+  eq(days.map(d => S.d[d].k[key(d)].c), [true, false, false, false, false], 'marcar el lunes no marca los demás');
+  eq(weekTasks(WEEK, 'b').find(x => x.i === i).row.c, false, 'la semanal sigue pendiente');
+  eq(weekTasks(WEEK, 'b').find(x => x.i === i).done, [MON], 'el lunes queda hecho');
+  // El martes no se hizo y al cerrar el día se pasa lo pendiente a mañana: el miércoles ya la tiene.
+  const r = movePendingTo(TUE, WED);
+  eq([copies(TUE).length, copies(WED).length], [0, 1], 'no se duplica en el miércoles');
+  restore(r.undo);
+  // Pasarla a mano al día siguiente, igual.
+  eq(moveTask(TUE, key(TUE), WED).merged, true, 'aviso de que ya estaba');
+  eq(copies(WED).length, 1);
+  // Al sábado (no programado) sí se mueve, con su vínculo; a otra semana pierde el vínculo.
+  moveTask(FRI, key(FRI), SAT);
+  eq(scheduledDays(path).includes(SAT) && !scheduledDays(path).includes(FRI), true, 'pasa al sábado');
+  const NEXT_MON = shiftDate(MON, 7);
+  moveTask(SAT, key(SAT), NEXT_MON);
+  eq([copies(NEXT_MON).length, Object.values(S.d[NEXT_MON].k)[0].source], [1, undefined], 'en otra semana queda suelta');
+  // Traer desde «Pendientes» a un día que ya la tiene: queda una sola.
+  const pending = overdue(WED).filter(x => x.row.source === path);
+  bringOverdue(WED, pending);
+  eq(copies(WED).length, 1, 'traer no duplica');
+  // Todas hechas → la semanal queda hecha; marcarla en Plan marca todas.
+  for (const d of scheduledDays(path)) setDone(d, key(d), true);
+  eq(weekTasks(WEEK, 'b').find(x => x.i === i).row.c, true, 'todas hechas: semanal hecha');
+  setWeekDone(WEEK, 'b', i, false);
+  eq(scheduledDays(path).map(d => S.d[d].k[key(d)].c).some(Boolean), false, 'desmarcar en Plan desmarca todas');
+  toggleWeekDay(WEEK, 'b', i, FRI);
+  eq(S.d[FRI].k[key(FRI)].c, false, 'un día nuevo llega pendiente');
   eq(v1Accepts(S), true);
 });
 test('semana: eliminar o mover entre listas actualiza los vínculos de los días', () => {

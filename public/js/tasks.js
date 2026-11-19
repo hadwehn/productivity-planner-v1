@@ -3,7 +3,10 @@
 // Formato guardado (compatible con la versión anterior):
 //   d[fecha].k: claves 0, 501, 502 = tareas en foco (máx. 3); 1…500 = el resto, en orden.
 //   w[lunes].a / .b: índices 0…4 = foco de la semana / otras tareas de la semana.
-//   Una tarea del día traída de la semana guarda source = 'w.LUNES.a|b.i'.
+//   Una tarea del día traída de la semana guarda source = 'w.LUNES.a|b.i'. Cada día es una copia
+//   independiente: marcarla hecha no marca las de otros días. La tarea semanal queda hecha cuando
+//   todas sus copias lo están (o al marcarla en Plan, que marca todas). Un día no tiene dos copias
+//   de la misma tarea semanal: al moverla a un día que ya la tiene, quedan en una.
 //   nd: tareas «Sin fecha» [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
@@ -72,7 +75,7 @@ export function renameTask(date, key, value) {
   const row = getTask(date, key);
   if (!row) return;
   const t = String(value ?? '');
-  if (row.source && t.trim() !== text(row)) delete row.source;
+  if (row.source && t.trim() !== text(row)) { const old = row.source; delete row.source; refreshWeekly(old); }
   row.t = t;
   save();
 }
@@ -100,7 +103,7 @@ export function setDone(date, key, value) {
   if (!row) return;
   row.c = !!value;
   if (row.c) delete row.drop;
-  syncLinked(row.source, row.c);
+  refreshWeekly(row.source);
   save();
 }
 
@@ -109,6 +112,7 @@ export function removeTask(date, key) {
   if (!row) return;
   const { focus, rest } = rowsOf(date);
   writeDay(date, focus.filter(r => r !== row), rest.filter(r => r !== row));
+  refreshWeekly(row.source);
   save();
 }
 
@@ -142,26 +146,35 @@ export function moveTask(date, key, target) {
   if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
   if (target === date) return { error: tr('La tarea ya está en ese día.', 'The task is already on that day.') };
   const undo = snapshot([date, target]);
+  // Si ese día ya tiene esta misma tarea semanal, no se agrega otra: queda la de ese día.
+  if (row.source && Object.values(S.d[target]?.k || {}).some(r => r?.source === row.source)) {
+    removeTask(date, key);
+    return { undo, merged: true };
+  }
   const copy = { ...row, c: false };
   delete copy.drop;
   delete copy.carriedFrom;
+  if (copy.source && !inWeekOf(copy.source, target)) delete copy.source; // fuera de su semana deja de ser una copia
   const dest = rowsOf(target);
   if (isFocusKey(key) && dest.focus.length < MAX_FOCUS) dest.focus.push(copy); else dest.rest.push(copy);
   writeDay(target, dest.focus, dest.rest);
   removeTask(date, key);
+  refreshWeekly(copy.source);
   return { undo };
 }
 
 /** Pasa todas las tareas sin terminar de `date` a `target` (las de foco, al foco si cabe). */
 export function movePendingTo(date, target) {
   const undo = snapshot([date, target]);
-  let count = 0;
+  let count = 0, merged = 0;
   // Al mover una, el día se reescribe sin huecos: se busca la siguiente pendiente cada vez.
   for (let next = pendingOf(date); next; next = pendingOf(date)) {
-    if (moveTask(date, next.key, target).error) break;
+    const r = moveTask(date, next.key, target);
+    if (r.error) break;
     count++;
+    if (r.merged) merged++; // ese día ya la tenía (tarea semanal programada): no se duplicó
   }
-  return { count, undo };
+  return { count, merged, undo };
 }
 const pendingOf = date => { const { focus, rest } = dayTasks(date); return [...focus, ...rest].find(t => !t.row.c); };
 
@@ -203,7 +216,7 @@ const weekList = (week, list) => S.w[week]?.[list] || {};
 /** Tareas de la semana con sus días programados. */
 export function weekTasks(week, list) {
   const rows = weekList(week, list);
-  return [...Array(WEEK_SLOTS).keys()].filter(i => text(rows[i])).map(i => ({ i, row: rows[i], path: weekPath(week, list, i), days: scheduledDays(weekPath(week, list, i)) }));
+  return [...Array(WEEK_SLOTS).keys()].filter(i => text(rows[i])).map(i => { const path = weekPath(week, list, i); return { i, row: rows[i], path, days: scheduledDays(path), done: doneDays(path) }; });
 }
 
 /** Días (fechas) en los que hay una copia vinculada de la tarea semanal. */
@@ -296,19 +309,34 @@ export function toggleWeekDay(week, list, i, date) {
   const existing = Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path);
   if (existing) { removeTask(date, +existing[0]); return { removed: true }; }
   addTask(date, row.t, { focus: list === 'a', source: path });
-  const key = keyOf(date, Object.values(S.d[date].k).find(r => r?.source === path));
-  if (row.c) getTask(date, key).c = true;
+  refreshWeekly(path); // la copia nueva llega pendiente: la semanal deja de estar hecha si lo estaba
   save();
   return { added: true };
 }
 
-/** Marca hecha la tarea semanal y todas sus copias vinculadas. */
+/** Marca hecha (o no) la tarea semanal y todas sus copias de los días: se usa al marcarla en Plan. */
 function syncLinked(source, value) {
   if (!source || !/^w\./.test(source)) return;
   const [, week, list, i] = source.split('.');
   const weekly = S.w[week]?.[list]?.[i];
   if (weekly) weekly.c = value;
   for (const day of Object.values(S.d)) for (const row of Object.values(day.k || {})) if (row?.source === source) row.c = value;
+}
+/** Copias de los días de una tarea semanal. */
+const copiesOf = source => Object.values(S.d).flatMap(day => Object.values(day.k || {})).filter(r => r?.source === source && text(r));
+/** La tarea semanal está hecha cuando todas sus copias de los días lo están (si no tiene copias, no cambia). */
+function refreshWeekly(source) {
+  if (!source || !/^w\./.test(source)) return;
+  const [, week, list, i] = source.split('.'), weekly = S.w[week]?.[list]?.[i], copies = copiesOf(source);
+  if (weekly && copies.length) weekly.c = copies.every(r => r.c);
+}
+/** ¿`date` cae en la semana de la tarea semanal `source`? */
+const inWeekOf = (source, date) => { const week = source.split('.')[1]; return date >= week && date <= shiftDate(week, 6); };
+/** Días de esta tarea semanal ya hechos. */
+export function doneDays(path) {
+  const out = [];
+  for (const [date, day] of Object.entries(S.d)) for (const row of Object.values(day.k || {})) if (row?.source === path && text(row) && row.c) out.push(date);
+  return out.sort();
 }
 
 /**
