@@ -95,7 +95,7 @@ dispositivo, en `localStorage`.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Elegir otro día» incluye «Aún no sé · dejar sin fecha».
-- Opción «Ver la frase de los días futuros» (encendida por defecto).
+- Opción «Frase en días futuros» (encendida por defecto).
 
 **Tareas semanales y «Sin fecha»**
 - Una tarea semanal programada en varios días crea una copia independiente por día: marcar un día

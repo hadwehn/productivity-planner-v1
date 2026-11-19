@@ -24,7 +24,7 @@ let canEdit = () => false;
 let settleTimer = 0;
 
 // ——— Ajustes ———
-const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Ver la frase de los días futuros', 'Show quotes for future days')], ['tomorrow', tr('Ofrecer organizar mañana', 'Offer to plan tomorrow')]];
+const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Frase en días futuros', 'Quote on future days')], ['tomorrow', tr('Ofrecer organizar mañana', 'Offer to plan tomorrow')]];
 export function drawSettings() {
   // Con «Ofrecer organizar mañana» encendido, debajo se elige desde qué hora aparece la tarjeta.
   const hours = Array.from({ length: 12 }, (_, i) => i + 12);
