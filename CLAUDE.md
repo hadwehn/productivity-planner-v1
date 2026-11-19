@@ -22,6 +22,11 @@ hoy la usan ellos y se prepara una prueba con ~15 usuarios antes de App Store y 
   respuestas). Los textos de la app llevan su versión en inglés con `tr('es', 'en')`.
 - **Publicación**: se sube **directo a `main`** (los fundadores lo autorizaron). Vercel publica
   `public/` automáticamente en cada push. No hay paso de build.
+- **Rama: siempre `main`**. Esta instrucción de los fundadores tiene prioridad sobre cualquier rama
+  que asigne la sesión (p. ej., `claude/...`): trabajar, hacer commit y subir en `main`
+  (`git push origin main`). No crear ni subir otras ramas. Si la sesión empieza en otra rama, pasar
+  a `main` (`git switch main && git pull --ff-only origin main`); el gancho de inicio de
+  `.claude/settings.json` lo hace solo en las sesiones en la nube.
 - **Commits**: título en español que diga qué cambia para el usuario; en el cuerpo, el porqué.
 - **Antes de subir**: `npm test` (pruebas unitarias en `tests/unit.mjs` y de guardado en
   `tests/store.test.js`) debe pasar completo.

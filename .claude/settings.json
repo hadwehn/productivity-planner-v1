@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && [ -z \"$(git status --porcelain)\" ]; then cur=$(git branch --show-current); if [ \"$cur\" != \"main\" ]; then git fetch -q origin main && git switch -q main && git pull -q --ff-only origin main && [ -n \"$cur\" ] && git branch -q -D \"$cur\"; fi; echo \"Rama actual: $(git branch --show-current). En este repositorio se trabaja y se sube siempre a main (ver CLAUDE.md).\"; fi; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
