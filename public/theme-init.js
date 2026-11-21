@@ -13,4 +13,19 @@
   var icon = dark ? 'icons/estoico-productivity-icon-dark.png?v=1' : 'icons/estoico-productivity-icon.png?v=3';
   var links = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
   for (var i = 0; i < links.length; i++) links[i].setAttribute('href', icon);
+
+  // Celular en horizontal: el iPhone ignora "orientation" del manifiesto y no deja bloquear el giro
+  // desde la web, así que se cubre la app con un aviso para volver a vertical (#rotate-hint).
+  // Se mira la orientación de la pantalla y no el alto de la ventana: así el teclado abierto
+  // (que achica la ventana en Android) no lo activa. Solo en celulares: el iPad gira libre.
+  function checkRotation() {
+    var s = window.screen || {}, type = s.orientation && s.orientation.type;
+    var landscape = type ? type.indexOf('landscape') === 0 : Math.abs(window.orientation || 0) === 90;
+    var phone = Math.min(s.width || 0, s.height || 0) < 500 && !!window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    document.documentElement.classList.toggle('landscape-phone', landscape && phone);
+  }
+  checkRotation();
+  if (window.screen && screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', checkRotation);
+  window.addEventListener('orientationchange', checkRotation);
+  window.addEventListener('resize', checkRotation);
 })();
