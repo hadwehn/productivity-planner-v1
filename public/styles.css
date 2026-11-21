@@ -505,15 +505,6 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
 .check::after, .range-nav button::after, .add-btn::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
 .range-nav button::after { inset: -7px -2px; border-radius: 0; } /* sin pisar la flecha vecina */
 .day-toggle::after { content: ""; position: absolute; inset: -7px -2px; }
-/* Celular en horizontal (ver theme-init.js): la app queda tapada por un aviso para volver a vertical. */
-#rotate-hint { display: none; }
-:root.landscape-phone, :root.landscape-phone body { overflow: hidden; }
-:root.landscape-phone #rotate-hint { display: flex; position: fixed; inset: 0; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 24px calc(24px + env(safe-area-inset-right)) 24px calc(24px + env(safe-area-inset-left)); background: var(--bg); color: var(--ink); text-align: center; }
-:root.landscape-phone dialog { visibility: hidden; } /* las hojas abiertas van por encima de todo */
-#rotate-hint svg { width: 44px; height: 44px; margin-bottom: 10px; color: var(--acc); animation: rotate-back 1.6s var(--ease) infinite alternate; }
-@keyframes rotate-back { from { transform: rotate(90deg); } 60%, to { transform: rotate(0); } }
-#rotate-hint .rotate-title { margin: 0; font: 500 calc(22px * var(--ts))/1.25 var(--serif); }
-#rotate-hint .rotate-text { margin: 0; font-size: calc(14px * var(--ts)); color: var(--mute); }
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */

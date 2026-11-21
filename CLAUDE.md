@@ -82,9 +82,6 @@ dispositivo, en `localStorage`.
   escribe con el mes completo («30 de noviembre al 6 de diciembre»). «‹ Hoy» vuelve al presente.
 - Atajos de computador: 1–4, Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
-- Solo vertical en el celular: el iPhone no deja bloquear el giro desde la web (ignora
-  `orientation` del manifiesto), así que en horizontal se tapa la app con «Pon el celular en
-  vertical» (`#rotate-hint`, lógica en `theme-init.js`). El iPad y el computador giran libres.
 
 **Hoy**
 - Orden en celular: frase del día (siempre visible) → avisos (ayer sin cerrar, pendientes) →
