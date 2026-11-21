@@ -80,7 +80,7 @@ dispositivo, en `localStorage`.
 - Plan y Diario: flechas con recuadro fijas a la derecha de la fila de fechas; también se deslizan.
   Títulos relativos («Esta semana», «Semana pasada», «Hace 2 semanas», «Mes pasado»…). La semana se
   escribe con el mes completo («30 de noviembre al 6 de diciembre»). «‹ Hoy» vuelve al presente.
-- Atajos de computador: 1–4, Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?.
+- Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
 **Hoy**
@@ -130,6 +130,7 @@ dispositivo, en `localStorage`.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
+- Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 
 ## Pendientes y criterios para lo que viene
 

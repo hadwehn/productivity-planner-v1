@@ -383,7 +383,6 @@ export function undoDayClose() {
 // ——— Atajos de teclado (computador) ———
 export function shortcutsSheet() {
   const rows = [
-    ['1 – 4', tr('Ir a Hoy, Plan, Hábitos o Diario', 'Go to Today, Plan, Habits or Journal')],
     [tr('Mayús + ↑ ↓', 'Shift + ↑ ↓'), tr('Sección anterior o siguiente', 'Previous or next section')],
     ['N', tr('Nueva tarea (en Hoy y en Plan), hábito o evento', 'New task (in Today and Plan), habit or event')],
     ['← →', tr('Día anterior o siguiente (semana o mes en Plan, mes en Diario)', 'Previous or next day (week or month in Plan, month in Journal)')],

@@ -322,7 +322,6 @@ const SHORTCUT_TABS = ['today', 'week', 'habits', 'journal'];
 function shortcut(e) {
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (k === '?') { shortcutsSheet(); return true; }
-  if (/^[1-4]$/.test(k)) { ACTIONS.go({ k: SHORTCUT_TABS[k - 1] }); return true; }
   // Mayús + ↑/↓: sección anterior o siguiente, en el orden de la barra lateral; se detiene en los extremos.
   if (e.shiftKey && (k === 'ArrowUp' || k === 'ArrowDown')) {
     const i = SHORTCUT_TABS.indexOf(U.tab) + (k === 'ArrowDown' ? 1 : -1);
