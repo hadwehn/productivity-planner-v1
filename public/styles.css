@@ -581,16 +581,15 @@ dialog.sheet .sheet-head { touch-action: none; }
 /* ===== Avisos ===== */
 #status { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 10px); z-index: 30; display: flex; align-items: center; gap: 14px; max-width: calc(100vw - 32px); padding: 12px 16px; border-radius: 14px; background: var(--ink); color: var(--bg); font-size: calc(14px * var(--ts)); box-shadow: var(--shadow-up); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); }
 #status.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-/* «Volver al presente»: flotante, centrado sobre la barra de pestañas, igual en Hoy, Plan y Diario.
-   Con él a la vista, los avisos suben por encima y el contenido deja espacio al final. */
-#back-now { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px); bottom: calc(98px + env(safe-area-inset-bottom)); z-index: 9; display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 18px 0 14px; border-radius: 999px; background: color-mix(in srgb, var(--surface) 92%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); box-shadow: var(--shadow-up); color: var(--acc); font-size: calc(14px * var(--ts)); font-weight: 600; transform: translateZ(0); animation: back-now-in .25s var(--ease); }
+/* «Volver al presente»: flota arriba a la derecha, justo bajo la línea de la cabecera fija
+   (--head-bottom lo calcula render.js), igual en Hoy, Plan y Diario. Relleno con el color de acción
+   para que se note: verde en claro, amarillo en oscuro. */
+#back-now { position: fixed; right: 16px; top: calc(var(--head-bottom, 172px) + 10px); z-index: 7; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; max-width: calc(100vw - 32px); padding: 0 16px 0 12px; border-radius: 999px; background: var(--acc); color: var(--acc-ink); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--acc) 70%, transparent), 0 2px 6px -2px #0000002e; font-size: calc(14px * var(--ts)); font-weight: 600; transform: translateZ(0); animation: back-now-in .25s var(--ease); }
 #back-now[hidden] { display: none; }
-#back-now .icon { width: 17px; height: 17px; }
+#back-now .icon { width: 17px; height: 17px; stroke-width: 2; }
 #back-now:active { transform: translateZ(0) scale(.97); }
-@keyframes back-now-in { from { opacity: 0; translate: 0 8px; } }
+@keyframes back-now-in { from { opacity: 0; translate: 0 -6px; } }
 html:has(dialog[open]) #back-now { display: none; }
-.has-back-now #status { bottom: calc(152px + env(safe-area-inset-bottom)); }
-.has-back-now main { padding-bottom: calc(172px + env(safe-area-inset-bottom)); }
 @media (prefers-reduced-motion: reduce) { #back-now { animation: none; } }
 .toast-undo { color: var(--bg); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; min-height: 28px; }
 .cloud-alert { max-width: 560px; margin: 70px auto 10px; width: calc(100% - 32px); padding: 22px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line)); }
@@ -711,11 +710,9 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   nav.tabbar .nav-help .icon { width: 18px; height: 18px; }
   .nav-help kbd { margin-left: auto; }
   #status { left: calc(50% + 116px); bottom: 32px; }
-  /* En computador sobra espacio arriba: el botón va en la cabecera, a la izquierda de Ajustes
-     (fijo, porque la cabecera también lo es), y no tapa las columnas. */
-  #back-now { left: auto; margin: 0; bottom: auto; top: 36px; right: calc((100vw - 232px - min(100vw - 232px, 760px)) / 2 + 36px + 54px); z-index: 21; box-shadow: none; background: var(--sunken); border-color: transparent; }
-  .has-back-now #status { bottom: 32px; }
-  .has-back-now main { padding-bottom: 64px; }
+  /* En computador va en la cabecera, a la izquierda de Ajustes (fijo, porque la cabecera también
+     lo es), con el mismo color. */
+  #back-now { top: 36px; min-height: 42px; right: calc((100vw - 232px - min(100vw - 232px, 760px)) / 2 + 36px + 54px); z-index: 21; box-shadow: none; }
 
   .narrow > .btn { width: auto; padding-inline: 24px; }
   .narrow > p.muted { text-align: left !important; margin-left: 4px !important; }

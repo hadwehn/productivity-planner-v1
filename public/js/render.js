@@ -94,9 +94,9 @@ export function render(toTop = false) {
 }
 
 /**
- * «Volver al presente»: un solo botón flotante sobre la barra de pestañas, igual en Hoy, Plan y
- * Diario, que aparece solo cuando se mira otro día, semana o mes. Abajo cabe el texto completo
- * («Volver a esta semana») sin apretar las cabeceras. La flecha apunta hacia donde está el presente.
+ * «Volver al presente»: un solo botón flotante, arriba a la derecha bajo la cabecera fija, igual en
+ * Hoy, Plan y Diario, que aparece solo cuando se mira otro día, semana o mes. Ahí cabe el texto
+ * completo («Volver a esta semana») sin apretar las cabeceras. La flecha apunta hacia el presente.
  */
 function backNow() {
   const T = today(), month = T.slice(0, 7), week = iso(monday(new Date()));
@@ -110,8 +110,10 @@ function drawBackNow() {
   const btn = $('#back-now'), b = backNow();
   if (!btn) return;
   btn.hidden = !b;
-  document.documentElement.classList.toggle('has-back-now', !!b);
   if (!b) return;
+  // Justo bajo la línea de la cabecera fija (su alto cambia con «Texto más grande»).
+  const head = $('#v .sticky-head');
+  if (head) document.documentElement.style.setProperty('--head-bottom', `${Math.round(head.offsetTop + head.offsetHeight)}px`);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
   btn.innerHTML = `${icon(b.later ? 'left' : 'right')}<span>${b.label}</span>`;
