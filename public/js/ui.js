@@ -3,13 +3,6 @@ import { S, get } from './state.js';
 import { tr } from './i18n.js';
 import { $, esc, today, iso, monday, shiftDate } from './util.js';
 
-const CAL_WIDE_KEY = 'planner-cal-wide';
-function storedCalWide() { try { return localStorage.getItem(CAL_WIDE_KEY) === '1'; } catch { return false; } }
-export function setCalWide(on) {
-  U.calWide = on;
-  try { localStorage.setItem(CAL_WIDE_KEY, on ? '1' : '0'); } catch { /* almacenamiento bloqueado */ }
-}
-
 export const U = {
   tab: 'today',          // today · week · habits · journal
   date: today(),         // día abierto en «Hoy»
@@ -19,7 +12,6 @@ export const U = {
   notes: false,
   week: iso(monday(new Date())),
   weekMode: 'week',      // week · month
-  calWide: storedCalWide(), // Mes › «Ampliar»: días con los nombres de sus eventos (se recuerda en este dispositivo)
   review: false,
   weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),

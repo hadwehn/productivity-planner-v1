@@ -7,7 +7,7 @@ import { weekHabitRate } from '../habits.js';
 import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
-import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday, weekdayOf } from '../util.js';
+import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
 import { intentState, reviewState } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
@@ -131,44 +131,18 @@ function weekView() {
 }
 
 /** Cuadrícula de un mes. `side`: mes vecino (solo se ve al deslizar), sin foco de teclado. */
-/**
- * Un día del calendario con eventos se nota: fondo teñido con el color del primer evento, una
- * barrita por evento de un día (hasta 3) y una franja continua para los de varios días (como en el
- * calendario del iPhone). En la vista ampliada (y siempre en computador) cada día muestra además
- * los nombres de sus eventos.
- */
-function calDay(k, d, T, selected, side) {
-  const events = eventsOn(k), wd = weekdayOf(k);
-  const multi = events.filter(({ e, start }) => e.to && e.to > start);
-  const single = events.filter(x => !multi.includes(x));
-  // Bordes de la franja: redondeada donde empieza o termina el evento, o donde cambia la fila.
-  const edges = ({ e, start }) => `${k === start || wd === 0 ? ' s' : ''}${k === e.to || wd === 6 ? ' e' : ''}`;
-  const color = ({ e }) => categoryColor(e.c ?? -1);
-  const marks = single.slice(0, 3).map(x => `<u style="--c:${color(x)}"></u>`).join('');
-  const band = multi.length ? `<span class="band${edges(multi[0])}" style="--c:${color(multi[0])}"></span>` : '';
-  const shown = events.slice(0, 2).map(x => {
-    const isMulti = multi.includes(x);
-    // En los de varios días el nombre va donde empieza y al inicio de cada fila; en el resto, solo el color.
-    const label = !isMulti || k === x.start || wd === 0 ? esc(x.e.t) : '';
-    if (!isMulti || !label) return `<em class="${isMulti ? `span${edges(x)}` : ''}" style="--c:${color(x)}">${label || '&nbsp;'}</em>`;
-    // El nombre puede ocupar los días de su franja en esta fila (hasta el fin del evento o el domingo).
-    const days = Math.min(6 - wd, Math.round((parseDate(x.e.to) - parseDate(k)) / 864e5)) + 1;
-    return `<em class="span${edges(x)}" style="--c:${color(x)};--n:${days}"><span>${label}</span></em>`;
-  }).join('');
-  const titles = events.length ? `<span class="titles">${shown}${events.length > 2 ? `<em class="more">+${events.length - 2}</em>` : ''}</span>` : '';
-  const label = events.length ? ` aria-label="${d}, ${events.length === 1 ? tr('1 evento', '1 event') : tr(`${events.length} eventos`, `${events.length} events`)}"` : '';
-  return `<button class="cal-day${events.length ? ' has-ev' : ''}${k === selected ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}"${events.length ? ` style="--tint:${color(events[0])}"` : ''}${label}${side ? ' tabindex="-1"' : ''}><span class="num">${d}</span><span class="marks">${marks}</span>${band}${titles}</button>`;
-}
-/** En computador las celdas son grandes: siempre con los nombres. En el celular, si se pidió «Ampliar». */
-const calWide = () => U.calWide || (typeof innerWidth === 'number' && innerWidth >= 1000);
 function calGrid(m, T, side) {
   const [y, mo] = m.split('-').map(Number), offset = weekday(new Date(y, mo - 1, 1)), n = daysInMonth(m);
   // En los meses vecinos se marca el día que se abrirá al pasar a ellos (hoy en el mes actual; si no, el 1).
   const selected = side ? (m === T.slice(0, 7) ? T : `${m}-01`) : U.calDay;
   let grid = DAY_SHORT.map(d => `<span class="wd">${d.slice(0, 1)}</span>`).join('');
   for (let i = 0; i < offset; i++) grid += '<span></span>';
-  for (let d = 1; d <= n; d++) grid += calDay(`${m}-${p2(d)}`, d, T, selected, side);
-  return `<div class="cal${calWide() ? ' wide' : ''}"${side ? ' aria-hidden="true"' : ''}>${grid}</div>`;
+  for (let d = 1; d <= n; d++) {
+    const k = `${m}-${p2(d)}`, events = eventsOn(k);
+    const marks = events.slice(0, 3).map(({ e }) => `<u style="--c:${categoryColor(e.c ?? -1)}"></u>`).join('');
+    grid += `<button class="cal-day${events.length ? ' has-ev' : ''}${k === selected ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}"${side ? ' tabindex="-1"' : ''}>${d}<span class="marks">${marks}</span></button>`;
+  }
+  return `<div class="cal"${side ? ' aria-hidden="true"' : ''}>${grid}</div>`;
 }
 
 function monthView() {
@@ -178,7 +152,6 @@ function monthView() {
   const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
   const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
   return `<div class="cols"><div class="col">
-    <div class="cal-tools"><button class="pill" data-a="calwide" aria-pressed="${!!U.calWide}">${icon(U.calWide ? 'compress' : 'expand')}${U.calWide ? tr('Compacto', 'Compact') : tr('Ampliar', 'Expand')}</button></div>
     <div class="card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>
     <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
