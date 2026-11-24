@@ -131,7 +131,8 @@ dispositivo, en `localStorage`.
   a los lados; en computador, centrada), con la barra de formato arriba, el espacio para escribir y
   «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). Con el teclado del celular abierto, la
   ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
-  se mantiene a la vista. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
+  se mantiene a la vista. La ventana sigue a la pantalla visible (`--vv-top`): aunque el iPhone
+  desplace la vista al escribir, el título y la barra de formato quedan siempre arriba. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
   Basurero junto a la ✕ (solo con algo escrito) para empezarla de cero: borra al instante con
   «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).

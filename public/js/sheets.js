@@ -43,6 +43,10 @@ function trackKeyboard() {
   // La ventana no llega al borde de abajo: solo cuenta la parte que el teclado le tapa.
   const covered = vv && keyboard ? Math.max(0, Math.round(dlg.getBoundingClientRect().bottom - (vv.offsetTop + vv.height))) : 0;
   dlg.style.setProperty('--kb', `${covered}px`);
+  // Al escribir, el iPhone desplaza la pantalla para acercar el cursor al teclado y la parte de
+  // arriba de la ventana (título y barra de formato) quedaba fuera de la vista. La ventana sigue
+  // a la pantalla visible: se corre lo mismo que se desplazó y su parte superior queda arriba.
+  dlg.style.setProperty('--vv-top', `${vv ? Math.max(0, Math.round(vv.offsetTop)) : 0}px`);
   dlg.classList.toggle('keyboard', keyboard > 80);
   keepCaretVisible();
 }
@@ -61,7 +65,7 @@ export function clearNotesNow() {
   const undo = clearNotes();
   if (!undo) return;
   sheet().dispatchEvent(new Event('notes:changed'));
-  $('#notesEditor', sheet())?.focus();
+  $('#notesEditor', sheet())?.focus({ preventScroll: true });
   toastUndo(tr('Nota borrada', 'Note deleted'), () => {
     if (undo()) sheet().dispatchEvent(new Event('notes:changed'));
     else render(); // la ventana ya se cerró: la tarjeta de Hoy vuelve a mostrarla
@@ -86,13 +90,19 @@ export function notesSheet(date) {
     $('.sheet-head [data-a="dismiss"]', dlg)?.before(trash);
     const showTrash = () => { trash.hidden = !notesWritten(); };
     showTrash();
-    const onType = () => requestAnimationFrame(() => { keepCaretVisible(); showTrash(); });
+    const onType = () => requestAnimationFrame(() => { trackKeyboard(); showTrash(); });
+    // El navegador también puede correr el contenido de la ventana al enfocar el texto: se mantiene
+    // fija (solo el texto se desplaza, dentro de su recuadro).
+    const pinTop = e => { if (e.target === dlg || e.target.classList?.contains('sheet-body') || e.target.classList?.contains('notes')) e.target.scrollTop = 0; };
+    dlg.addEventListener('scroll', pinTop, true);
     dlg.addEventListener('input', onType);
     document.addEventListener('selectionchange', onType);
     dlg.addEventListener('close', () => {
       window.visualViewport?.removeEventListener('resize', trackKeyboard);
       window.visualViewport?.removeEventListener('scroll', trackKeyboard);
       dlg.removeEventListener('input', onType);
+      dlg.removeEventListener('scroll', pinTop, true);
+      dlg.style.removeProperty('--vv-top');
       document.removeEventListener('selectionchange', onType);
       dlg.classList.remove('notes-sheet', 'keyboard');
       dlg.style.removeProperty('--kb');
@@ -101,7 +111,7 @@ export function notesSheet(date) {
     dlg.addEventListener('notes:changed', showTrash);
     // Una nota vacía queda lista para escribir; una con texto se abre para leer primero.
     const editor = $('#notesEditor', dlg);
-    if (editor?.classList.contains('is-empty')) setTimeout(() => editor.focus(), 60);
+    if (editor?.classList.contains('is-empty')) setTimeout(() => editor.focus({ preventScroll: true }), 60);
   });
 }
 

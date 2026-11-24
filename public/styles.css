@@ -533,7 +533,7 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
    texto se desplaza. En el celular va arriba, con margen a los lados. Con el teclado abierto, la
    ventana no se mueve: el teclado queda encima de su parte de abajo y el texto gana ese espacio
    para poder subir (--kb, ver notesSheet). */
-dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidden; width: calc(100% - 28px); height: min(560px, calc(100dvh - 190px - env(safe-area-inset-top))); max-height: none; margin: calc(56px + env(safe-area-inset-top)) auto auto; border-radius: 24px; box-shadow: var(--shadow-up); }
+dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidden; width: calc(100% - 28px); height: min(560px, calc(100dvh - 190px - env(safe-area-inset-top))); max-height: none; margin: calc(56px + env(safe-area-inset-top) + var(--vv-top, 0px)) auto auto; border-radius: 24px; box-shadow: var(--shadow-up); }
 .notes-sheet .sheet-grip { display: none; }
 .notes-sheet .sheet-head { padding-top: 16px; }
 .notes-sheet .sheet-head h2 { flex: 1; min-width: 0; }
