@@ -24,6 +24,17 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
+// Rebote del iPhone (o del trackpad en Safari) al tirar más arriba del inicio: la cabecera baja con
+// la página, pero lo fijo se queda. El botón «Volver al presente» baja lo mismo (scrollY negativo)
+// para no quedar nunca por encima de la línea de la cabecera.
+let lastPull = 0;
+addEventListener('scroll', () => {
+  const pull = Math.max(0, Math.round(-scrollY));
+  if (pull === lastPull) return;
+  lastPull = pull;
+  $('#back-now')?.style.setProperty('--pull', `${pull}px`);
+}, { passive: true });
+
 // La barra de pestañas se achica al bajar y vuelve a su tamaño al subir, al llegar arriba o 0,4 s
 // después de dejar de desplazarse (igual a mitad de página que al final).
 const NAV_IDLE = 400;

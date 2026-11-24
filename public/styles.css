@@ -584,7 +584,7 @@ dialog.sheet .sheet-head { touch-action: none; }
 /* «Volver al presente»: flota arriba a la derecha, justo bajo la línea de la cabecera fija
    (--head-bottom lo calcula render.js), igual en Hoy, Plan y Diario. Relleno con el color de acción
    para que se note: verde en claro, amarillo en oscuro. */
-#back-now { position: fixed; right: 16px; top: calc(var(--head-bottom, 172px) + 10px); z-index: 7; display: inline-flex; align-items: center; gap: 5px; min-height: 34px; max-width: calc(100vw - 32px); padding: 0 13px 0 10px; border-radius: 999px; background: var(--acc); color: var(--acc-ink); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--acc) 70%, transparent), 0 2px 6px -2px #0000002e; font-size: calc(13px * var(--ts)); font-weight: 600; transform: translateZ(0); animation: back-now-in .25s var(--ease); }
+#back-now { position: fixed; right: 16px; top: calc(var(--head-bottom, 172px) + 10px + var(--pull, 0px)); z-index: 7; display: inline-flex; align-items: center; gap: 5px; min-height: 34px; max-width: calc(100vw - 32px); padding: 0 13px 0 10px; border-radius: 999px; background: var(--acc); color: var(--acc-ink); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--acc) 70%, transparent), 0 2px 6px -2px #0000002e; font-size: calc(13px * var(--ts)); font-weight: 600; transform: translateZ(0); animation: back-now-in .25s var(--ease); }
 #back-now[hidden] { display: none; }
 #back-now .icon { width: 16px; height: 16px; stroke-width: 2; }
 #back-now .icon.flip { transform: scaleX(-1); }
@@ -713,7 +713,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   #status { left: calc(50% + 116px); bottom: 32px; }
   /* En computador va en la cabecera, a la izquierda de Ajustes (fijo, porque la cabecera también
      lo es), con el mismo color. */
-  #back-now { top: 40px; min-height: 34px; right: calc((100vw - 232px - min(100vw - 232px, 760px)) / 2 + 36px + 54px); z-index: 21; box-shadow: none; }
+  #back-now { top: calc(40px + var(--pull, 0px)); min-height: 34px; right: calc((100vw - 232px - min(100vw - 232px, 760px)) / 2 + 36px + 54px); z-index: 21; box-shadow: none; }
 
   .narrow > .btn { width: auto; padding-inline: 24px; }
   .narrow > p.muted { text-align: left !important; margin-left: 4px !important; }

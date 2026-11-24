@@ -87,7 +87,8 @@ dispositivo, en `localStorage`.
   En celular flota arriba a la derecha, justo bajo la línea de la cabecera fija (en la cabecera no
   cabía el texto; se probó abajo, sobre la barra de pestañas, y los fundadores lo prefirieron
   arriba, cerca de la fecha). Se esconde con una hoja abierta. En computador va en la cabecera, a
-  la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras.
+  la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras. En el rebote del iPhone (tirar más
+  arriba del inicio) baja junto con la cabecera, para no quedar nunca sobre su línea.
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
