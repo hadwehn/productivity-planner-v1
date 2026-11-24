@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue, setWeekGoal,
+  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue, setWeekGoal, taskToWeek, undatedToWeek, weekForDay,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -383,6 +383,45 @@ test('semana: objetivo (sin días) quita las copias pendientes, se marca a mano 
   setWeekGoal(WEEK, 'a', i, true);
   setWeekGoal(WEEK, 'a', i, false);
   eq(toggleWeekDay(WEEK, 'a', i, TUE).added, true, 'se vuelve a llevar a días');
+  eq(v1Accepts(S), true);
+});
+const keyOfText = (d, t) => +Object.entries(S.d[d].k).find(([, r]) => r?.t === t)[0];
+test('horizontes: un día → la semana y algún día → esta semana', () => {
+  load(fixture());
+  const T = today(), thisWeek = weekForDay(T, T), lastWeekDay = shiftDate(thisWeek, -3), nextWeekDay = shiftDate(thisWeek, 9);
+  eq([weekForDay(lastWeekDay, T), weekForDay(nextWeekDay, T)], [thisWeek, shiftDate(thisWeek, 7)], 'un día pasado sube a esta semana; uno futuro, a la suya');
+  S.d = {}; S.w = {}; delete S.nd;
+  // Tarea normal del día: va a «También esta semana»; la del foco, al foco de la semana.
+  addTask(T, 'Foco', { focus: true });
+  addTask(T, 'Resto');
+  const r1 = taskToWeek(T, 1, T);
+  eq([r1.list, weekTasks(thisWeek, 'b').map(x => x.row.t), dayTasks(T).rest.length], ['b', ['Resto'], 0]);
+  eq(taskToWeek(T, 0, T).list, 'a');
+  eq(weekTasks(thisWeek, 'a').map(x => x.row.t), ['Foco']);
+  restore(r1.undo);
+  eq(dayTasks(T).rest.map(x => x.row.t), ['Resto'], 'deshacer');
+  // Lista llena: usa la otra; ambas llenas: avisa.
+  S.w = {};
+  for (let n = 0; n < 5; n++) addWeekTask(thisWeek, 'b', 'b' + n);
+  eq(taskToWeek(T, keyOfText(T, 'Resto'), T).list, 'a', 'si «También» está llena, va al foco');
+  for (let n = 1; n < 5; n++) addWeekTask(thisWeek, 'a', 'a' + n);
+  addTask(T, 'Otra');
+  ok(taskToWeek(T, keyOfText(T, 'Otra'), T).error, 'ambas llenas: error');
+  // Copia de una tarea de esa misma semana: solo se quita del día y la semanal queda pendiente.
+  S.w = {}; S.d = {};
+  addWeekTask(thisWeek, 'b', 'Gimnasio');
+  const MON = thisWeek, TUE = shiftDate(MON, 1), path = `w.${thisWeek}.b.0`;
+  toggleWeekDay(thisWeek, 'b', 0, MON); toggleWeekDay(thisWeek, 'b', 0, TUE);
+  const k = d => +Object.entries(S.d[d].k).find(([, r]) => r?.source === path)[0];
+  setDone(MON, k(MON), true);
+  const r2 = taskToWeek(TUE, k(TUE), T);
+  eq([r2.unscheduled, scheduledDays(path), weekTasks(thisWeek, 'b').length, S.w[thisWeek].b[0].c], [true, [MON], 1, false], 'sin duplicar y sin darla por hecha');
+  // Algún día → esta semana.
+  S.w = {}; S.nd = [{ t: 'Pintar la reja' }];
+  const r3 = undatedToWeek(0, thisWeek);
+  eq([r3.list, weekTasks(thisWeek, 'b').map(x => x.row.t), noDate().length], ['b', ['Pintar la reja'], 0]);
+  restore(r3.undo);
+  eq([noDate().length, weekTasks(thisWeek, 'b').length], [1, 0], 'deshacer');
   eq(v1Accepts(S), true);
 });
 test('pendientes de más de 21 días pasan solos a «Sin fecha»', () => {

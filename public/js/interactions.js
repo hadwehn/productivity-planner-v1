@@ -8,7 +8,7 @@ import {
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, undatedDelete, undatedMenu, undatedMove, undatedPick, undatedTask,
+  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, undatedDelete, undatedMenu, undatedMove, undatedPick, undatedTask, undatedWeek, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
 import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
@@ -115,6 +115,8 @@ const ACTIONS = {
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
   taskundated: d => undatedTask(U.date, +d.k),
+  taskweek: d => doTaskToWeek(U.date, +d.k),
+  undatedweek: d => undatedWeek(+d.i),
   undatedmenu: d => undatedMenu(+d.i),
   undatedpick: d => undatedPick(+d.i),
   undatedmove: d => undatedMove(+d.i, d.fromInput ? $('#pickDate')?.value : d.date),

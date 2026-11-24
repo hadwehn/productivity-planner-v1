@@ -158,8 +158,8 @@ async function loadUser(user) {
     if (generation !== authGeneration) return;
     welcome();
     if (archived) toast(archived === 1
-      ? tr('Una tarea de hace más de tres semanas pasó a «Sin fecha», en Plan.', 'A task from over three weeks ago moved to “Undated”, in Plan.')
-      : tr(`${archived} tareas de hace más de tres semanas pasaron a «Sin fecha», en Plan.`, `${archived} tasks from over three weeks ago moved to “Undated”, in Plan.`));
+      ? tr('Una tarea de hace más de tres semanas pasó a «Algún día», en Plan.', 'A task from over three weeks ago moved to “Someday”, in Plan.')
+      : tr(`${archived} tareas de hace más de tres semanas pasaron a «Algún día», en Plan.`, `${archived} tasks from over three weeks ago moved to “Someday”, in Plan.`));
     void updateAccountRole(user.id, generation);
   } catch (error) {
     if (generation !== authGeneration) return;

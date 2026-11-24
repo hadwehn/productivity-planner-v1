@@ -50,16 +50,16 @@ function weekList(week, list, title, hint) {
     </div></section>`;
 }
 
-/** «Sin fecha»: lo que hay que hacer pero aún no se sabe cuándo. Una sola lista, igual en todas las semanas; vacía, no se muestra. */
+/** «Algún día» (nd): lo que hay que hacer, pero no esta semana. Una sola lista, igual en todas las semanas; vacía, no se muestra. */
 function undatedList() {
-  const items = noDate(), placeholder = tr('Añadir sin fecha', 'Add undated');
-  if (!items.length) return ''; // solo aparece cuando hay algo sin fecha (se deja así desde «Elegir otro día» o «Pendientes»)
+  const items = noDate(), placeholder = tr('Añadir para algún día', 'Add for someday');
+  if (!items.length) return ''; // solo aparece cuando hay algo (se deja así desde «Elegir cuándo» o «Pendientes»)
   const rows = items.map((x, i) => `<div class="task undated" data-undated="${i}">
       <div class="task-main"><span>${esc(x.t)}</span></div>
-      <button class="task-btn" data-a="undatedmenu" data-i="${i}" aria-label="${tr('Llevar a un día o eliminar', 'Schedule or delete')}" title="${tr('Llevar a un día o eliminar', 'Schedule or delete')}">${icon('more')}</button>
+      <button class="task-btn" data-a="undatedmenu" data-i="${i}" aria-label="${tr('Llevar a esta semana, a un día o eliminar', 'Move to this week, to a day or delete')}" title="${tr('Llevar a esta semana, a un día o eliminar', 'Move to this week, to a day or delete')}">${icon('more')}</button>
     </div>`).join('');
-  return `<section class="section">${sectionHead(`${icon('inbox')}${tr('Sin fecha', 'Undated')}`, items.length ? `<span class="muted small">${items.length}</span>` : '')}
-    <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${tr('Lo que tienes que hacer pero aún no sabes cuándo. Llévalo a un día cuando lo sepas.', 'What you need to do but don’t know when yet. Move it to a day once you do.')}</p>`}
+  return `<section class="section">${sectionHead(`${icon('inbox')}${tr('Algún día', 'Someday')}`, items.length ? `<span class="muted small">${items.length}</span>` : '')}
+    <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${tr('Lo que hay que hacer, pero no esta semana. Llévalo a la semana o a un día cuando toque.', 'What needs doing, just not this week. Move it to the week or a day when it’s time.')}</p>`}
       ${items.length >= MAX_NO_DATE ? '' : `<form class="add-row" data-form="addundated"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div></section>`;
 }

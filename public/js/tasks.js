@@ -11,7 +11,9 @@
 //   guarda moved = true y ya no se da por hecha sola: ese trabajo no se hizo en su semana.
 //   Una tarea semanal puede ser un objetivo (goal = true): no se reparte en días y se marca a mano.
 //   Pendientes de más de 21 días pasan solos a «Sin fecha» (archiveOverdue, al abrir la app).
-//   nd: tareas «Sin fecha» [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
+//   Horizontes: un día → la semana → «Algún día». Una tarea sube o baja de a un peldaño
+//   (taskToWeek, undatedToWeek).
+//   nd: tareas «Algún día» (antes «Sin fecha») [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
 import { tr } from './i18n.js';
@@ -409,7 +411,51 @@ export function setWeekGoal(week, list, i, on) {
   return { removed };
 }
 
-// ——— Sin fecha ———
+// ——— Día → semana ———
+/** Semana a la que «sube» una tarea de `date`: la suya, salvo que ya pasó (entonces, la actual). */
+export const weekForDay = (date, T) => { const own = weekKey(date), now = weekKey(T); return own < now ? now : own; };
+/** Lista semanal con espacio, empezando por la preferida (a = foco de la semana, b = también esta semana). */
+const roomIn = (week, first) => [first, first === 'a' ? 'b' : 'a'].find(l => weekTasks(week, l).length < WEEK_SLOTS);
+const fullWeek = () => tr('Esa semana ya tiene cinco tareas en cada lista. Quita alguna primero.', 'That week already has five tasks in each list. Remove one first.');
+
+/**
+ * Pasa una tarea del día a la semana, sin día. Las del foco del día van al foco de la semana (si
+ * hay espacio). Si era la copia de una tarea de esa misma semana, solo se quita del día: ya está
+ * en la semana. Devuelve { undo, week, list, unscheduled? } o { error }.
+ */
+export function taskToWeek(date, key, T) {
+  const row = getTask(date, key);
+  if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
+  const week = weekForDay(date, T), undo = snapshot([date]);
+  if (row.source && row.source.split('.')[1] === week && weeklyOf(row.source)) {
+    // Ese trabajo sigue pendiente en la semana, sin día: la semanal no se da por hecha sola
+    // (se vuelve a completar sola al programarla otra vez en un día).
+    if (!row.c) weeklyOf(row.source).moved = true;
+    removeTask(date, key);
+    return { undo, week, list: row.source.split('.')[2], unscheduled: true };
+  }
+  const list = roomIn(week, isFocusKey(key) ? 'a' : 'b');
+  if (!list) return { error: fullWeek() };
+  leavesWeek(row); // si era copia de otra semana, esa semanal ya no se da por hecha sola
+  removeTask(date, key);
+  addWeekTask(week, list, row.t);
+  return { undo, week, list };
+}
+
+/** Lleva una tarea de «Algún día» a la semana (por defecto a «También esta semana»). */
+export function undatedToWeek(i, week) {
+  const row = noDate()[i];
+  if (!row) return { error: tr('Esa tarea ya no está.', 'That task is no longer there.') };
+  const list = roomIn(week, 'b');
+  if (!list) return { error: fullWeek() };
+  const undo = snapshot([]);
+  addWeekTask(week, list, row.t);
+  setNoDate(noDate().filter((_, j) => j !== i));
+  save();
+  return { undo, week, list };
+}
+
+// ——— Algún día (nd; en el código, «sin fecha») ———
 export const MAX_NO_DATE = 200;
 export const noDate = () => S.nd || [];
 const setNoDate = list => { if (list.length) S.nd = list; else delete S.nd; };
@@ -417,7 +463,7 @@ const setNoDate = list => { if (list.length) S.nd = list; else delete S.nd; };
 export function leaveUndated(date, key) {
   const row = getTask(date, key);
   if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
-  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas sin fecha. Elimina o agenda alguna.', 'You have too many undated tasks. Delete or schedule some.') };
+  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas para algún día. Elimina o agenda alguna.', 'You have too many “Someday” tasks. Delete or schedule some.') };
   const undo = snapshot([date]);
   setNoDate([...noDate(), { t: text(row), from: date }]);
   leavesWeek(row);
@@ -428,7 +474,7 @@ export function leaveUndated(date, key) {
 export function addUndated(value) {
   const t = String(value || '').trim();
   if (!t) return { error: '' };
-  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas sin fecha. Elimina o agenda alguna.', 'You have too many undated tasks. Delete or schedule some.') };
+  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas para algún día. Elimina o agenda alguna.', 'You have too many “Someday” tasks. Delete or schedule some.') };
   setNoDate([...noDate(), { t }]);
   save();
   return {};

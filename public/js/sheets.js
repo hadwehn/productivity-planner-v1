@@ -4,7 +4,7 @@ import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, leaveUndated, moveTask, movePendingTo, moveWeekTaskToNext, noDate, overdue, removeTask,
-  removeUndated, removeWeekTask, restore, scheduleUndated, setWeekGoal, snapshot, toggleFocus, toggleWeekFocus,
+  removeUndated, removeWeekTask, restore, scheduleUndated, setWeekGoal, taskToWeek, undatedToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -60,16 +60,34 @@ export function taskMenu(date, key) {
       : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}<span class="menu-text">${tr('Pasar al día siguiente', 'Move to the next day')}<small>${shortDay(tomorrow)}</small></span></button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveFirst}
-    <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir otro día', 'Pick another day')}</button>
+    <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir cuándo', 'Choose when')}</button>
     <button data-a="taskfocus" data-k="${key}" data-close="1">${icon(focus ? 'starOff' : 'star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
     <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí. Si cambias su nombre, dejan de estar vinculadas.', 'This comes from your week: marking it done also marks it there. If you rename it, they are no longer linked.')}</p>` : ''}`);
 }
+/** «Elegir cuándo»: los tres horizontes en una hoja (un día, la semana sin día o algún día). */
 export function taskPick(date, key) {
   const row = getTask(date, key);
-  if (row) openSheet(tr('¿A qué día?', 'Which day?'), datePicker('taskmove', `data-k="${key}"`, date)
-    + `<button class="btn quiet undated-btn" data-a="taskundated" data-k="${key}">${icon('inbox')}${tr('Aún no sé · dejar sin fecha', 'Not sure yet · leave undated')}</button>
-    <p class="muted small" style="margin:8px 2px 0;text-align:center">${tr('Queda en «Sin fecha», en Plan, hasta que sepas cuándo hacerla.', 'It waits in “Undated”, in Plan, until you know when to do it.')}</p>`);
+  if (!row) return;
+  const T = today(), week = weekForDay(date, T);
+  const weekLabel = week === weekKey(T) ? tr('Esta semana · sin día', 'This week · no day')
+    : tr(`Semana del ${dayMonth(parseDate(week))} · sin día`, `Week of ${dayMonth(parseDate(week))} · no day`);
+  openSheet(tr('¿Cuándo?', 'When?'), datePicker('taskmove', `data-k="${key}"`, date)
+    + `<div class="when-more">
+      <button class="btn quiet undated-btn" data-a="taskweek" data-k="${key}">${icon('week')}${weekLabel}</button>
+      <button class="btn quiet undated-btn" data-a="taskundated" data-k="${key}">${icon('inbox')}${tr('Algún día', 'Someday')}</button>
+    </div>
+    <p class="muted small" style="margin:8px 2px 0;text-align:center">${tr('«Algún día» es para lo que hay que hacer, pero no esta semana. Queda en Plan.', '“Someday” is for what needs doing, just not this week. It waits in Plan.')}</p>`);
+}
+export function doTaskToWeek(date, key) {
+  const result = taskToWeek(date, key, today());
+  closeSheet();
+  if (result.error) { toast(result.error); return; }
+  render();
+  const msg = result.unscheduled ? tr('Se quitó de este día · sigue en tu semana', 'Removed from this day · still in your week')
+    : result.list === 'a' ? tr('Pasó al foco de la semana · está en Plan', 'Moved to this week’s focus · it’s in Plan')
+      : tr('Pasó a la semana · está en Plan', 'Moved to the week · it’s in Plan');
+  toastUndo(msg, () => { restore(result.undo); render(); });
 }
 export function doMoveTask(date, key, target) {
   if (!target) { toast(tr('Elige una fecha.', 'Pick a date.')); return; }
@@ -103,10 +121,10 @@ export function overdueSheet() {
     // Nombre arriba y las tres acciones debajo: así el nombre no se aprieta en el celular.
     return `<div class="overdue-row"><div class="task-main"><span class="caps" style="overflow-wrap:anywhere">${esc(row.t)}</span><span class="task-meta" style="margin:2px 0 0">${DAYS[weekday(pd)]} ${pd.getDate()}</span></div><div class="overdue-actions">
       <button class="btn small secondary" data-a="overduebring" data-date="${date}" data-k="${key}">${tr('Traer', 'Bring')}</button>
-      <button class="btn small quiet" data-a="overdueundated" data-date="${date}" data-k="${key}" title="${tr('Hay que hacerla, pero aún no sabes cuándo', 'It needs doing, but you don’t know when yet')}">${tr('Sin fecha', 'Undated')}</button>
+      <button class="btn small quiet" data-a="overdueundated" data-date="${date}" data-k="${key}" title="${tr('Hay que hacerla, pero no esta semana', 'It needs doing, just not this week')}">${tr('Algún día', 'Someday')}</button>
       <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Soltar', 'Let go')}</button></div></div>`;
   }).join('<div class="divider" style="margin:0"></div>');
-  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Trae a hoy lo que sigue importando. Si aún no sabes cuándo, déjalo sin fecha. Suelta lo que ya no: queda guardado en su día, sin culpa.', 'Bring to today what still matters. If you don’t know when yet, leave it undated. Let go of what doesn’t: it stays saved on its day, guilt-free.')}</p>${rows}
+  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Trae a hoy lo que sigue importando. Lo que no es para esta semana, déjalo para algún día. Suelta lo que ya no: queda guardado en su día, sin culpa.', 'Bring to today what still matters. What isn’t for this week, leave for someday. Let go of what doesn’t: it stays saved on its day, guilt-free.')}</p>${rows}
     <div class="row-actions"><button class="btn" data-a="overdueall">${tr('Traer todo a hoy', 'Bring all to today')}</button></div>`);
 }
 export function overdueAction(kind, date, key) {
@@ -395,13 +413,13 @@ export function shortcutsSheet() {
   openSheet(tr('Atajos de teclado', 'Keyboard shortcuts'), `<dl class="shortcuts">${rows.map(([k, text]) => `<div><dt><kbd>${k}</kbd></dt><dd>${text}</dd></div>`).join('')}</dl>`);
 }
 
-// ——— Sin fecha ———
+// ——— Algún día (nd) ———
 export function undatedTask(date, key) {
   const result = leaveUndated(date, key);
   closeSheet();
   if (result.error) { toast(result.error); return; }
   render();
-  toastUndo(tr('Quedó sin fecha · está en Plan', 'Left undated · it’s in Plan'), () => { restore(result.undo); render(); });
+  toastUndo(tr('Quedó para algún día · está en Plan', 'Saved for someday · it’s in Plan'), () => { restore(result.undo); render(); });
 }
 export function undatedMenu(i) {
   const row = noDate()[i];
@@ -409,9 +427,17 @@ export function undatedMenu(i) {
   const T = today(), from = row.from ? parseDate(row.from) : null;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     <button data-a="undatedmove" data-i="${i}" data-date="${T}">${icon('tomorrow')}${tr('Llevar a hoy', 'Move to today')}</button>
+    <button data-a="undatedweek" data-i="${i}">${icon('week')}${tr('Llevar a esta semana', 'Move to this week')}</button>
     <button data-a="undatedpick" data-i="${i}">${icon('calendar')}${tr('Elegir un día', 'Pick a day')}</button>
     <button class="danger" data-a="undateddelete" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${from ? `<p class="muted small" style="margin:14px 2px 0">${tr(`Estaba en el ${DAYS[weekday(from)].toLowerCase()} ${dayMonth(from)}.`, `It was on ${DAYS[weekday(from)]}, ${dayMonth(from)}.`)}</p>` : ''}`);
+}
+export function undatedWeek(i) {
+  const result = undatedToWeek(i, weekKey(today()));
+  closeSheet();
+  if (result.error) { toast(result.error); return; }
+  render();
+  toastUndo(result.list === 'a' ? tr('Llevada al foco de esta semana', 'Moved to this week’s focus') : tr('Llevada a esta semana', 'Moved to this week'), () => { restore(result.undo); render(); });
 }
 export const undatedPick = i => { if (noDate()[i]) openSheet(tr('¿A qué día?', 'Which day?'), datePicker('undatedmove', `data-i="${i}"`, '')); };
 export function undatedMove(i, target) {
