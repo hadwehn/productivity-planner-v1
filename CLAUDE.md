@@ -129,7 +129,7 @@ dispositivo, en `localStorage`.
 - Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una ventana
   flotante con bordes redondeados que no ocupa toda la pantalla (en el celular, arriba y con margen
   a los lados; en computador, centrada), con la barra de formato arriba, el espacio para escribir y
-  «Listo» abajo a la derecha (sin texto de instrucciones). Con el teclado del celular abierto, la
+  «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). Con el teclado del celular abierto, la
   ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
   se mantiene a la vista. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
