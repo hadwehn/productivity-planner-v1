@@ -155,6 +155,9 @@ dispositivo, en `localStorage`.
   la tiene, queda una sola. Plan muestra ✓ en los días hechos y el avance («2/5»).
   Si una copia pendiente sale de su semana (a un día de otra semana), la semanal guarda
   `moved` y ya no se marca hecha sola; marcarla en Plan o volver a programarla en su semana lo quita.
+- Eliminar: una copia borrada en el día no toca la semana; borrar la tarea en Plan la quita también
+  de los días donde está pendiente (las hechas quedan como registro, sueltas), con aviso «… y de N
+  días» y deshacer (`deleteWeekTask`). Misma regla que «Convertir en objetivo» y «Pasar a la próxima».
 - Objetivo (sin días): opción del menú ⋯ de una tarea semanal («Convertir en objetivo» / «Repartir
   en días», debajo de la opción de foco). Guarda `goal`, oculta las letras de los días y muestra
   la marca «Objetivo» como etiqueta verde en mayúsculas con bandera (estilo «EN FOCO», sin fondo para que no parezca botón); se marca a

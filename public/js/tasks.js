@@ -296,6 +296,26 @@ export function setWeekDone(week, list, i, value) {
   save();
 }
 
+/** Quita de los días las copias pendientes de la tarea semanal `path` (las hechas quedan). Devuelve cuántas. */
+function removePendingCopies(path) {
+  // Al quitar una tarea el día se reescribe sin huecos, así que se busca de nuevo después de cada una.
+  const pendingCopy = date => Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path && !r.c)?.[0];
+  let removed = 0;
+  for (const date of Object.keys(S.d)) for (let key = pendingCopy(date); key !== undefined; key = pendingCopy(date)) { removeTask(date, +key); removed++; }
+  return removed;
+}
+
+/**
+ * Elimina una tarea de la semana y también de los días donde estaba pendiente. Las copias ya
+ * hechas quedan en su día como registro, sin vínculo. Devuelve { removed } (días de donde se quitó).
+ */
+export function deleteWeekTask(week, list, i) {
+  if (!weekList(week, list)[i]) return { removed: 0 };
+  const removed = removePendingCopies(weekPath(week, list, i));
+  removeWeekTask(week, list, i);
+  return { removed };
+}
+
 export function removeWeekTask(week, list, i) {
   const row = weekList(week, list)[i];
   if (!row) return;
@@ -378,10 +398,7 @@ export function moveWeekTaskToNext(week, list, i, next = shiftDate(week, 7)) {
   if (!row || !text(row)) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
   if (next === week) return { error: tr('La tarea ya está en esa semana.', 'The task is already in that week.') };
   if (weekTasks(next, list).length >= WEEK_SLOTS) return { error: next !== shiftDate(week, 7) ? tr('Esa semana ya tiene cinco tareas en esa lista.', 'That week already has five tasks in that list.') : list === 'a' ? tr('El foco de la próxima semana ya tiene cinco tareas.', 'Next week’s focus already has five tasks.') : tr('La próxima semana ya tiene cinco tareas en esa lista.', 'Next week already has five tasks in that list.') };
-  const path = weekPath(week, list, i);
-  // Al quitar una tarea el día se reescribe sin huecos, así que se busca de nuevo después de cada una.
-  const pendingCopy = date => Object.entries(S.d[date]?.k || {}).find(([, r]) => r?.source === path && !r.c)?.[0];
-  for (const date of Object.keys(S.d)) for (let key = pendingCopy(date); key !== undefined; key = pendingCopy(date)) removeTask(date, +key);
+  removePendingCopies(weekPath(week, list, i));
   removeWeekTask(week, list, i);
   const added = addWeekTask(next, list, row.t);
   if (row.goal && added.i !== undefined) S.w[next][list][added.i].goal = true; // sigue siendo objetivo

@@ -2,7 +2,7 @@
 import { S, checkedState, onSave, setState, summary, setPath } from '../public/js/state.js';
 import { migrate } from '../public/js/migrate.js';
 import {
-  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
+  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, deleteWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
   movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay,
 } from '../public/js/tasks.js';
@@ -210,6 +210,22 @@ test('semana: una tarea programada de lunes a viernes se marca por día y no se 
   toggleWeekDay(WEEK, 'b', i, FRI);
   eq(S.d[FRI].k[key(FRI)].c, false, 'un día nuevo llega pendiente');
   eq(v1Accepts(S), true);
+});
+test('semana: eliminarla de la semana la quita de los días donde está pendiente; lo hecho queda', () => {
+  load(fixture());
+  S.d = {}; S.w = {};
+  addWeekTask(WEEK, 'b', 'Gimnasio');
+  const MON = WEEK, TUE = shiftDate(WEEK, 1), WED = shiftDate(WEEK, 2), path = `w.${WEEK}.b.0`;
+  for (const d of [MON, TUE, WED]) toggleWeekDay(WEEK, 'b', 0, d);
+  addTask(TUE, 'Otra cosa');
+  setDone(MON, +Object.entries(S.d[MON].k).find(([, r]) => r?.source === path)[0], true);
+  const undo = snapshot(Object.keys(S.d));
+  eq(deleteWeekTask(WEEK, 'b', 0).removed, 2, 'martes y miércoles');
+  eq(weekTasks(WEEK, 'b').length, 0);
+  eq([dayTasks(MON).focus.concat(dayTasks(MON).rest).map(x => [x.row.t, x.row.c, x.row.source]), dayTasks(TUE).rest.map(x => x.row.t), dayTasks(WED).rest.length],
+    [[['Gimnasio', true, undefined]], ['Otra cosa'], 0], 'la hecha queda suelta; las demás tareas no se tocan');
+  restore(undo);
+  eq([scheduledDays(path), weekTasks(WEEK, 'b').length], [[MON, TUE, WED], 1], 'deshacer');
 });
 test('semana: eliminar o mover entre listas actualiza los vínculos de los días', () => {
   load(fixture());

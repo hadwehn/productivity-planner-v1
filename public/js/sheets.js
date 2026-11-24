@@ -4,7 +4,7 @@ import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
-  removeWeekTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
+  deleteWeekTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -209,7 +209,7 @@ export function weekMenu(list, i) {
       ? `<button data-a="weekgoal" data-list="${list}" data-i="${i}">${icon('calendar')}${tr('Repartir en días', 'Split into days')}</button>`
       : `<button data-a="weekgoal" data-list="${list}" data-i="${i}" data-on="1">${icon('flag')}${tr('Convertir en objetivo', 'Turn into a goal')}</button>`}
     <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>
-    <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana deja sus copias en los días, sin vínculo.', 'Deleting it from the week keeps its copies on the days, unlinked.')}</p>`);
+    <p class="muted small" style="margin:14px 2px 0">${tr('Eliminarla de la semana también la quita de los días donde está pendiente. Lo ya hecho queda en su día.', 'Deleting it from the week also removes it from the days where it’s pending. What’s already done stays on its day.')}</p>`);
 }
 export function weekAction(kind, list, i) {
   const undo = snapshot(Object.keys(S.d));
@@ -242,10 +242,13 @@ export function weekAction(kind, list, i) {
     toastUndo(tr('Pasó a la próxima semana', 'Moved to next week'), () => { restore(undo); render(); });
     return;
   }
-  removeWeekTask(U.week, list, i);
+  const { removed } = deleteWeekTask(U.week, list, i);
   closeSheet();
   render();
-  toastUndo(tr('Tarea eliminada de la semana', 'Task deleted from the week'), () => { restore(undo); render(); });
+  const msg = removed === 0 ? tr('Tarea eliminada de la semana', 'Task deleted from the week')
+    : removed === 1 ? tr('Tarea eliminada de la semana y de 1 día', 'Task deleted from the week and 1 day')
+      : tr(`Tarea eliminada de la semana y de ${removed} días`, `Task deleted from the week and ${removed} days`);
+  toastUndo(msg, () => { restore(undo); render(); });
 }
 
 // ——— Hábitos ———
