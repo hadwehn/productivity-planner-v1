@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, planHour, setAppearance, storedAppearance, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
+import { U, applyTextSize, planHour, setAppearance, storedAppearance, rememberPlan, runUndo, setCalWide, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -227,6 +227,7 @@ const ACTIONS = {
   weekdelete: d => weekAction('delete', d.list, +d.i),
   weekgoal: d => weekAction(d.on ? 'goal' : 'ungoal', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
+  calwide: update(() => setCalWide(!U.calWide)),
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
   thisjournal: update(() => { U.journalMonth = today().slice(0, 7); }),
   shiftmonth: update(d => shiftMonthBy(+d.n)),

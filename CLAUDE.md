@@ -167,6 +167,12 @@ dispositivo, en `localStorage`.
   al crear o al editar (pasar un evento a otro día sin borrarlo). Si tiene «Hasta», se corre igual
   y conserva la duración (`putEvent`/`shiftEnd` en `events.js`). En Mes queda elegido el día nuevo.
   Se descartó arrastrar eventos en el calendario del celular (celdas chicas, choca con deslizar).
+- Calendario del mes: un día con eventos se tiñe con el color del área del primer evento, lleva una
+  barrita por evento de un día (hasta 3) y los de varios días se ven como una franja continua.
+  «Ampliar» (solo celular, se recuerda en el dispositivo con `planner-cal-wide`) muestra los nombres
+  en cada día, cortados sin «…» como el iPhone, con «+N» si hay más de dos; en computador los
+  nombres se ven siempre. No convertirlo en un calendario completo (vistas, invitaciones): la
+  Agenda sigue siendo candidata a simplificar si en la prueba nadie la usa.
 
 **Hábitos y Diario**
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
