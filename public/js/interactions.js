@@ -7,7 +7,7 @@ import {
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
+  closeSheet, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
@@ -80,6 +80,7 @@ const ACTIONS = {
   undo: () => runUndo(),
   settings: () => openSettings(),
   shortcuts: () => shortcutsSheet(),
+  notesopen: () => notesSheet(U.date),
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 

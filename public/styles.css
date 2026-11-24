@@ -523,6 +523,19 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
 #v.ritual-focus .dimmed { opacity: .35; }
 #v.dim-in .dimmed { animation: dim-in .4s var(--ease); }
 @keyframes dim-in { from { opacity: 1; } }
+/* Notas en modo enfoque: hoja casi a pantalla completa; solo el texto se desplaza. Con el teclado
+   del celular abierto, la hoja se achica y queda sobre él (--kb y --vvh, ver notesSheet). */
+dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidden; height: calc(var(--vvh, 100dvh) - 44px - env(safe-area-inset-top)); max-height: none; margin-bottom: var(--kb, 0px); }
+.notes-sheet .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+.notes-sheet .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.notes-sheet .notes-toolbar { flex: none; }
+.notes-sheet .notes-editable { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 40px; }
+.notes-sheet .notes-hint { flex: none; }
+.notes-sheet.keyboard .notes-hint { display: none; }
+.notes-card .chev { transform: none; }
+@media (min-width: 1000px) {
+  dialog.sheet.notes-sheet { max-width: 760px; height: min(80dvh, 760px); margin: auto; }
+}
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */

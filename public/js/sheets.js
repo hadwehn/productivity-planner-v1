@@ -10,6 +10,7 @@ import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, 
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
+import { notesEditor } from './views/notes.js';
 import { MAX_EVENT_DAYS, rangeLabel } from './events.js';
 import { isPastWeek } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
@@ -24,6 +25,39 @@ export function openSheet(title, body, onMount) {
   onMount?.(dlg);
 }
 export const closeSheet = () => { if (sheet().open) sheet().close(); };
+
+// ——— Notas en modo enfoque ———
+// Una hoja que cubre casi toda la pantalla (en computador, una ventana centrada): la barra de formato
+// arriba y todo el espacio para escribir. Se guarda sola mientras se escribe (views/notes.js).
+// Con el teclado del celular abierto, la hoja se achica y sube sobre él (visualViewport).
+function fitAboveKeyboard() {
+  const dlg = sheet(), vv = window.visualViewport;
+  if (!vv || !dlg.classList.contains('notes-sheet')) return;
+  const keyboard = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+  dlg.style.setProperty('--kb', `${keyboard}px`);
+  dlg.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+  dlg.classList.toggle('keyboard', keyboard > 80); // con teclado, la ayuda de abajo se esconde
+}
+export function notesSheet(date) {
+  const d = parseDate(date);
+  openSheet(`${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`, notesEditor(date), dlg => {
+    dlg.classList.add('notes-sheet');
+    fitAboveKeyboard();
+    window.visualViewport?.addEventListener('resize', fitAboveKeyboard);
+    window.visualViewport?.addEventListener('scroll', fitAboveKeyboard);
+    dlg.addEventListener('close', () => {
+      window.visualViewport?.removeEventListener('resize', fitAboveKeyboard);
+      window.visualViewport?.removeEventListener('scroll', fitAboveKeyboard);
+      dlg.classList.remove('notes-sheet', 'keyboard');
+      dlg.style.removeProperty('--kb');
+      dlg.style.removeProperty('--vvh');
+      render(); // la tarjeta de Hoy muestra lo recién escrito
+    }, { once: true });
+    // Una nota vacía queda lista para escribir; una con texto se abre para leer primero.
+    const editor = $('#notesEditor', dlg);
+    if (editor?.classList.contains('is-empty')) setTimeout(() => editor.focus(), 60);
+  });
+}
 
 // ——— Selector de día (próximas dos semanas + calendario) ———
 function datePicker(action, attrs, from = today()) {

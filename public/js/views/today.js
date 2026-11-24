@@ -10,7 +10,6 @@ import { icon } from '../icons.js';
 import { dayMonth, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, MONTHS, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
 import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
-import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
 import { hasContent, isFinished, monthReminder, reviewReminder, ritualState } from '../rituals.js';
 
@@ -190,9 +189,17 @@ function planSwitch(date, T) {
     <div class="seg" role="tablist">${option('today', tr('Hoy', 'Today'), date === T)}${option('tomorrow', tr('Mañana', 'Tomorrow'), date === next)}</div></div>`;
 }
 
+// Notas: la tarjeta muestra el comienzo de lo escrito y al tocarla se abre la hoja para escribir
+// (modo enfoque, ver notesSheet en sheets.js).
 function notes(date) {
-  const text = get(`d.${date}.n`, '');
-  return foldable({ key: 'notes', open: U.notes, iconName: 'note', title: tr('Notas', 'Notes'), summary: text.trim() ? esc(preview(text)) : tr('Ideas y apuntes del día', 'Ideas and notes for the day'), body: notesEditor(date) });
+  const text = String(get(`d.${date}.n`, '')).trim();
+  return `<section class="card ritual notes-card">
+    <button class="ritual-head" data-a="notesopen" aria-haspopup="dialog">
+      <span class="ritual-icon">${icon('note')}</span>
+      <span class="ritual-text"><strong>${tr('Notas', 'Notes')}</strong><small class="${text ? 'written' : ''}">${text ? esc(preview(text)) : tr('Ideas y apuntes del día', 'Ideas and notes for the day')}</small></span>
+      <span class="chev">${icon('right')}</span>
+    </button>
+  </section>`;
 }
 
 export function todayView() {

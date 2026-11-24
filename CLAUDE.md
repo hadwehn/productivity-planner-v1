@@ -118,10 +118,14 @@ dispositivo, en `localStorage`.
   hasta el lunes a mediodía (si no está cerrada) y «¿Qué fue lo mejor de noviembre?» el último día
   del mes desde las 18:00 hasta el día 2 (si está vacío). Llevan a Plan con la revisión abierta o
   al campo de «Lo mejor del mes» (`reviewReminder`/`monthReminder` en `rituals.js`).
-- Rituales y Notas en primer plano (Empieza/Cierra tu día, Intención/Revisión de la semana, Notas): al abrirlos
+- Rituales en primer plano (Empieza/Cierra tu día, Intención/Revisión de la semana): al abrirlos
   (o «Editar») la página los sube hasta quedar justo bajo la cabecera, el resto se atenúa y los
   otros rituales se pliegan; si están al final, se agrega espacio abajo para que suban. La
   apertura automática de la mañana o la noche no atenúa nada (`focusRitual`).
+- Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una hoja casi a
+  pantalla completa (en computador, ventana centrada) con la barra de formato arriba y todo el
+  espacio para escribir; con el teclado del celular abierto la hoja se achica y sube sobre él
+  (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer primero.
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
