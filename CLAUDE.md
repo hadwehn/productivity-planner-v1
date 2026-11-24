@@ -80,8 +80,9 @@ dispositivo, en `localStorage`.
 - Plan y Diario: flechas con recuadro fijas a la derecha de la fila de fechas; también se deslizan.
   Títulos relativos («Esta semana», «Semana pasada», «Hace 2 semanas», «Mes pasado»…). La semana se
   escribe con el mes completo («30 de noviembre al 6 de diciembre»).
-- Volver al presente: un solo botón con el texto de hacia dónde vuelve («Volver a hoy», «Volver a
-  esta semana», «Volver a este mes»), igual en Hoy, Plan y Diario, y solo cuando se mira otro
+- Volver al presente: un solo botón chico con texto corto («Hoy», «Esta semana», «Este mes») y una
+  flecha curva de regreso (reflejada si el presente queda adelante); el nombre completo («Volver a
+  esta semana») va como etiqueta accesible. Igual en Hoy, Plan y Diario, y solo cuando se mira otro
   periodo. Relleno con el color de acción (verde en claro, amarillo en oscuro) para que se note.
   En celular flota arriba a la derecha, justo bajo la línea de la cabecera fija (en la cabecera no
   cabía el texto; se probó abajo, sobre la barra de pestañas, y los fundadores lo prefirieron

@@ -95,15 +95,16 @@ export function render(toTop = false) {
 
 /**
  * «Volver al presente»: un solo botón flotante, arriba a la derecha bajo la cabecera fija, igual en
- * Hoy, Plan y Diario, que aparece solo cuando se mira otro día, semana o mes. Ahí cabe el texto
- * completo («Volver a esta semana») sin apretar las cabeceras. La flecha apunta hacia el presente.
+ * Hoy, Plan y Diario, que aparece solo cuando se mira otro día, semana o mes. Texto corto («Hoy»,
+ * «Esta semana», «Este mes») con una flecha curva de regreso, que se refleja si el presente queda adelante.
  */
 function backNow() {
   const T = today(), month = T.slice(0, 7), week = iso(monday(new Date()));
-  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: tr('Volver a hoy', 'Back to today') };
-  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: tr('Volver a esta semana', 'Back to this week') };
-  if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, label: tr('Volver a este mes', 'Back to this month') };
-  if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: tr('Volver a este mes', 'Back to this month') };
+  const thisMonth = [tr('Este mes', 'This month'), tr('Volver a este mes', 'Back to this month')];
+  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: [tr('Hoy', 'Today'), tr('Volver a hoy', 'Back to today')] };
+  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: [tr('Esta semana', 'This week'), tr('Volver a esta semana', 'Back to this week')] };
+  if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, label: thisMonth };
+  if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: thisMonth };
   return null;
 }
 function drawBackNow() {
@@ -116,7 +117,10 @@ function drawBackNow() {
   if (head) document.documentElement.style.setProperty('--head-bottom', `${Math.round(head.offsetTop + head.offsetHeight)}px`);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
-  btn.innerHTML = `${icon(b.later ? 'left' : 'right')}<span>${b.label}</span>`;
+  // Texto corto («Esta semana») con flecha curva de regreso; el nombre completo, para lectores de pantalla.
+  btn.innerHTML = `${icon('back', `icon${b.later ? '' : ' flip'}`)}<span>${b.label[0]}</span>`;
+  btn.setAttribute('aria-label', b.label[1]);
+  btn.title = b.label[1];
 }
 
 export function focusEnd(el) {
