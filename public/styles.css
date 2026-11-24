@@ -519,6 +519,10 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
 .check::after, .range-nav button::after, .add-btn::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
 .range-nav button::after { inset: -7px -2px; border-radius: 0; } /* sin pisar la flecha vecina */
 .day-toggle::after { content: ""; position: absolute; inset: -7px -2px; }
+/* Ritual abierto en primer plano (ver applyRitualFocus en render.js): el resto se atenúa. */
+#v.ritual-focus .dimmed { opacity: .35; }
+#v.dim-in .dimmed { animation: dim-in .4s var(--ease); }
+@keyframes dim-in { from { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */

@@ -15,7 +15,7 @@ import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose 
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
-import { autosize, focusEnd, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
+import { RITUALS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
 import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
@@ -114,7 +114,14 @@ const ACTIONS = {
   planday: update(d => { const tomorrow = d.k === 'tomorrow'; U.date = shiftDate(today(), tomorrow ? 1 : 0); rememberPlan(tomorrow); }),
   openday: navigate(d => openDay(d.k)),
   shiftweek: d => shiftWeek(+d.n),
-  fold: update(d => { U[d.k] = !U[d.k]; }),
+  // Al abrir un ritual se pliegan los demás y sube al primer plano (ver focusRitual en render.js).
+  fold: d => {
+    const opening = !U[d.k], ritual = RITUALS.includes(d.k);
+    U[d.k] = opening;
+    if (opening && ritual) for (const k of RITUALS) if (k !== d.k) U[k] = false;
+    render();
+    if (opening && ritual) focusRitual(d.k);
+  },
 
   // Tareas del día
   taskdone: update(d => {
@@ -138,7 +145,7 @@ const ACTIONS = {
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.
-  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.review = true; revealLater('#week-review'); }),
+  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
   monthbest: navigate(d => { U.tab = 'week'; U.weekMode = 'month'; U.month = d.k; revealLater('#month-best', true); }),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
@@ -167,7 +174,7 @@ const ACTIONS = {
     render();
     toastUndo(tr('Listo. Que tengas una buena semana.', 'Done. Have a good week.'), () => { undo(); U.weekIntent = true; render(); });
   },
-  intentedit: () => { if (reopenIntent(U.week)) U.weekIntent = true; render(); },
+  intentedit: () => { if (reopenIntent(U.week)) U.weekIntent = true; render(); focusRitual('weekIntent'); },
   ritualdone: d => {
     const which = d.k, date = U.date;
     if (!canEditRitual(date, which)) { render(); return; }
@@ -181,12 +188,13 @@ const ACTIONS = {
     if (which === 'e' && carryOverSheet(date, reopen)) return;
     toastUndo(which === 'm' ? (date < today() ? tr('Listo. Quedó guardado.', 'Done. It’s saved.') : tr('Listo. Que tengas un buen día.', 'Done. Have a good day.')) : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
   },
-  ritualedit: d => { if (reopenRitual(U.date, d.k)) U[d.k === 'm' ? 'morning' : 'evening'] = true; render(); },
-  reviewedit: () => { if (reopenReview(U.week)) U.review = true; render(); },
+  ritualedit: d => { const key = d.k === 'm' ? 'morning' : 'evening'; if (reopenRitual(U.date, d.k)) U[key] = true; render(); focusRitual(key); },
+  reviewedit: () => { if (reopenReview(U.week)) U.review = true; render(); focusRitual('review'); },
   closeyesterday: () => {
-    U.date = shiftDate(today(), -1); U.tab = 'today'; U.evening = true;
+    rememberScroll();
+    U.date = shiftDate(today(), -1); U.tab = 'today'; U.morning = false; U.evening = true;
     render(true);
-    $('[data-a="fold"][data-k="evening"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    focusRitual('evening');
   },
   carryover: () => doCarryOver(U.date),
   closeundo: () => undoDayClose(),

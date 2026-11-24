@@ -119,6 +119,45 @@ export function render(toTop = false) {
     const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
     if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }
   }
+  applyRitualFocus(view);
+}
+
+// ——— Rituales en primer plano ———
+// Con un ritual abierto (Empieza/Cierra tu día, Intención/Revisión de la semana), el resto de la
+// pantalla se atenúa: es un momento propio, no un formulario en el camino. Al abrirlo, además,
+// la página lo sube hasta quedar justo bajo la cabecera (ver focusRitual).
+// Solo cuando la persona lo abre: la apertura automática de la mañana o la noche no atenúa nada.
+export const RITUALS = ['morning', 'evening', 'weekIntent', 'review'];
+let focused = null; // ritual abierto en primer plano
+const openRitual = view => [...view.querySelectorAll('.ritual.open')].find(s => RITUALS.includes(s.querySelector('.ritual-head')?.dataset.k));
+function applyRitualFocus(view) {
+  const open = openRitual(view), card = open?.querySelector('.ritual-head').dataset.k === focused ? open : null;
+  if (!card) focused = null;
+  view.classList.toggle('ritual-focus', !!card);
+  if (!card) { view.style.paddingBottom = ''; return; }
+  // Se atenúan los hermanos de cada contenedor del ritual, salvo la cabecera fija.
+  for (let el = card; el && el !== view; el = el.parentElement) {
+    for (const sib of el.parentElement.children) {
+      if (sib !== el && !sib.matches('.sticky-head, .back-now') && !sib.querySelector('.sticky-head')) sib.classList.add('dimmed');
+    }
+  }
+}
+/** Sube el ritual `key` hasta dejarlo bajo la cabecera fija, con un fundido del resto. */
+export function focusRitual(key) {
+  const view = $('#v'), card = openRitual(view);
+  if (!card || card.querySelector('.ritual-head')?.dataset.k !== key) return;
+  focused = key;
+  applyRitualFocus(view);
+  const head = $('.sticky-head', view)?.getBoundingClientRect().height || 0;
+  const target = Math.max(0, Math.round(card.getBoundingClientRect().top + scrollY - head - 14));
+  // Si la tarjeta está cerca del final, se agrega espacio abajo para que pueda subir del todo.
+  view.style.paddingBottom = '';
+  const missing = target + innerHeight - document.documentElement.scrollHeight;
+  if (missing > 0) view.style.paddingBottom = `${parseFloat(getComputedStyle(view).paddingBottom) + missing + 24}px`; // se suma al espacio de la barra
+  view.classList.add('dim-in');
+  setTimeout(() => view.classList.remove('dim-in'), 450);
+  const reduce = matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
 }
 
 /**
