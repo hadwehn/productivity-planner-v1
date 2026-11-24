@@ -495,6 +495,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .notes-editable li::marker { color: var(--mute); }
 .notes-editable p, .notes-editable div { margin: 0; min-height: 1.7em; }
 .notes-hint { margin: 6px 2px 0; }
+/* Pie de las notas: la ayuda a la izquierda y «Listo» abajo a la derecha (Enter solo salta de línea). */
+.notes-foot { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.notes-foot .notes-hint { flex: 1; min-width: 0; margin: 0 2px; }
+.notes-foot .notes-done { flex: none; margin-left: auto; gap: 6px; padding-inline: 16px; }
+.notes-foot .notes-done .icon { width: 17px; height: 17px; stroke-width: 2.2; }
 .notes-editable:focus-visible { outline: none; }
 
 /* ===== Navegación ===== */
@@ -533,7 +538,7 @@ dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidd
 .notes-sheet .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .notes-sheet .notes-toolbar { flex: none; }
 .notes-sheet .notes-editable { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(40px + var(--kb, 0px)); }
-.notes-sheet .notes-hint { flex: none; }
+.notes-sheet .notes-foot { flex: none; }
 .notes-sheet.keyboard .notes-hint { display: none; }
 .notes-card .chev { transform: none; }
 @media (min-width: 1000px) {

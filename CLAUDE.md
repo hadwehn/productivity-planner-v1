@@ -183,6 +183,8 @@ dispositivo, en `localStorage`.
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
+  La hoja de notas tiene «Listo» abajo a la derecha (verde, con ✓) para dejar la nota lista: la X
+  daba sensación de descartar. Enter solo salta de línea. Las notas se guardan al escribir.
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
 - Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 

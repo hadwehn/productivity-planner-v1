@@ -81,6 +81,13 @@ const ACTIONS = {
   settings: () => openSettings(),
   shortcuts: () => shortcutsSheet(),
   notesopen: () => notesSheet(U.date),
+  // «Listo» en las notas: se guardan al escribir; esto deja la anotación lista y cierra la hoja.
+  notesdone: (d, b) => {
+    const editor = $('#notesEditor'), written = editor && editor.textContent.trim();
+    editor?.blur(); // al perder el foco se guarda lo último
+    b.closest('dialog')?.close();
+    if (written) toast(tr('Notas guardadas', 'Notes saved'));
+  },
   welcomed: () => { S.cfg.welcomed = true; save(); closeSheet(); },
   export: () => document.dispatchEvent(new CustomEvent('planner:download')),
 

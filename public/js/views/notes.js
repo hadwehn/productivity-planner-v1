@@ -69,7 +69,8 @@ export function notesEditor(date) {
   const blank = isBlank(content);
   return `<div class="notes"><div class="notes-toolbar" role="toolbar" aria-label="${tr('Formato de notas', 'Note formatting')}">${BUTTONS().map(([action, label, title]) => `<button type="button" data-note-format="${action}" aria-label="${title}" title="${title}" aria-pressed="false">${label}</button>`).join('')}</div>
     <div id="notesEditor" class="notes-editable${blank ? ' is-empty' : ''}" contenteditable="true" role="textbox" aria-label="${tr('Notas del día', 'Notes for the day')}" aria-multiline="true" data-note-date="${date}" data-placeholder="${tr('Escribe tus notas…', 'Write your notes…')}" spellcheck="true">${blank ? '' : content}</div>
-    <p class="prompt-hint notes-hint">${tr('Escribe «- » o «1. » al empezar una línea para crear una lista.', 'Type “- ” or “1. ” at the start of a line to make a list.')}</p></div>`;
+    <div class="notes-foot"><p class="prompt-hint notes-hint">${tr('Escribe «- » o «1. » al empezar una línea para crear una lista.', 'Type “- ” or “1. ” at the start of a line to make a list.')}</p>
+    <button type="button" class="btn small notes-done" data-a="notesdone">${icon('check')}${tr('Listo', 'Done')}</button></div></div>`;
 }
 
 const editorEl = () => $('#notesEditor');
