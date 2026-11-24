@@ -48,7 +48,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 | `public/app.js` | Entrada: sesión, carga, sincronización, respaldo e importación. |
 | `public/store.js` | Guardado en la nube: JSON único por usuario, se guarda 800 ms después de cada cambio, con control de conflictos (revisión). |
 | `public/js/state.js` | Forma de los datos, validación estricta (`checkedState`) y acceso por rutas. |
-| `public/js/tasks.js` | Reglas de tareas del día, de la semana y «Algún día». Sin DOM (se prueba aislado). |
+| `public/js/tasks.js` | Reglas de tareas del día y de la semana. Sin DOM (se prueba aislado). |
 | `public/js/rituals.js` | Empieza/Cierra tu día y revisión semanal. |
 | `public/js/habits.js` | Hábitos, rachas y constancia. |
 | `public/js/interactions.js` | Eventos: acciones `data-a`, teclado, arrastrar, deslizar, hojas. |
@@ -62,7 +62,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 Un solo objeto JSON por usuario: `h` hábitos · `hl` registros de hábitos · `m` meses · `ev` eventos ·
 `w` semanas (`a` foco de la semana, `b` otras; máx. 5 cada una) · `d` días (`k` tareas: claves 0, 501,
 502 = foco; 1…500 = resto; `i` intención, `g` gratitud, `r` reflexión, `mood`, `n`/`nRich` notas,
-`closed`) · `nd` tareas «Algún día» (en el código, «sin fecha») · `cfg` preferencias. Cualquier campo nuevo debe validarse en
+`closed`) · `nd` antigua lista «Algún día», retirada (se acepta y se pasa a hoy al abrir) · `cfg` preferencias. Cualquier campo nuevo debe validarse en
 `checkedState` y tener prueba. Las preferencias de la cuenta van en `cfg`; lo que es solo del
 dispositivo, en `localStorage`.
 
@@ -94,29 +94,29 @@ dispositivo, en `localStorage`.
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
-  siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días, «Esta semana ·
-  sin día» y «Algún día».
+  siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
+  sin día».
 - Opción «Frase en días futuros» (encendida por defecto).
 - **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
   renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
   tarea ofrece primero «Pasar a hoy»; en una semana pasada, «Pasar a esta semana».
-- Pendientes: Hoy avisa de los últimos 21 días. Lo pendiente más antiguo pasa solo a «Algún día»
-  al abrir la app (con un aviso); las tareas hechas y las soltadas se quedan en su día.
+- Pendientes: Hoy avisa de los últimos 21 días; la hoja ofrece Traer · A la semana · Soltar. Lo
+  pendiente más antiguo se suelta solo al abrir la app (con un aviso) y queda en su día.
 
-**Horizontes: un día → esta semana → algún día**
-- Para no tener tres lugares parecidos, todo responde a «¿cuándo?» con tres peldaños: un día, la
-  semana (sin día) y «Algún día» (antes «Sin fecha»). «Objetivo» no es un lugar: es una forma de
-  tarea dentro de la semana. Se sube o baja de a un peldaño: una tarea del día pasa a su semana (o
-  a la actual si ya pasó; las del foco van al foco de la semana si cabe) y desde «Algún día» se
-  lleva a esta semana (a «También esta semana» si cabe). Si era la copia de una tarea de esa misma
-  semana, solo se quita del día y la semanal queda pendiente (`moved`).
+**Horizontes: un día o esta semana**
+- Todo responde a «¿cuándo?»: un día o la semana (sin día). «Objetivo» no es un lugar: es una forma
+  de tarea dentro de la semana. Una tarea del día pasa a su semana (o a la actual si ya pasó; las
+  del foco van al foco de la semana si cabe). Si era la copia de una tarea de esa misma semana,
+  solo se quita del día y la semanal queda pendiente (`moved`).
+- Se probó una lista «Sin fecha» / «Algún día» y se retiró: confundía (tres lugares parecidos) y
+  se volvía un cajón de olvido. Lo que no es de esta semana, se suelta o se anota cuando toque.
 
-**Tareas semanales y «Algún día»**
+**Tareas semanales**
 - Una tarea semanal programada en varios días crea una copia independiente por día: marcar un día
   no marca los demás; la semanal queda hecha cuando todas lo están (o al marcarla en Plan, que
   marca todas). Un día nunca tiene dos copias de la misma tarea semanal: al pasarla a un día que ya
   la tiene, queda una sola. Plan muestra ✓ en los días hechos y el avance («2/5»).
-  Si una copia pendiente sale de su semana (otra semana o «Algún día»), la semanal guarda
+  Si una copia pendiente sale de su semana (a un día de otra semana), la semanal guarda
   `moved` y ya no se marca hecha sola; marcarla en Plan o volver a programarla en su semana lo quita.
 - Objetivo (sin días): opción del menú ⋯ de una tarea semanal («Convertir en objetivo» / «Repartir
   en días», debajo de la opción de foco). Guarda `goal`, oculta las letras de los días y muestra
@@ -124,7 +124,6 @@ dispositivo, en `localStorage`.
   mano. Al convertirla se quitan sus copias pendientes de los días (las hechas quedan, sueltas) y
   se puede deshacer. Sigue siendo objetivo al pasar a otra semana. Idea para después: mostrar los
   objetivos en «Empieza tu día» o en la revisión semanal para que no se olviden.
-- «Algún día» (`nd`): lista en Plan › Semana que solo aparece si tiene algo.
 
 **Hábitos y Diario**
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha

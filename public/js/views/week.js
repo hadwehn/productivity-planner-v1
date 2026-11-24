@@ -1,7 +1,7 @@
 // «Semana»: dirección (intención y foco), reparto en los días y revisión. Incluye la vista «Mes».
 import { S, get } from '../state.js';
 import { U } from '../ui.js';
-import { MAX_NO_DATE, dayTasks, noDate, weekTasks } from '../tasks.js';
+import { dayTasks, weekTasks } from '../tasks.js';
 import { categoryColor } from '../categories.js';
 import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
@@ -50,20 +50,6 @@ function weekList(week, list, title, hint) {
     </div></section>`;
 }
 
-/** «Algún día» (nd): lo que hay que hacer, pero no esta semana. Una sola lista, igual en todas las semanas; vacía, no se muestra. */
-function undatedList() {
-  const items = noDate(), placeholder = tr('Añadir para algún día', 'Add for someday');
-  if (!items.length) return ''; // solo aparece cuando hay algo (se deja así desde «Elegir cuándo» o «Pendientes»)
-  const rows = items.map((x, i) => `<div class="task undated" data-undated="${i}">
-      <div class="task-main"><span>${esc(x.t)}</span></div>
-      <button class="task-btn" data-a="undatedmenu" data-i="${i}" aria-label="${tr('Llevar a esta semana, a un día o eliminar', 'Move to this week, to a day or delete')}" title="${tr('Llevar a esta semana, a un día o eliminar', 'Move to this week, to a day or delete')}">${icon('more')}</button>
-    </div>`).join('');
-  return `<section class="section">${sectionHead(`${icon('inbox')}${tr('Algún día', 'Someday')}`, items.length ? `<span class="muted small">${items.length}</span>` : '')}
-    <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${tr('Lo que hay que hacer, pero no esta semana. Llévalo a la semana o a un día cuando toque.', 'What needs doing, just not this week. Move it to the week or a day when it’s time.')}</p>`}
-      ${items.length >= MAX_NO_DATE ? '' : `<form class="add-row" data-form="addundated"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
-    </div></section>`;
-}
-
 function progress(week) {
   const all = [...weekTasks(week, 'a'), ...weekTasks(week, 'b')], done = all.filter(x => x.row.c).length;
   if (!all.length) return '';
@@ -92,7 +78,6 @@ function weekView() {
     <section class="section">${sectionHead(tr('Intención de la semana', 'Intention for the week'))}<div class="card week-intent">${field(W + 'i', tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?'))}</div>${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
-    ${undatedList()}
     </div><div class="col">
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({

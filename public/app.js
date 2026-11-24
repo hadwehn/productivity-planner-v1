@@ -3,7 +3,7 @@ import { makeClient } from './client.js';
 import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
-import { archiveOverdue } from './js/tasks.js';
+import { dropOldOverdue, undatedToDay } from './js/tasks.js';
 import { U, applyTextSize, applyTheme, openOnPlannedDay, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
@@ -141,8 +141,9 @@ async function loadUser(user) {
     store.revision = row?.revision || null;
     const before = JSON.stringify(S);
     migrate();
-    // Lo pendiente de hace más de tres semanas deja de avisarse y espera en «Sin fecha».
-    const archived = archiveOverdue(today());
+    // Lo pendiente de hace más de tres semanas se suelta (queda en su día). Y la antigua lista
+    // «Algún día», ya retirada, pasa a hoy para que cada tarea se decida ahí.
+    const dropped = dropOldOverdue(today()), fromSomeday = undatedToDay(today());
     applyTheme();
     applyTextSize();
     setLang(S.cfg.lang || 'es'); // español es el idioma base
@@ -157,9 +158,12 @@ async function loadUser(user) {
     if (!row || JSON.stringify(S) !== before) { store.schedule(() => checkedState(S)); await store.flush(); }
     if (generation !== authGeneration) return;
     welcome();
-    if (archived) toast(archived === 1
-      ? tr('Una tarea de hace más de tres semanas pasó a «Algún día», en Plan.', 'A task from over three weeks ago moved to “Someday”, in Plan.')
-      : tr(`${archived} tareas de hace más de tres semanas pasaron a «Algún día», en Plan.`, `${archived} tasks from over three weeks ago moved to “Someday”, in Plan.`));
+    const notices = [];
+    if (fromSomeday) notices.push(fromSomeday === 1 ? tr('Una tarea de «Algún día» pasó a hoy.', 'A “Someday” task moved to today.')
+      : tr(`${fromSomeday} tareas de «Algún día» pasaron a hoy.`, `${fromSomeday} “Someday” tasks moved to today.`));
+    if (dropped) notices.push(dropped === 1 ? tr('Se soltó una tarea pendiente de hace más de tres semanas; queda en su día.', 'A task left over from over three weeks ago was let go; it stays on its day.')
+      : tr(`Se soltaron ${dropped} tareas pendientes de hace más de tres semanas; quedan en su día.`, `${dropped} tasks left over from over three weeks ago were let go; they stay on their day.`));
+    if (notices.length) toast(notices.join(' '));
     void updateAccountRole(user.id, generation);
   } catch (error) {
     if (generation !== authGeneration) return;

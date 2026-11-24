@@ -824,13 +824,10 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 /* «Texto más grande» en Ajustes: sube el texto de lectura (los títulos grandes quedan igual). */
 :root[data-text="large"] { --ts: 1.14; }
 
-/* «Elegir cuándo»: debajo de los días, la semana (sin día) y «Algún día»; y filas de la lista en Plan. */
+/* «Elegir cuándo»: debajo de los días, la opción de la semana (sin día). */
 .when-more { display: grid; gap: 8px; margin-top: 12px; }
-.undated-btn { margin-top: 12px; }
-.when-more .undated-btn { margin-top: 0; }
-.undated-btn .icon { width: 18px; height: 18px; }
-.task.undated .task-main > span { color: var(--ink-2); }
+.when-more .icon { width: 18px; height: 18px; }
 .overdue-row { display: grid; gap: 8px; padding: 10px 0; }
 .overdue-actions { display: flex; gap: 6px; }
-.overdue-actions .btn.small { flex: 1; }
+.overdue-actions .btn.small { flex: 1; padding-inline: 8px; white-space: nowrap; }
 @media (min-width: 560px) { .overdue-row { grid-template-columns: 1fr auto; align-items: center; } .overdue-actions .btn.small { flex: none; } }

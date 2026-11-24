@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  addUndated, leaveUndated, noDate, removeUndated, scheduleUndated, movePendingTo, archiveOverdue, setWeekGoal, taskToWeek, undatedToWeek, weekForDay,
+  movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
@@ -293,28 +293,19 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-13T09:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
 });
 
-test('sin fecha: dejar una tarea sin fecha, deshacer, llevarla a un día y validar', () => {
+test('la antigua lista «Algún día» pasa a un día como tareas normales y se sigue validando', () => {
   load(fixture());
-  const key = addTask(DAY, 'Renovar el pasaporte');
-  const r = leaveUndated(DAY, key);
-  ok(!r.error, 'sin error');
-  eq(noDate().map(x => [x.t, x.from]), [['Renovar el pasaporte', DAY]], 'queda sin fecha con su día de origen');
-  ok(!dayTasks(DAY).rest.some(x => x.row.t === 'Renovar el pasaporte'), 'sale del día');
-  checkedState(JSON.parse(JSON.stringify(S)));
-  restore(r.undo);
-  eq(noDate().length, 0, 'deshacer vacía la lista');
-  ok(dayTasks(DAY).rest.some(x => x.row.t === 'Renovar el pasaporte'), 'y la devuelve al día');
-  addUndated('Llamar al dentista');
-  const s2 = scheduleUndated(0, NEXT);
-  ok(dayTasks(NEXT).rest.some(x => x.row.t === 'Llamar al dentista') && noDate().length === 0, 'llevar a un día');
-  restore(s2.undo);
-  eq(noDate().map(x => x.t), ['Llamar al dentista'], 'deshacer la vuelve a dejar sin fecha');
-  removeUndated(0);
-  eq(S.nd, undefined, 'lista vacía no se guarda');
+  S.nd = [{ t: 'Renovar el pasaporte', from: DAY }, { t: 'Llamar al dentista' }];
+  checkedState(JSON.parse(JSON.stringify(S))); // respaldos antiguos se siguen aceptando
   for (const bad of [{ nd: 'x' }, { nd: [{ t: 3 }] }, { nd: [{ t: 'a', from: 'ayer' }] }]) {
     let failed = false; try { checkedState({ ...JSON.parse(JSON.stringify(S)), ...bad }); } catch { failed = true; }
     eq(failed, true, 'inválido ' + JSON.stringify(bad));
   }
+  const before = dayTasks(NEXT).rest.length;
+  eq(undatedToDay(NEXT), 2);
+  eq(dayTasks(NEXT).rest.slice(before).map(x => x.row.t), ['Renovar el pasaporte', 'Llamar al dentista']);
+  eq(S.nd, undefined, 'la lista desaparece');
+  eq(undatedToDay(NEXT), 0, 'no repite');
   eq(v1Accepts(S), true);
 });
 
@@ -334,9 +325,9 @@ test('semana: si una copia pendiente sale de su semana, la semanal no se marca h
   eq(checkedState(S).w[WEEK].a[i].moved, true, 'se valida');
   restore(r.undo);
   eq([weekly().c, weekly().moved], [false, undefined], 'deshacer');
-  // Dejarla sin fecha, igual.
-  leaveUndated(FRI, key(FRI));
-  eq(weekly().c, false, 'sin fecha: sigue pendiente');
+  // Pasar el viernes a la semana (sin día): sigue pendiente, aunque el lunes esté hecho.
+  taskToWeek(FRI, key(FRI), MON);
+  eq([weekly().c, weekly().moved], [false, true], 'a la semana sin día: sigue pendiente');
   // Volver a programarla en su semana la deja completarse sola otra vez.
   toggleWeekDay(WEEK, 'a', i, FRI);
   setDone(FRI, key(FRI), true);
@@ -386,7 +377,7 @@ test('semana: objetivo (sin días) quita las copias pendientes, se marca a mano 
   eq(v1Accepts(S), true);
 });
 const keyOfText = (d, t) => +Object.entries(S.d[d].k).find(([, r]) => r?.t === t)[0];
-test('horizontes: un día → la semana y algún día → esta semana', () => {
+test('un día → la semana (sin día)', () => {
   load(fixture());
   const T = today(), thisWeek = weekForDay(T, T), lastWeekDay = shiftDate(thisWeek, -3), nextWeekDay = shiftDate(thisWeek, 9);
   eq([weekForDay(lastWeekDay, T), weekForDay(nextWeekDay, T)], [thisWeek, shiftDate(thisWeek, 7)], 'un día pasado sube a esta semana; uno futuro, a la suya');
@@ -416,15 +407,9 @@ test('horizontes: un día → la semana y algún día → esta semana', () => {
   setDone(MON, k(MON), true);
   const r2 = taskToWeek(TUE, k(TUE), T);
   eq([r2.unscheduled, scheduledDays(path), weekTasks(thisWeek, 'b').length, S.w[thisWeek].b[0].c], [true, [MON], 1, false], 'sin duplicar y sin darla por hecha');
-  // Algún día → esta semana.
-  S.w = {}; S.nd = [{ t: 'Pintar la reja' }];
-  const r3 = undatedToWeek(0, thisWeek);
-  eq([r3.list, weekTasks(thisWeek, 'b').map(x => x.row.t), noDate().length], ['b', ['Pintar la reja'], 0]);
-  restore(r3.undo);
-  eq([noDate().length, weekTasks(thisWeek, 'b').length], [1, 0], 'deshacer');
   eq(v1Accepts(S), true);
 });
-test('pendientes de más de 21 días pasan solos a «Sin fecha»', () => {
+test('pendientes de más de 21 días se sueltan solos y quedan en su día', () => {
   load(fixture());
   const T = today(), old = shiftDate(T, -22), recent = shiftDate(T, -21);
   S.d = {}; delete S.nd;
@@ -434,11 +419,10 @@ test('pendientes de más de 21 días pasan solos a «Sin fecha»', () => {
   addTask(old, 'Soltada');
   dropTask(old, 3);
   addTask(recent, 'Reciente');
-  eq(archiveOverdue(T), 1, 'solo la pendiente vieja');
-  eq(noDate().map(x => [x.t, x.from]), [['Vieja', old]]);
-  eq(dayTasks(old).rest.map(x => x.row.t), ['Hecha', 'Soltada'], 'las hechas y soltadas quedan en su día');
+  eq(dropOldOverdue(T), 1, 'solo la pendiente vieja');
+  eq(dayTasks(old).rest.map(x => [x.row.t, !!x.row.c, !!x.row.drop]), [['Vieja', false, true], ['Hecha', true, false], ['Soltada', false, true]], 'todas quedan en su día');
   eq(overdue(T).map(x => x.row.t), ['Reciente'], 'la de hace 21 días sigue como aviso');
-  eq(archiveOverdue(T), 0, 'no repite');
+  eq(dropOldOverdue(T), 0, 'no repite');
 });
 test('días pasados: se pueden añadir, renombrar y borrar tareas', () => {
   load(fixture());

@@ -7,13 +7,13 @@
 //   independiente: marcarla hecha no marca las de otros días. La tarea semanal queda hecha cuando
 //   todas sus copias lo están (o al marcarla en Plan, que marca todas). Un día no tiene dos copias
 //   de la misma tarea semanal: al moverla a un día que ya la tiene, quedan en una.
-//   Si una copia pendiente sale de su semana (a otro día fuera de ella o a «Sin fecha»), la semanal
+//   Si una copia pendiente sale de su semana (a un día fuera de ella), la semanal
 //   guarda moved = true y ya no se da por hecha sola: ese trabajo no se hizo en su semana.
 //   Una tarea semanal puede ser un objetivo (goal = true): no se reparte en días y se marca a mano.
-//   Pendientes de más de 21 días pasan solos a «Sin fecha» (archiveOverdue, al abrir la app).
-//   Horizontes: un día → la semana → «Algún día». Una tarea sube o baja de a un peldaño
-//   (taskToWeek, undatedToWeek).
-//   nd: tareas «Algún día» (antes «Sin fecha») [{ t, from? }]: hay que hacerlas, pero aún no se sabe cuándo (from = día de donde salió).
+//   Pendientes de más de 21 días se sueltan solos (dropOldOverdue, al abrir la app): quedan en su día.
+//   Dos horizontes: un día o la semana (taskToWeek pasa una tarea del día a su semana, sin día).
+//   nd: la antigua lista «Sin fecha» / «Algún día», ya retirada. Si llega con datos (cuentas
+//   antiguas o respaldos), undatedToDay la pasa a un día como tareas normales.
 import { S, save } from './state.js';
 import { addDays, iso, parseDate, shiftDate, weekday } from './util.js';
 import { tr } from './i18n.js';
@@ -207,17 +207,14 @@ export function bringOverdue(date, items = overdue(date)) {
   }
   return { undo, count: items.length };
 }
-/** Pasa a «Sin fecha» las pendientes de días anteriores a la ventana de avisos. Devuelve cuántas. */
-export function archiveOverdue(date) {
+/** Suelta las pendientes de días anteriores a la ventana de avisos (quedan en su día). Devuelve cuántas. */
+export function dropOldOverdue(date) {
   const limit = shiftDate(date, -LOOKBACK_DAYS);
-  const stale = d => { const { focus, rest } = dayTasks(d); return [...focus, ...rest].find(t => !t.row.c && !t.row.drop); };
   let count = 0;
-  for (const d of Object.keys(S.d).filter(d => d < limit).sort()) {
-    for (let next = stale(d); next; next = stale(d)) {
-      if (leaveUndated(d, next.key).error) return count; // «Sin fecha» llena: el resto sigue en su día
-      count++;
-    }
+  for (const d of Object.keys(S.d).filter(d => d < limit)) {
+    for (const row of Object.values(S.d[d].k || {})) if (text(row) && !row.c && !row.drop) { row.drop = true; count++; }
   }
+  if (count) save();
   return count;
 }
 /** «Soltar» una tarea: deja de aparecer como pendiente, sin borrarla de su día. */
@@ -442,57 +439,13 @@ export function taskToWeek(date, key, T) {
   return { undo, week, list };
 }
 
-/** Lleva una tarea de «Algún día» a la semana (por defecto a «También esta semana»). */
-export function undatedToWeek(i, week) {
-  const row = noDate()[i];
-  if (!row) return { error: tr('Esa tarea ya no está.', 'That task is no longer there.') };
-  const list = roomIn(week, 'b');
-  if (!list) return { error: fullWeek() };
-  const undo = snapshot([]);
-  addWeekTask(week, list, row.t);
-  setNoDate(noDate().filter((_, j) => j !== i));
-  save();
-  return { undo, week, list };
-}
-
-// ——— Algún día (nd; en el código, «sin fecha») ———
-export const MAX_NO_DATE = 200;
-export const noDate = () => S.nd || [];
-const setNoDate = list => { if (list.length) S.nd = list; else delete S.nd; };
-/** Saca una tarea del día y la deja «sin fecha». Devuelve { undo } o { error }. */
-export function leaveUndated(date, key) {
-  const row = getTask(date, key);
-  if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
-  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas para algún día. Elimina o agenda alguna.', 'You have too many “Someday” tasks. Delete or schedule some.') };
-  const undo = snapshot([date]);
-  setNoDate([...noDate(), { t: text(row), from: date }]);
-  leavesWeek(row);
-  removeTask(date, key);
-  return { undo };
-}
-/** Anota directamente una tarea sin fecha. */
-export function addUndated(value) {
-  const t = String(value || '').trim();
-  if (!t) return { error: '' };
-  if (noDate().length >= MAX_NO_DATE) return { error: tr('Ya tienes muchas tareas para algún día. Elimina o agenda alguna.', 'You have too many “Someday” tasks. Delete or schedule some.') };
-  setNoDate([...noDate(), { t }]);
-  save();
-  return {};
-}
-/** Lleva una tarea sin fecha a un día. */
-export function scheduleUndated(i, date) {
-  const row = noDate()[i];
-  if (!row) return { error: tr('Esa tarea ya no está.', 'That task is no longer there.') };
-  const undo = snapshot([date]);
-  addTask(date, row.t);
-  setNoDate(noDate().filter((_, j) => j !== i));
-  save();
-  return { undo };
-}
-export function removeUndated(i) {
-  if (!noDate()[i]) return null;
-  const undo = snapshot([]);
-  setNoDate(noDate().filter((_, j) => j !== i));
-  save();
-  return { undo };
+// ——— Antigua lista «Algún día» (nd) ———
+/** Pasa las tareas de la antigua lista «Algún día» a `date`, como tareas normales. Devuelve cuántas. */
+export function undatedToDay(date) {
+  const list = Array.isArray(S.nd) ? S.nd : [];
+  let count = 0;
+  for (const row of list) if (addTask(date, row?.t) !== null) count++;
+  delete S.nd;
+  if (list.length) save();
+  return count;
 }

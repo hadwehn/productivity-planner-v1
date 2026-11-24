@@ -2,13 +2,13 @@
 import { S, save, setPath } from './state.js';
 import { U, applyTextSize, planHour, setAppearance, storedAppearance, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
 import {
-  addTask, addUndated, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
+  addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, undatedDelete, undatedMenu, undatedMove, undatedPick, undatedTask, undatedWeek, doTaskToWeek,
+  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
 import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
@@ -114,18 +114,12 @@ const ACTIONS = {
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
-  taskundated: d => undatedTask(U.date, +d.k),
   taskweek: d => doTaskToWeek(U.date, +d.k),
-  undatedweek: d => undatedWeek(+d.i),
-  undatedmenu: d => undatedMenu(+d.i),
-  undatedpick: d => undatedPick(+d.i),
-  undatedmove: d => undatedMove(+d.i, d.fromInput ? $('#pickDate')?.value : d.date),
-  undateddelete: d => undatedDelete(+d.i),
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
-  overdueundated: d => overdueAction('undated', d.date, +d.k),
+  overdueweek: d => overdueAction('week', d.date, +d.k),
   overdueall: () => overdueAction('all'),
 
   // Ánimo
@@ -257,10 +251,7 @@ function onSubmit(e) {
 function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return false;
-  if (form.dataset.form === 'addundated') {
-    const r = addUndated(value);
-    if (r.error) { toast(r.error); return false; }
-  } else if (form.dataset.form === 'addtask') {
+  if (form.dataset.form === 'addtask') {
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
@@ -305,7 +296,7 @@ function onInput(e) {
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {
   const el = e.target;
-  const addForm = el.closest?.('form[data-form="addtask"], form[data-form="addweek"], form[data-form="addundated"]');
+  const addForm = el.closest?.('form[data-form="addtask"], form[data-form="addweek"]');
   if (addForm) { if (canEdit() && !addForm.contains(e.relatedTarget)) addOnLeave(addForm); return; }
   if (!canEdit() || el.value === undefined || el.value.trim()) return;
   if (el.dataset.taskText) { removeTask(U.date, +el.dataset.taskText); setTimeout(render); }
