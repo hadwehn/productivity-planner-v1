@@ -293,14 +293,15 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .banner p { flex: 1; margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.4; }
 .banner .btn.small { background: var(--surface); color: var(--ink); }
 
-/* Tareas, foco de la semana y hábitos en MAYÚSCULAS del mismo tamaño y grosor que las etiquetas
-   («TAREAS», «EN FOCO»), para que todo se vea uniforme; en color de tinta, las etiquetas en gris.
+/* Tareas, foco de la semana y hábitos en MAYÚSCULAS del mismo tamaño que las etiquetas («TAREAS»,
+   «EN FOCO»), para que todo se vea uniforme; sin negrita y en color de tinta (las etiquetas, en
+   negrita y gris).
    Solo cambia cómo se ve: se guarda tal como se escribe. Lo que se está por escribir («Añadir
    tarea») se ve en texto normal. */
 .task textarea, .add-row input, .task-main > span:not(.task-meta), .habit-chip > span:not(.dot), #habitName {
-  text-transform: uppercase; font-size: calc(12px * var(--ts)); font-weight: 650; letter-spacing: .08em;
+  text-transform: uppercase; font-size: calc(12px * var(--ts)); font-weight: 400; letter-spacing: .08em;
 }
-.habit-top strong { text-transform: uppercase; font-size: calc(13px * var(--ts)); font-weight: 650; letter-spacing: .07em; }
+.habit-top strong { text-transform: uppercase; font-size: calc(13px * var(--ts)); font-weight: 400; letter-spacing: .07em; }
 .task textarea::placeholder, .add-row input::placeholder, #habitName::placeholder {
   text-transform: none; font-size: calc(16px * var(--ts)); font-weight: 400; letter-spacing: 0;
 }
@@ -787,7 +788,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .wo-list { display: grid; gap: 3px; flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; font-size: calc(14px * var(--ts)); color: var(--ink-2); }
   .wo-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wo-list li.done { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .wo-list li:not(.ev):not(.more) { text-transform: uppercase; font-size: calc(11px * var(--ts)); font-weight: 600; letter-spacing: .07em; }
+  .wo-list li:not(.ev):not(.more) { text-transform: uppercase; font-size: calc(11px * var(--ts)); font-weight: 400; letter-spacing: .07em; }
   .wo-list li.ev { color: var(--acc); }
   .wo-list li.more { color: var(--mute); font-size: calc(12px * var(--ts)); }
   .wo-list time { font-variant-numeric: tabular-nums; opacity: .8; }

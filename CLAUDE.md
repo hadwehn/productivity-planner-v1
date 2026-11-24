@@ -203,8 +203,8 @@ dispositivo, en `localStorage`.
 **Estilo**
 - Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
-- Tareas (del día y de la semana) y hábitos en MAYÚSCULAS del mismo tamaño y grosor que las
-  etiquetas («TAREAS», 12 px), en color de tinta, para que todo se vea uniforme (decisión de los
+- Tareas (del día y de la semana) y hábitos en MAYÚSCULAS del mismo tamaño que las etiquetas
+  («TAREAS», 12 px), sin negrita y en color de tinta, para que todo se vea uniforme (decisión de los
   fundadores tras probar versalitas, mayúsculas más grandes y minúsculas). Se guardan tal como se
   escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
