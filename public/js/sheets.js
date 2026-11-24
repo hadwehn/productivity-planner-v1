@@ -11,7 +11,7 @@ import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
 import { notesEditor } from './views/notes.js';
-import { MAX_EVENT_DAYS, rangeLabel } from './events.js';
+import { MAX_EVENT_DAYS, putEvent, shiftEnd } from './events.js';
 import { isPastWeek } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
 import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
@@ -348,32 +348,46 @@ export function eventEditor(date, index = null) {
   const current = index === null ? null : S.ev[date]?.[index];
   if (index !== null && !current) return;
   const draft = current ? { ...current } : { t: '', h: '', c: -1 };
-  const pd = parseDate(date), optional = `<span class="muted">(${tr('opcional', 'optional')})</span>`;
+  const optional = `<span class="muted">(${tr('opcional', 'optional')})</span>`;
   openSheet(current ? tr('Editar evento', 'Edit event') : tr('Nuevo evento', 'New event'), `<form id="eventForm">
-    <p class="muted small" style="margin:-4px 0 14px">${draft.to && draft.to > date ? rangeLabel(date, draft.to) : `${DAYS[weekday(pd)]} · ${dayMonth(pd)}`}</p>
     <div class="field"><label for="eventTitle">${tr('¿Qué tienes?', 'What do you have?')}</label><input id="eventTitle" class="input" required maxlength="200" placeholder="${tr('Reunión, cumpleaños, médico…', 'Meeting, birthday, doctor…')}" value="${esc(draft.t)}"></div>
+    <div class="field"><label for="eventDay">${tr('Día', 'Day')}</label><input id="eventDay" class="input" type="date" required value="${date}"></div>
     <div class="field"><label for="eventTo">${tr('Hasta', 'Until')} ${optional}</label><input id="eventTo" class="input" type="date" min="${shiftDate(date, 1)}" max="${shiftDate(date, MAX_EVENT_DAYS - 1)}" value="${esc(draft.to || '')}"><p class="prompt-hint">${tr('Para algo de varios días, como un viaje o unas vacaciones.', 'For something that lasts several days, like a trip or a holiday.')}</p></div>
     <div class="field"><label for="eventHour">${tr('Hora', 'Time')} ${optional}</label><input id="eventHour" class="input" type="time" step="300" value="${esc(draft.h || '')}"></div>
     <div class="field"><span class="field-label">${tr('Área', 'Area')} ${optional}</span><div class="choices">${CATEGORY_ORDER.map(i => `<label class="choice" style="--c:${categoryColor(i)}"><input type="radio" name="eventCategory" value="${i}"${draft.c === i ? ' checked' : ''}><i></i>${categoryName(i)}</label>`).join('')}</div></div>
     <button class="btn" type="submit">${current ? tr('Guardar', 'Save') : tr('Añadir evento', 'Add event')}</button>
     ${current ? `<button class="btn danger" type="button" id="eventDelete" style="margin-top:8px">${tr('Eliminar evento', 'Delete event')}</button>` : ''}</form>`, dlg => {
     const radios = $$('input[name=eventCategory]', dlg);
+    // Cambiar el día corre también el «Hasta» (misma duración) y sus límites.
+    const dayInput = $('#eventDay', dlg), toInput = $('#eventTo', dlg);
+    let lastDay = date;
+    dayInput.addEventListener('change', () => {
+      const day = dayInput.value;
+      if (!day) return;
+      if (toInput.value) toInput.value = shiftEnd(toInput.value, lastDay, day);
+      toInput.min = shiftDate(day, 1);
+      toInput.max = shiftDate(day, MAX_EVENT_DAYS - 1);
+      lastDay = day;
+    });
     // La categoría es opcional: tocar la elegida la desmarca.
     radios.forEach(r => { r.dataset.was = String(r.checked); r.addEventListener('click', () => { if (r.dataset.was === 'true') { r.checked = false; r.dataset.was = 'false'; } else radios.forEach(o => { o.dataset.was = String(o === r); }); }); });
     $('#eventForm', dlg).addEventListener('submit', e => {
       e.preventDefault();
       const t = $('#eventTitle', dlg).value.trim(), h = $('#eventHour', dlg).value, c = Number(radios.find(r => r.checked)?.value ?? -1);
-      const to = $('#eventTo', dlg).value;
+      const to = $('#eventTo', dlg).value, day = $('#eventDay', dlg).value;
       if (!t) { toast(tr('Escribe qué tienes.', 'Write what you have.')); return; }
-      if (to && to <= date) { toast(tr('La fecha final tiene que ser después del primer día.', 'The end date has to be after the first day.')); return; }
-      if (to && to > shiftDate(date, MAX_EVENT_DAYS - 1)) { toast(tr('Un evento puede durar hasta un año.', 'An event can last up to a year.')); return; }
+      if (!day) { toast(tr('Elige el día.', 'Pick the day.')); return; }
+      if (to && to <= day) { toast(tr('La fecha final tiene que ser después del primer día.', 'The end date has to be after the first day.')); return; }
+      if (to && to > shiftDate(day, MAX_EVENT_DAYS - 1)) { toast(tr('Un evento puede durar hasta un año.', 'An event can last up to a year.')); return; }
       const event = to ? { t, h, c, to } : { t, h, c };
-      const list = S.ev[date] = S.ev[date] || [];
-      if (index === null) list.push(event); else list[index] = event;
+      putEvent(date, index, day, event);
+      if (U.tab === 'week') U.calDay = day; // en Mes queda elegido el día donde quedó el evento
       save();
       closeSheet();
       render();
-      toast(current ? tr('Evento guardado', 'Event saved') : tr('Evento añadido', 'Event added'));
+      const pd = parseDate(day), where = tr(`${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `${DAYS[weekday(pd)]} ${pd.getDate()}`);
+      toast(day !== date ? (current ? tr(`Evento pasado al ${where}`, `Event moved to ${where}`) : tr(`Evento añadido al ${where}`, `Event added to ${where}`))
+        : current ? tr('Evento guardado', 'Event saved') : tr('Evento añadido', 'Event added'));
     });
     $('#eventDelete', dlg)?.addEventListener('click', () => {
       const undo = structuredClone(S.ev[date]);

@@ -3,7 +3,7 @@
 import { S } from './state.js';
 import { categoryColor } from './categories.js';
 import { dayMonthShort, tr } from './i18n.js';
-import { esc, parseDate } from './util.js';
+import { esc, parseDate, shiftDate } from './util.js';
 
 export const MAX_EVENT_DAYS = 366;
 
@@ -20,6 +20,22 @@ export function eventsOn(date) {
   // Primero los que duran varios días (son de «todo el día»), luego por hora.
   const rank = ({ e, start }) => (e.to && e.to > start ? '0' : '1') + (e.h || '99');
   return out.sort((a, b) => rank(a).localeCompare(rank(b)));
+}
+
+/** «Hasta» de un evento cuyo inicio pasa de `from` a `day`: se corre igual y conserva la duración. */
+export const shiftEnd = (to, from, day) => (to ? shiftDate(to, Math.round((parseDate(day) - parseDate(from)) / 864e5)) : '');
+
+/**
+ * Guarda un evento nuevo (index null) o editado. Si su día cambió de `date` a `day`, sale de la
+ * lista del día anterior (que se quita si queda vacía) y entra al final de la del día nuevo.
+ */
+export function putEvent(date, index, day, event) {
+  if (index !== null && day === date) { S.ev[date][index] = event; return; }
+  if (index !== null) {
+    S.ev[date].splice(index, 1);
+    if (!S.ev[date].length) Reflect.deleteProperty(S.ev, date);
+  }
+  (S.ev[day] = S.ev[day] || []).push(event);
 }
 
 /** «14 – 16 nov» */

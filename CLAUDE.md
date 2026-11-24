@@ -162,6 +162,12 @@ dispositivo, en `localStorage`.
   se puede deshacer. Sigue siendo objetivo al pasar a otra semana. Idea para después: mostrar los
   objetivos en «Empieza tu día» o en la revisión semanal para que no se olviden.
 
+**Eventos**
+- El formulario de evento tiene un campo «Día» que viene con el día que se tocó y se puede cambiar
+  al crear o al editar (pasar un evento a otro día sin borrarlo). Si tiene «Hasta», se corre igual
+  y conserva la duración (`putEvent`/`shiftEnd` en `events.js`). En Mes queda elegido el día nuevo.
+  Se descartó arrastrar eventos en el calendario del celular (celdas chicas, choca con deslizar).
+
 **Hábitos y Diario**
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
   abajo. Cambiar la frecuencia guarda la anterior en `h.past` para no reescribir la racha ni la

@@ -16,7 +16,7 @@ import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
 import { journalView } from '../public/js/views/journal.js';
 import { shiftDate, today, weekdayOf } from '../public/js/util.js';
-import { eventsOn } from '../public/js/events.js';
+import { eventsOn, putEvent, shiftEnd } from '../public/js/events.js';
 import { canEditIntent, canEditRitual, finishIntent, finishRitual, hasIntent, intentState, reopenIntent, reopenReview, reopenRitual, reviewState, ritualState } from '../public/js/rituals.js';
 
 const tests = [];
@@ -539,6 +539,23 @@ test('revisión semanal: cumplimiento de hábitos de la semana', () => {
   eq(weekHabitRate('2026-11-30', T), null, 'semana futura');
   S.h = [];
   eq(weekHabitRate(mon, T), null, 'sin hábitos');
+});
+
+test('eventos: cambiar el día al crear o editar, conservando la duración', () => {
+  load(fixture());
+  S.ev = {};
+  putEvent('2026-11-24', null, '2026-11-27', { t: 'Médico', h: '10:00', c: -1 });
+  eq(Object.keys(S.ev), ['2026-11-27'], 'nuevo: queda en el día elegido');
+  putEvent('2026-11-27', null, '2026-11-27', { t: 'Cumpleaños', h: '', c: 2 });
+  putEvent('2026-11-27', 0, '2026-11-27', { t: 'Médico', h: '11:00', c: -1 });
+  eq(S.ev['2026-11-27'].map(e => e.t + e.h), ['Médico11:00', 'Cumpleaños'], 'mismo día: se edita en su lugar');
+  putEvent('2026-11-27', 0, '2026-11-30', { t: 'Médico', h: '11:00', c: -1 });
+  eq([S.ev['2026-11-27'].map(e => e.t), S.ev['2026-11-30'].map(e => e.t)], [['Cumpleaños'], ['Médico']], 'otro día: sale del anterior');
+  putEvent('2026-11-27', 0, '2026-11-28', { t: 'Cumpleaños', h: '', c: 2 });
+  eq('2026-11-27' in S.ev, false, 'el día que queda sin eventos no se guarda vacío');
+  eq([shiftEnd('2026-12-12', '2026-12-10', '2026-12-17'), shiftEnd('2026-12-02', '2026-11-30', '2026-11-28'), shiftEnd('', '2026-11-30', '2026-12-01')],
+    ['2026-12-19', '2026-11-30', ''], 'el «Hasta» se corre igual (también entre meses)');
+  checkedState(JSON.parse(JSON.stringify(S)));
 });
 
 // ——— Frases ———
