@@ -29,17 +29,35 @@ export const closeSheet = () => { if (sheet().open) sheet().close(); };
 // ——— Notas en modo enfoque ———
 // Una ventana flotante con bordes redondeados, que no ocupa toda la pantalla (en el celular, arriba y
 // con margen a los lados; en computador, centrada): la barra de formato arriba y el espacio para escribir. Se guarda sola mientras se escribe (views/notes.js).
-// Con el teclado del celular abierto, la ventana no se mueve ni se achica: el teclado queda encima de
-// su parte de abajo. El texto gana espacio abajo (--kb) para poder subir, y
+// En el celular, la ventana cabe entera sobre el teclado y no se mueve (ver sizeNotes). El texto gana espacio abajo (--kb) para poder subir, y
 // la línea en que se escribe se mantiene a la vista sobre el teclado (keepCaretVisible).
 function keyboardHeight() {
   const vv = window.visualViewport;
   return vv ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0;
 }
+// En el celular la ventana tiene siempre el alto justo para quedar entera sobre el teclado: así
+// Safari no tiene nada que mostrar y no mueve la pantalla al escribir; la ventana queda quieta.
+// El alto del teclado se aprende la primera vez que aparece y se recuerda en el dispositivo
+// (mientras tanto, una estimación). Si cambia (otro teclado), la ventana se ajusta una vez.
+const KEYBOARD_KEY = 'focus-teclado';
+const phone = () => !matchMedia('(min-width: 1000px)').matches && matchMedia('(pointer: coarse)').matches;
+function savedKeyboard() {
+  try { const v = +localStorage.getItem(KEYBOARD_KEY); if (v > 150 && v < innerHeight * 0.7) return v; } catch { /* almacenamiento bloqueado */ }
+  return Math.round(innerHeight * 0.42); // estimación: teclado + barra de sugerencias
+}
+function sizeNotes(dlg, keyboard = savedKeyboard()) {
+  if (!phone()) { dlg.style.removeProperty('height'); return; }
+  const top = parseFloat(getComputedStyle(dlg).marginTop) || 0; // posición final (no la de la animación de entrada)
+  dlg.style.height = `${Math.round(Math.max(250, Math.min(560, innerHeight - keyboard - top - 12)))}px`;
+}
 function trackKeyboard() {
   const dlg = sheet(), vv = window.visualViewport;
   if (!dlg.classList.contains('notes-sheet')) return;
   const keyboard = keyboardHeight();
+  if (phone() && keyboard > 150 && Math.abs(keyboard - savedKeyboard()) > 8) {
+    try { localStorage.setItem(KEYBOARD_KEY, String(keyboard)); } catch { /* almacenamiento bloqueado */ }
+    sizeNotes(dlg, keyboard);
+  }
   // La ventana no llega al borde de abajo: solo cuenta la parte que el teclado le tapa.
   const covered = vv && keyboard ? Math.max(0, Math.round(dlg.getBoundingClientRect().bottom - (vv.offsetTop + vv.height))) : 0;
   dlg.style.setProperty('--kb', `${covered}px`);
@@ -75,6 +93,7 @@ export function notesSheet(date) {
   const d = parseDate(date);
   openSheet(`${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`, notesEditor(date), dlg => {
     dlg.classList.add('notes-sheet');
+    sizeNotes(dlg);
     trackKeyboard();
     window.visualViewport?.addEventListener('resize', trackKeyboard);
     window.visualViewport?.addEventListener('scroll', trackKeyboard);
@@ -103,6 +122,7 @@ export function notesSheet(date) {
       dlg.removeEventListener('input', onType);
       dlg.removeEventListener('scroll', pinTop, true);
       dlg.style.removeProperty('--vv-top');
+      dlg.style.removeProperty('height');
       document.removeEventListener('selectionchange', onType);
       dlg.classList.remove('notes-sheet', 'keyboard');
       dlg.style.removeProperty('--kb');
