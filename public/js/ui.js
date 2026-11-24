@@ -81,9 +81,22 @@ export function openRitualForNow() {
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */
 export const showToday = key => S.cfg.today?.[key] !== false;
 
-let toastTimer, undoAction = null;
+let toastTimer, undoAction = null, statusHome = null;
+// Con una ventana abierta (p. ej., Notas), todo lo de afuera queda bloqueado: el aviso se muestra
+// dentro de ella para que «Deshacer» se pueda tocar, y vuelve a su lugar al cerrarla.
+function placeStatus(el) {
+  statusHome ||= el.parentElement;
+  const dlg = [...document.querySelectorAll('dialog[open]')].find(d => d.matches(':modal'));
+  const target = dlg || statusHome;
+  if (el.parentElement !== target) target.append(el);
+  if (dlg && !dlg.dataset.statusInside) {
+    dlg.dataset.statusInside = '1';
+    dlg.addEventListener('close', () => { delete dlg.dataset.statusInside; if (el.parentElement === dlg) statusHome.append(el); }, { once: true });
+  }
+}
 function showStatus(ms) {
   const el = $('#status');
+  placeStatus(el);
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.classList.remove('show'); undoAction = null; }, ms);

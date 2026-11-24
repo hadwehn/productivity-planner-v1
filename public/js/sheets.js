@@ -10,7 +10,7 @@ import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, 
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
-import { notesEditor } from './views/notes.js';
+import { clearNotes, notesEditor, notesWritten } from './views/notes.js';
 import { MAX_EVENT_DAYS, putEvent, shiftEnd } from './events.js';
 import { isPastWeek } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
@@ -56,6 +56,17 @@ function keepCaretVisible() {
   const limit = vv.offsetTop + vv.height - 28; // borde de arriba del teclado, con un margen
   if (rect.bottom > limit) editor.scrollTop += rect.bottom - limit;
 }
+/** Borra la nota abierta y ofrece recuperarla. */
+export function clearNotesNow() {
+  const undo = clearNotes();
+  if (!undo) return;
+  sheet().dispatchEvent(new Event('notes:changed'));
+  $('#notesEditor', sheet())?.focus();
+  toastUndo(tr('Nota borrada', 'Note deleted'), () => {
+    if (undo()) sheet().dispatchEvent(new Event('notes:changed'));
+    else render(); // la ventana ya se cerró: la tarjeta de Hoy vuelve a mostrarla
+  });
+}
 export function notesSheet(date) {
   const d = parseDate(date);
   openSheet(`${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`, notesEditor(date), dlg => {
@@ -63,7 +74,19 @@ export function notesSheet(date) {
     trackKeyboard();
     window.visualViewport?.addEventListener('resize', trackKeyboard);
     window.visualViewport?.addEventListener('scroll', trackKeyboard);
-    const onType = () => requestAnimationFrame(keepCaretVisible);
+    // Basurero para empezar la nota de cero: arriba, junto a la ✕ (lejos de donde se escribe y de
+    // «Guardar»), y solo si hay algo escrito. Borra al instante y ofrece «Deshacer».
+    const trash = document.createElement('button');
+    trash.type = 'button';
+    trash.className = 'icon-btn notes-clear';
+    trash.dataset.a = 'notesclear';
+    trash.setAttribute('aria-label', tr('Borrar la nota', 'Delete the note'));
+    trash.title = tr('Borrar la nota', 'Delete the note');
+    trash.innerHTML = icon('trash');
+    $('.sheet-head [data-a="dismiss"]', dlg)?.before(trash);
+    const showTrash = () => { trash.hidden = !notesWritten(); };
+    showTrash();
+    const onType = () => requestAnimationFrame(() => { keepCaretVisible(); showTrash(); });
     dlg.addEventListener('input', onType);
     document.addEventListener('selectionchange', onType);
     dlg.addEventListener('close', () => {
@@ -75,6 +98,7 @@ export function notesSheet(date) {
       dlg.style.removeProperty('--kb');
       render(); // la tarjeta de Hoy muestra lo recién escrito
     }, { once: true });
+    dlg.addEventListener('notes:changed', showTrash);
     // Una nota vacía queda lista para escribir; una con texto se abre para leer primero.
     const editor = $('#notesEditor', dlg);
     if (editor?.classList.contains('is-empty')) setTimeout(() => editor.focus(), 60);

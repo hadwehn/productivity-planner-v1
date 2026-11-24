@@ -133,6 +133,8 @@ dispositivo, en `localStorage`.
   ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
   se mantiene a la vista. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
+  Basurero junto a la ✕ (solo con algo escrito) para empezarla de cero: borra al instante con
+  «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).

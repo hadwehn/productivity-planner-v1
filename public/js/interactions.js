@@ -7,7 +7,7 @@ import {
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
+  closeSheet, clearNotesNow, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
@@ -81,6 +81,7 @@ const ACTIONS = {
   settings: () => openSettings(),
   shortcuts: () => shortcutsSheet(),
   notesopen: () => notesSheet(U.date),
+  notesclear: () => clearNotesNow(),
   // «Listo» en las notas: se guardan al escribir; esto deja la anotación lista y cierra la hoja.
   notesdone: (d, b) => {
     const editor = $('#notesEditor'), written = editor && editor.textContent.trim();

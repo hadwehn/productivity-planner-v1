@@ -136,6 +136,30 @@ function saveNotes() {
   setPath(key + 'n', blank ? '' : (editor.innerText || editor.textContent || '').replace(/\n{3,}/g, '\n\n').trim());
 }
 
+/** ¿La nota abierta tiene algo escrito? */
+export const notesWritten = () => { const editor = editorEl(); return !!editor && !isBlank(editor.innerHTML); };
+/**
+ * Borra la nota abierta completa (para empezarla de cero). Devuelve una función que la recupera,
+ * esté la ventana abierta o no.
+ */
+export function clearNotes() {
+  const editor = editorEl();
+  if (!editor || isBlank(editor.innerHTML)) return null;
+  const date = editor.dataset.noteDate, key = `d.${date}.`;
+  const html = cleanNote(editor.innerHTML), text = (editor.innerText || editor.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+  editor.innerHTML = '';
+  setPath(key + 'nRich', '');
+  setPath(key + 'n', '');
+  refresh(editor);
+  return () => {
+    setPath(key + 'nRich', html);
+    setPath(key + 'n', text);
+    const open = editorEl();
+    if (open?.closest('dialog')?.open && open.dataset.noteDate === date) { open.innerHTML = html; refresh(open); return true; }
+    return false;
+  };
+}
+
 const exec = (cmd, value = null) => document.execCommand(cmd, false, value);
 function format(action) {
   const editor = editorEl();
