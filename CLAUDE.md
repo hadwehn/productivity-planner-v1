@@ -72,6 +72,13 @@ dispositivo, en `localStorage`.
 - Pestañas: Hoy, Plan, Hábitos, Diario. En celular, barra inferior flotante **siempre del mismo
   tamaño**, con íconos y nombres. Se probó achicarla al bajar (solo íconos, volvía a los 0,4 s) y
   se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
+- Punto de aviso en la barra de secciones (como WhatsApp): un punto verde/amarillo en Hoy desde las
+  19:00 si el día sigue sin cerrar, y en Plan cuando toca cerrar la semana (`reviewReminder`). No se
+  muestra en la sección en que estás; se actualiza cada minuto (`navDots` en `render.js`).
+- Deslizar una tarea a la izquierda (solo con el dedo) muestra sus acciones rápidas: «Mañana» (u
+  «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar»; en Plan, «Próxima» (o
+  «Esta semana») y «Eliminar». Una tarea hecha solo muestra «Eliminar». Pasada la mitad queda
+  abierta; tocar fuera la cierra. Usa las mismas acciones del menú ⋯ (`swipeRows`).
 - Todas las cabeceras: título grande arriba, el periodo en negrita debajo y **la línea separadora
   a la misma altura en las cinco pantallas** (`min-height` de `.sticky-head`). Cualquier cambio en
   una cabecera debe mantener esa altura (medir con texto normal y «Texto más grande»).

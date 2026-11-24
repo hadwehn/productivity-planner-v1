@@ -8,6 +8,8 @@ import { planView } from './views/week.js';
 import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
 import { isUnlocked, journalTab } from './lock.js';
+import { S } from './state.js';
+import { reviewReminder } from './rituals.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
 export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Plan', 'Plan')], ['today', tr('Hoy', 'Today')]];
@@ -28,6 +30,25 @@ addEventListener('scroll', markScrolled, { passive: true });
 // «Hoy» ordena distinto sus bloques en pantallas amplias: se vuelve a dibujar al cruzar ese ancho.
 const wideScreen = typeof matchMedia === 'function' ? matchMedia('(min-width: 1200px)') : null;
 wideScreen?.addEventListener?.('change', () => { if (shownTab) render(); });
+
+// ——— Punto de aviso en la barra de secciones ———
+// Un punto discreto en una sección que tiene algo para ti, aunque estés en otra: en Hoy, desde las
+// 19:00 si el día sigue sin cerrar; en Plan, cuando toca cerrar la semana (domingo desde las 18:00
+// hasta el lunes a mediodía, ver reviewReminder). No se muestra en la sección en la que ya estás.
+const NIGHT_HOUR = 19;
+export function navDots(now = new Date()) {
+  const T = today(), pending = {
+    today: now.getHours() >= NIGHT_HOUR && S?.d?.[T]?.closed?.e !== true,
+    week: !!(S && reviewReminder(now)),
+  };
+  const labels = { today: tr('cierra tu día', 'close your day'), week: tr('cierra tu semana', 'close your week') };
+  $$('#nav button[data-k]').forEach(b => {
+    const k = b.dataset.k, dot = !!pending[k] && k !== U.tab;
+    b.classList.toggle('has-dot', dot);
+    const span = b.querySelector('span');
+    b.setAttribute('aria-label', dot ? `${span?.textContent || ''} · ${labels[k]}` : (span?.textContent || ''));
+  });
+}
 
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
@@ -102,6 +123,7 @@ export function render(toTop = false) {
     b.classList.toggle('on', on);
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
+  navDots();
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   drawBackNow();

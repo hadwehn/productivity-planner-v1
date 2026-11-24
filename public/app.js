@@ -5,7 +5,7 @@ import { S, blank, checkedState, normalize, onSave, setState, summary } from './
 import { migrate } from './js/migrate.js';
 import { dropOldOverdue, undatedToDay } from './js/tasks.js';
 import { U, applyTextSize, applyTheme, openOnPlannedDay, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
-import { render, renderNav } from './js/render.js';
+import { render, renderNav, navDots } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
 import { relock, setAuth } from './js/lock.js';
@@ -297,7 +297,7 @@ function wire() {
   window.addEventListener('focus', poll);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { relock(); if (U.tab === 'journal' && ready) render(); } // el Diario se vuelve a proteger al salir de la app
-    else { if (ready && rollDay()) render(); poll(); }
+    else { if (ready && rollDay()) render(); if (ready) navDots(); poll(); }
   });
   setAuth({
     email: () => sessionUser?.email,
@@ -311,7 +311,7 @@ function wire() {
       if (data.user?.id !== sessionUser.id) throw Error(tr('La cuenta no coincide.', 'The account doesn’t match.'));
     },
   });
-  setInterval(() => { if (ready && !document.hidden && !editing() && rollDay()) render(); poll(); }, 60000);
+  setInterval(() => { if (ready && !document.hidden && !editing() && rollDay()) render(); if (ready) navDots(); poll(); }, 60000);
 }
 
 // Las llamadas de Auth se difieren fuera del callback para no bloquear el SDK.

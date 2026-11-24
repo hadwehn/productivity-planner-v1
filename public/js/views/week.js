@@ -9,7 +9,7 @@ import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { intentState, reviewState } from '../rituals.js';
+import { intentState, isPastWeek, reviewState } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
@@ -40,10 +40,15 @@ function weekList(week, list, title, hint) {
     // Hecha: el nombre queda como registro (se desmarca con el círculo para corregirlo).
     const text = row.c ? `<span>${esc(row.t)}</span>`
       : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
-    return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
+    // Al deslizar (celular): pasarla a la próxima semana (o a esta, si es de una pasada) y eliminarla.
+    const ids = `data-list="${list}" data-i="${i}" tabindex="-1"`, past = isPastWeek(week);
+    const move = row.c ? '' : `<button type="button" class="swipe-move" data-a="${past ? 'weekthis' : 'weeknext'}" ${ids}>${icon('arrowRight')}<span>${past ? tr('Esta semana', 'This week') : tr('Próxima', 'Next week')}</span></button>`;
+    const swipe = `<div class="swipe-actions" aria-hidden="true">${move}<button type="button" class="swipe-delete" data-a="weekdelete" ${ids}>${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button></div>`;
+    return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}" data-swipe-row>
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
       <div class="task-main">${text}</div>
       <button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="${tr('Más opciones', 'More options')}">${icon('more')}</button>
+      ${swipe}
     </div>${row.goal ? goal : `<div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div>`}</div>`;
   }).join('');
   const full = items.length >= 5;

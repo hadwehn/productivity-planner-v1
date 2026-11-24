@@ -46,6 +46,17 @@ function weekStrip(date) {
   return `<div class="strip-wrap">${arrow(-1, tr('Semana anterior', 'Previous week'), 'left')}<div class="week-strip" data-swipe="week" aria-label="${tr('Días de la semana. Desliza para cambiar de semana.', 'Days of the week. Swipe to change week.')}"><div class="strip-track">${panels}</div></div>${arrow(1, tr('Semana siguiente', 'Next week'), 'right')}</div>`;
 }
 
+// Deslizar una tarea a la izquierda (celular) deja a mano lo más usado del menú ⋯: pasarla al día
+// siguiente (o a hoy, si es de un día pasado) y eliminarla. Una tarea hecha solo se elimina.
+// El gesto está en interactions.js (swipeRows); se usan las mismas acciones del menú.
+function swipeActions(date, key, row) {
+  const T = today(), next = shiftDate(date, 1), d = parseDate(next);
+  const target = date < T ? T : next;
+  const label = date < T ? tr('Hoy', 'Today') : next === shiftDate(T, 1) ? tr('Mañana', 'Tomorrow') : `${DAYS[(d.getDay() + 6) % 7].slice(0, 3)} ${d.getDate()}`;
+  const move = row.c ? '' : `<button type="button" class="swipe-move" data-a="taskmove" data-k="${key}" data-date="${target}" tabindex="-1">${icon('tomorrow')}<span>${label}</span></button>`;
+  return `<div class="swipe-actions" aria-hidden="true">${move}<button type="button" class="swipe-delete" data-a="taskdelete" data-k="${key}" tabindex="-1">${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button></div>`;
+}
+
 function taskItem(date, { key, row }, focus) {
   const linked = row.source ? `<span class="task-meta">${tr('De tu semana', 'From your week')}</span>` : '';
   const star = focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus');
@@ -54,11 +65,12 @@ function taskItem(date, { key, row }, focus) {
   const text = row.c ? `<span>${esc(row.t)}</span>`
     : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
   const starBtn = row.c ? (focus ? `<span class="task-btn star on still" title="${tr('Era del foco', 'Was in focus')}">${icon('star')}</span>` : '') : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
-  return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort>
+  return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort data-swipe-row>
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>
     ${starBtn}
     <button class="task-btn" data-a="taskmenu" data-k="${key}" aria-label="${tr('Más opciones', 'More options')}" title="${tr('Más opciones', 'More options')}">${icon('more')}</button>
+    ${swipeActions(date, key, row)}
   </div>`;
 }
 

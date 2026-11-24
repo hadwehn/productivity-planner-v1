@@ -512,9 +512,26 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 nav.tabbar { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateZ(0); -webkit-transform: translateZ(0); z-index: 10; display: flex; gap: 2px; padding: 6px; width: min(calc(100vw - 24px), 420px); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-up); }
 nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 18px; font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); transition: color .2s, background .2s; }
 nav.tabbar button .icon { width: 23px; height: 23px; }
+/* Punto de aviso (ver navDots en render.js): sobre el ícono, en el color de acción. */
+nav.tabbar button { position: relative; }
+nav.tabbar button.has-dot::after { content: ""; position: absolute; top: 6px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 2px var(--surface); }
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
 /* La barra queda siempre igual, con íconos y nombres (se probó achicarla al bajar y se descartó). */
 nav.tabbar button span { display: block; }
+/* Deslizar una tarea (celular, ver swipeRows): el contenido se corre a la izquierda y detrás aparecen
+   sus acciones, que crecen con el dedo. */
+[data-swipe-row] { touch-action: pan-y; overflow-x: clip; }
+[data-swipe-row] > :not(.swipe-actions) { transform: translateX(var(--sx, 0px)); transition: transform .28s var(--ease); }
+[data-swipe-row].swiping > :not(.swipe-actions) { transition: none; }
+.swipe-actions { position: absolute; top: 2px; bottom: 2px; right: 0; width: calc(var(--sx, 0px) * -1); display: flex; overflow: hidden; border-radius: 12px; visibility: hidden; transition: width .28s var(--ease); }
+[data-swipe-row].swiping .swipe-actions { transition: none; }
+[data-swipe-row].swiping .swipe-actions, [data-swipe-row].swiped .swipe-actions { visibility: visible; }
+.swipe-actions button { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: calc(11px * var(--ts)); font-weight: 600; white-space: nowrap; overflow: hidden; }
+.swipe-actions .icon { width: 19px; height: 19px; flex: none; }
+.swipe-move { background: var(--acc); color: var(--acc-ink); }
+.swipe-delete { background: var(--danger); color: #fff; }
+:root[data-appearance="dark"] .swipe-delete { color: #1E120D; } /* el rojo es claro en oscuro: texto oscuro para que se lea */
+@media (pointer: fine) { .swipe-actions { display: none; } }
 /* Áreas táctiles: los controles chicos se ven igual, pero se pueden tocar en un área de ~44 px
    (mínimo recomendado por Apple y WCAG). El área extra es invisible y no mueve nada. */
 .check, .range-nav button, .add-btn, .day-toggle { position: relative; }
@@ -732,6 +749,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   nav.tabbar { left: 0; right: auto; margin: 0; top: 0; bottom: 0; transform: none; -webkit-transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
   nav.tabbar button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; border-radius: 12px; font-size: calc(15px * var(--ts)); font-weight: 550; }
   nav.tabbar button span { max-height: none; opacity: 1; }
+  nav.tabbar button.has-dot::after { top: 50%; left: auto; right: 14px; transform: translateY(-50%); }
   nav.tabbar button .icon { width: 21px; height: 21px; }
   nav.tabbar button:hover { color: var(--ink); background: color-mix(in srgb, var(--sunken) 60%, transparent); }
   nav.tabbar button.on { background: var(--sunken); }

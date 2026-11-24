@@ -418,6 +418,56 @@ function onKeydown(e) {
   nextField(el);
 }
 
+// ——— Deslizar una tarea (celular) ———
+// Hacia la izquierda aparecen sus acciones rápidas (ver swipeActions en views/today.js y week.js).
+// Pasada la mitad queda abierta; si no, vuelve. Tocar fuera, o deslizar otra, la cierra. Solo con el
+// dedo: en computador está el menú ⋯. Un movimiento vertical se deja al desplazamiento de la página,
+// y uno corto antes de la pulsación larga no interfiere con reordenar (ver sortable).
+const SWIPE_BTN = 76;
+function swipeRows() {
+  let swipe = null, open = null, swipedAt = 0;
+  const width = row => (row.querySelector('.swipe-actions')?.children.length || 0) * SWIPE_BTN;
+  const setX = (row, x) => row.style.setProperty('--sx', `${x}px`);
+  const close = row => { if (!row) return; row.classList.remove('swiped', 'swiping'); setX(row, 0); if (open === row) open = null; };
+  document.addEventListener('pointerdown', e => {
+    if (open && (!open.isConnected || !open.contains(e.target))) close(open);
+    if (e.pointerType !== 'touch' || !canEdit()) return;
+    const row = e.target.closest('[data-swipe-row]');
+    if (!row || e.target.closest('.swipe-actions') || !width(row)) return;
+    swipe = { row, id: e.pointerId, x: e.clientX, y: e.clientY, base: row === open ? -width(row) : 0, active: false };
+  }, true);
+  document.addEventListener('pointermove', e => {
+    if (!swipe || swipe.id !== e.pointerId) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, { row } = swipe, w = width(row);
+    if (!swipe.active) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { swipe = null; return; }
+      if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+      swipe.active = true;
+      row.classList.add('swiping');
+      if (row.contains(document.activeElement)) document.activeElement.blur();
+      try { row.setPointerCapture(e.pointerId); } catch { /* sin captura */ }
+    }
+    setX(row, Math.max(-w * 1.15, Math.min(0, swipe.base + dx)));
+  });
+  const end = e => {
+    if (!swipe || swipe.id !== e.pointerId) return;
+    const { row, active, base, x } = swipe;
+    swipe = null;
+    if (!active) return;
+    swipedAt = Date.now();
+    row.classList.remove('swiping');
+    const w = width(row), shown = Math.max(0, -(base + (e.clientX - x)));
+    if (shown > w / 2) { if (open && open !== row) close(open); open = row; row.classList.add('swiped'); setX(row, -w); }
+    else close(row);
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  // Justo después de deslizar, el toque no abre el campo de texto ni marca la tarea.
+  document.addEventListener('click', e => {
+    if (Date.now() - swipedAt < 350 && !e.target.closest('.swipe-actions')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+}
+
 // ——— Arrastrar para ordenar (pulsación sostenida en el asa) ———
 // Reordenar: se mantiene presionada la tarjeta (o la manija, en los hábitos) y se arrastra.
 // Al empezar a arrastrar se suelta el campo de texto, para que no aparezca el teclado ni la lupa.
@@ -618,6 +668,7 @@ export function initInteractions(isReady) {
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('keydown', onKeydown);
   swipeZones();
+  swipeRows();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
   sortable({ handle: '.habit[data-habit]', item: '.habit[data-habit]', key: el => el.dataset.habit, ignore: '.week-dot, .task-btn, a, input', onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
 }
