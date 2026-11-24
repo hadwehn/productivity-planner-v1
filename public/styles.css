@@ -293,15 +293,16 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .banner p { flex: 1; margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.4; }
 .banner .btn.small { background: var(--surface); color: var(--ink); }
 
-/* Lo accionable (tareas, foco de la semana y hábitos) va en versalitas; lo escrito para uno mismo
-   (intención, gratitud, reflexión, revisión, notas) queda en texto corrido. */
-/* all-small-caps: mayúsculas y minúsculas se ven iguales, así el texto queda uniforme. */
+/* Lo accionable (tareas, foco de la semana y hábitos) va en MAYÚSCULAS con la letra normal de la
+   app; lo escrito para uno mismo (intención, gratitud, reflexión, revisión, notas) queda en texto
+   corrido. Antes iba en versalitas. Solo cambia cómo se ve: se guarda tal como se escribe.
+   Un poco más chica y espaciada, para que las mayúsculas no griten. */
 .task textarea, .add-row input, .task-main > span:not(.task-meta),
 .habit-chip > span:not(.dot), .habit-top strong, .caps, #habitName {
-  font-variant-caps: all-small-caps; letter-spacing: .04em;
+  text-transform: uppercase; letter-spacing: .035em; font-size: .94em;
 }
-#habitName::placeholder { font-variant-caps: normal; letter-spacing: 0; }
-.add-row input::placeholder { font-variant-caps: normal; letter-spacing: 0; }
+.task textarea, .add-row input, #habitName { font-size: calc(15px * var(--ts)); }
+#habitName::placeholder, .add-row input::placeholder, .task textarea::placeholder { text-transform: none; letter-spacing: 0; }
 
 /* Arrastrar */
 .dragging { opacity: .3; }
@@ -494,10 +495,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .notes-editable li { padding-left: 2px; }
 .notes-editable li::marker { color: var(--mute); }
 .notes-editable p, .notes-editable div { margin: 0; min-height: 1.7em; }
-.notes-hint { margin: 6px 2px 0; }
 /* Pie de las notas: la ayuda a la izquierda y «Listo» abajo a la derecha (Enter solo salta de línea). */
-.notes-foot { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-.notes-foot .notes-hint { flex: 1; min-width: 0; margin: 0 2px; }
+.notes-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 6px; }
 .notes-foot .notes-done { flex: none; margin-left: auto; gap: 6px; padding-inline: 16px; }
 .notes-foot .notes-done .icon { width: 17px; height: 17px; stroke-width: 2.2; }
 .notes-editable:focus-visible { outline: none; }
@@ -530,19 +529,21 @@ nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ea
 #v.ritual-focus .dimmed { opacity: .35; }
 #v.dim-in .dimmed { animation: dim-in .4s var(--ease); }
 @keyframes dim-in { from { opacity: 1; } }
-/* Notas en modo enfoque: hoja casi a pantalla completa; solo el texto se desplaza. Con el teclado
-   del celular abierto, la hoja no se mueve: el teclado queda encima de su parte de abajo y el texto
-   gana ese espacio abajo para poder subir (--kb, ver notesSheet). */
-dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidden; height: calc(100dvh - 44px - env(safe-area-inset-top)); max-height: none; }
-.notes-sheet .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+/* Notas en modo enfoque: ventana flotante con bordes redondeados (no ocupa toda la pantalla); solo el
+   texto se desplaza. En el celular va arriba, con margen a los lados. Con el teclado abierto, la
+   ventana no se mueve: el teclado queda encima de su parte de abajo y el texto gana ese espacio
+   para poder subir (--kb, ver notesSheet). */
+dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidden; width: calc(100% - 28px); height: min(560px, calc(100dvh - 190px - env(safe-area-inset-top))); max-height: none; margin: calc(56px + env(safe-area-inset-top)) auto auto; border-radius: 24px; box-shadow: var(--shadow-up); }
+.notes-sheet .sheet-grip { display: none; }
+.notes-sheet .sheet-head { padding-top: 16px; }
+.notes-sheet .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 16px; }
 .notes-sheet .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .notes-sheet .notes-toolbar { flex: none; }
 .notes-sheet .notes-editable { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(40px + var(--kb, 0px)); }
 .notes-sheet .notes-foot { flex: none; }
-.notes-sheet.keyboard .notes-hint { display: none; }
 .notes-card .chev { transform: none; }
 @media (min-width: 1000px) {
-  dialog.sheet.notes-sheet { max-width: 760px; height: min(80dvh, 760px); margin: auto; }
+  dialog.sheet.notes-sheet { width: 100%; max-width: 760px; height: min(80dvh, 760px); margin: auto; }
 }
 @media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
@@ -780,7 +781,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .wo-list { display: grid; gap: 3px; flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; font-size: calc(14px * var(--ts)); color: var(--ink-2); }
   .wo-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wo-list li.done { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .wo-list li:not(.ev):not(.more) { font-variant-caps: all-small-caps; letter-spacing: .04em; }
+  .wo-list li:not(.ev):not(.more) { text-transform: uppercase; letter-spacing: .035em; font-size: .94em; }
   .wo-list li.ev { color: var(--acc); }
   .wo-list li.more { color: var(--mute); font-size: calc(12px * var(--ts)); }
   .wo-list time { font-variant-numeric: tabular-nums; opacity: .8; }

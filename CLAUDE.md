@@ -126,11 +126,13 @@ dispositivo, en `localStorage`.
   (o «Editar») la página los sube hasta quedar justo bajo la cabecera, el resto se atenúa y los
   otros rituales se pliegan; si están al final, se agrega espacio abajo para que suban. La
   apertura automática de la mañana o la noche no atenúa nada (`focusRitual`).
-- Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una hoja casi a
-  pantalla completa (en computador, ventana centrada) con la barra de formato arriba y todo el
-  espacio para escribir; con el teclado del celular abierto la hoja **no se mueve**: el teclado
-  queda encima de su parte de abajo (como la app Notas) y la línea en que se escribe se mantiene a
-  la vista; se probó achicarla y subirla sobre el teclado y no gustó (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer primero.
+- Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una ventana
+  flotante con bordes redondeados que no ocupa toda la pantalla (en el celular, arriba y con margen
+  a los lados; en computador, centrada), con la barra de formato arriba, el espacio para escribir y
+  «Listo» abajo a la derecha (sin texto de instrucciones). Con el teclado del celular abierto, la
+  ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
+  se mantiene a la vista. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
+  gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
@@ -188,6 +190,9 @@ dispositivo, en `localStorage`.
 **Estilo**
 - Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
+- Tareas (del día y de la semana) y hábitos se escriben en MAYÚSCULAS con la letra normal de la
+  app, un poco más chica y espaciada (`text-transform`: se guardan tal como se escriben). Antes iban
+  en versalitas. Lo escrito para uno mismo (intención, reflexión, notas) va en texto corrido.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   La hoja de notas tiene «Listo» abajo a la derecha (verde, con ✓) para dejar la nota lista: la X

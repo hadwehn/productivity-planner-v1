@@ -27,20 +27,22 @@ export function openSheet(title, body, onMount) {
 export const closeSheet = () => { if (sheet().open) sheet().close(); };
 
 // ——— Notas en modo enfoque ———
-// Una hoja que cubre casi toda la pantalla (en computador, una ventana centrada): la barra de formato
-// arriba y todo el espacio para escribir. Se guarda sola mientras se escribe (views/notes.js).
-// Con el teclado del celular abierto, la hoja no se mueve ni se achica: el teclado queda encima de
-// su parte de abajo, como en la app Notas. El texto gana espacio abajo (--kb) para poder subir, y
+// Una ventana flotante con bordes redondeados, que no ocupa toda la pantalla (en el celular, arriba y
+// con margen a los lados; en computador, centrada): la barra de formato arriba y el espacio para escribir. Se guarda sola mientras se escribe (views/notes.js).
+// Con el teclado del celular abierto, la ventana no se mueve ni se achica: el teclado queda encima de
+// su parte de abajo. El texto gana espacio abajo (--kb) para poder subir, y
 // la línea en que se escribe se mantiene a la vista sobre el teclado (keepCaretVisible).
 function keyboardHeight() {
   const vv = window.visualViewport;
   return vv ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0;
 }
 function trackKeyboard() {
-  const dlg = sheet();
+  const dlg = sheet(), vv = window.visualViewport;
   if (!dlg.classList.contains('notes-sheet')) return;
   const keyboard = keyboardHeight();
-  dlg.style.setProperty('--kb', `${keyboard}px`);
+  // La ventana no llega al borde de abajo: solo cuenta la parte que el teclado le tapa.
+  const covered = vv && keyboard ? Math.max(0, Math.round(dlg.getBoundingClientRect().bottom - (vv.offsetTop + vv.height))) : 0;
+  dlg.style.setProperty('--kb', `${covered}px`);
   dlg.classList.toggle('keyboard', keyboard > 80);
   keepCaretVisible();
 }
