@@ -185,6 +185,7 @@ const ACTIONS = {
   weekgoal: d => weekAction(d.on ? 'goal' : 'ungoal', d.list, +d.i),
   calday: update(d => { U.calDay = d.k; }),
   thismonth: update(() => { U.month = today().slice(0, 7); U.calDay = today(); }),
+  thisjournal: update(() => { U.journalMonth = today().slice(0, 7); }),
   shiftmonth: update(d => shiftMonthBy(+d.n)),
   shiftjournal: update(d => { if (canMove('journal', +d.n)) U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
   journaltab: navigate(d => { U.journalTab = d.k; }),

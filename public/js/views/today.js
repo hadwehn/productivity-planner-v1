@@ -191,8 +191,8 @@ export function todayView() {
   // La fecha va bajo el saludo, como las fechas bajo el título en Plan y Diario: así el título queda a la misma altura en todas las pantallas.
   const subtitle = `<span class="period">${DAYS[(d.getDay() + 6) % 7]}, ${dayMonth(d)}</span>`;
   const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
-  // «Volver a hoy» va junto a Ajustes (no en una línea extra), para que la cabecera fija mida lo mismo cualquier día.
-  const side = `<div class="head-actions">${isToday ? '' : `<button class="pill" data-a="date" data-k="${T}">${icon('left')}${tr('Hoy', 'Today')}</button>`}${settingsButton()}</div>`;
+  // «Volver a hoy» es el botón flotante de abajo (render.js), igual que en Plan y Diario.
+  const side = `<div class="head-actions">${settingsButton()}</div>`;
   // La frase del día se ve siempre. Con «Frase en días futuros» apagado, un día futuro
   // repite la de hoy (no se adelantan las frases que vienen).
   const [q, author] = quoteFor(date > T && !showToday('futureQuotes') ? T : date);

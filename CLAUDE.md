@@ -79,7 +79,12 @@ dispositivo, en `localStorage`.
   siguiente (tocarlos cambia de semana). Al cambiar de semana se abre el lunes (u hoy si es la actual).
 - Plan y Diario: flechas con recuadro fijas a la derecha de la fila de fechas; también se deslizan.
   Títulos relativos («Esta semana», «Semana pasada», «Hace 2 semanas», «Mes pasado»…). La semana se
-  escribe con el mes completo («30 de noviembre al 6 de diciembre»). «‹ Hoy» vuelve al presente.
+  escribe con el mes completo («30 de noviembre al 6 de diciembre»).
+- Volver al presente: un solo botón con el texto de hacia dónde vuelve («Volver a hoy», «Volver a
+  esta semana», «Volver a este mes»), igual en Hoy, Plan y Diario, y solo cuando se mira otro
+  periodo. En celular flota centrado sobre la barra de pestañas (arriba no cabía sin apretar las
+  cabeceras; los avisos suben por encima de él y se esconde con una hoja abierta). En computador va
+  en la cabecera, a la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras.
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 

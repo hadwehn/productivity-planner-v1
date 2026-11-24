@@ -1,13 +1,13 @@
 // Dibuja la pestaña activa conservando scroll y foco.
 import { U } from './ui.js';
-import { $, $$ } from './util.js';
+import { $, $$, iso, monday, today } from './util.js';
 import { icon } from './icons.js';
 import { tr } from './i18n.js';
 import { todayView } from './views/today.js';
 import { planView } from './views/week.js';
 import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
-import { journalTab } from './lock.js';
+import { isUnlocked, journalTab } from './lock.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
 export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Plan', 'Plan')], ['today', tr('Hoy', 'Today')]];
@@ -84,12 +84,37 @@ export function render(toTop = false) {
   });
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
+  drawBackNow();
   scrollTo(0, toTop ? 0 : y);
   markScrolled();
   if (focusKey && !toTop) {
     const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
     if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }
   }
+}
+
+/**
+ * «Volver al presente»: un solo botón flotante sobre la barra de pestañas, igual en Hoy, Plan y
+ * Diario, que aparece solo cuando se mira otro día, semana o mes. Abajo cabe el texto completo
+ * («Volver a esta semana») sin apretar las cabeceras. La flecha apunta hacia donde está el presente.
+ */
+function backNow() {
+  const T = today(), month = T.slice(0, 7), week = iso(monday(new Date()));
+  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: tr('Volver a hoy', 'Back to today') };
+  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: tr('Volver a esta semana', 'Back to this week') };
+  if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, label: tr('Volver a este mes', 'Back to this month') };
+  if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: tr('Volver a este mes', 'Back to this month') };
+  return null;
+}
+function drawBackNow() {
+  const btn = $('#back-now'), b = backNow();
+  if (!btn) return;
+  btn.hidden = !b;
+  document.documentElement.classList.toggle('has-back-now', !!b);
+  if (!b) return;
+  btn.dataset.a = b.a;
+  if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
+  btn.innerHTML = `${icon(b.later ? 'left' : 'right')}<span>${b.label}</span>`;
 }
 
 export function focusEnd(el) {

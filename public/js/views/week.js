@@ -153,11 +153,8 @@ export function planView() {
   const isWeek = U.weekMode === 'week';
   // Al deslizar la cabecera se ve la semana (o el mes) vecino, como la franja de días en Hoy.
   const head = `<header class="plan-head"><div class="plan-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => headPanel(isWeek, o)).join('')}</div></div>${settingsButton()}</header>`;
-  // «‹ Hoy» vuelve al presente (como en la pantalla Hoy) y va junto al selector Semana | Mes.
-  const thisWeek = iso(monday(new Date())), thisMonth = today().slice(0, 7);
-  const away = isWeek ? U.week !== thisWeek : U.month !== thisMonth, toPast = isWeek ? U.week > thisWeek : U.month > thisMonth;
-  const back = away ? `<button class="pill" data-a="${isWeek ? 'thisweek' : 'thismonth'}" aria-label="${isWeek ? tr('Volver a esta semana', 'Back to this week') : tr('Volver a este mes', 'Back to this month')}">${icon(toPast ? 'left' : 'right')}${tr('Hoy', 'Today')}</button>` : '';
-  const controls = `<div class="plan-controls">${segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode)}${back}</div>`;
+  // «Volver a esta semana / este mes» es el botón flotante de abajo (render.js), igual en todas las pantallas.
+  const controls = `<div class="plan-controls">${segmented('planmode', [['week', tr('Semana', 'Week')], ['month', tr('Mes', 'Month')]], U.weekMode)}</div>`;
   return `<div class="view">${stickyHead(head + controls)}
     ${isWeek ? weekView() : monthView()}</div>`;
 }
