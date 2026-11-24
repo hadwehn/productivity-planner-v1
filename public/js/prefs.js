@@ -14,8 +14,8 @@ export const dayGroup = w => (w > 4 ? 'we' : 'wk');
 export const dayVisible = (k, w) => { const o = S.cfg.days[w] || {}; return o[k] === undefined ? visible(k + '_' + dayGroup(w)) : o[k]; };
 
 /**
- * Preguntas de la revisión semanal (el índice se guarda en w.LUNES.r.i). Son tres: reconocer lo
- * bueno, ser honesto con lo pendiente y llevarse un ajuste. Las semanas que ya tienen escrita la
+ * Preguntas de la revisión semanal (el índice se guarda en w.LUNES.r.i). Son tres: lo bueno, lo
+ * que costó y qué harás distinto (la tercera nace de la segunda). Las semanas que ya tienen escrita la
  * cuarta pregunta de la versión anterior se siguen mostrando con sus cuatro preguntas originales.
  */
 export const weekQuestions = week => (String(S.w[week]?.r?.[3] ?? '').trim() ? [
@@ -25,6 +25,7 @@ export const weekQuestions = week => (String(S.w[week]?.r?.[3] ?? '').trim() ? [
   tr('¿Qué podrías ajustar para cuidarte y enfocarte mejor?', 'What could you adjust to take care of yourself and focus better?'),
 ] : [
   tr('¿Qué salió bien esta semana?', 'What went well this week?'),
-  tr('¿Qué quedó pendiente y qué haces con eso?', 'What was left undone, and what will you do about it?'),
+  // No se pregunta por lo pendiente: eso ya lo resuelven Pendientes y «Pasar a esta semana».
+  tr('¿Qué te quitó energía o foco?', 'What drained your energy or focus?'),
   tr('¿Qué cambias para la próxima semana?', 'What will you change for next week?'),
 ]);

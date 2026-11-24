@@ -108,11 +108,12 @@ dispositivo, en `localStorage`.
   semana», quedan para leer y «Editar» las reabre (`w.started` y `w.closed`). La revisión se puede
   cerrar cualquier día de su semana o después (antes solo desde el domingo); la intención, también
   de antemano para la semana siguiente.
-- Revisión semanal: **tres** preguntas («¿Qué salió bien esta semana?», «¿Qué quedó pendiente y
-  qué haces con eso?», «¿Qué cambias para la próxima semana?»); con una respuesta ya se puede
+- Revisión semanal: **tres** preguntas («¿Qué salió bien esta semana?», «¿Qué te quitó energía o
+  foco?», «¿Qué cambias para la próxima semana?»); con una respuesta ya se puede
   cerrar. Las semanas con la 4.ª pregunta antigua escrita se muestran con las cuatro originales.
   Antes de preguntar **muestra la semana**: foco cumplido, días cerrados, % de hábitos y el foco
-  con ✓. Se hizo porque los fundadores nunca la llenaban: pedía mucho y no devolvía nada.
+  con ✓. Se hizo porque los fundadores nunca la llenaban: pedía mucho y no devolvía nada. No se pregunta
+  por lo pendiente: eso ya lo resuelven Pendientes y «Pasar a esta semana».
 - Recordatorios en Hoy (avisos, no notificaciones): cerrar la semana el domingo desde las 18:00
   hasta el lunes a mediodía (si no está cerrada) y «¿Qué fue lo mejor de noviembre?» el último día
   del mes desde las 18:00 hasta el día 2 (si está vacío). Llevan a Plan con la revisión abierta o
