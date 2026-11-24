@@ -3,7 +3,7 @@
 // leer, y «Editar» los vuelve a abrir. Se guarda en d[fecha].closed = { m: true, e: true }
 // (m = mañana, e = cierre).
 import { S, save, get } from './state.js';
-import { iso, parseDate, shiftDate } from './util.js';
+import { iso, monday, parseDate, shiftDate, shiftMonth, weekday } from './util.js';
 
 // Los días y semanas pasados se pueden editar igual que los actuales (tareas incluidas): no hay
 // bloqueo por hora. Solo cambia qué se ofrece primero al mover (p. ej., «Pasar a hoy»).
@@ -89,4 +89,25 @@ export function reopenReview(week) {
   delete S.w[week].closed;
   save();
   return true;
+}
+
+// ——— Recordatorios (avisos en Hoy) ———
+export const REMINDER_HOUR = 18;
+/**
+ * Semana cuya revisión conviene recordar: la actual el domingo desde las 18:00, o la pasada el
+ * lunes antes de mediodía (mucha gente no abre la app el domingo en la noche). null si ya se cerró.
+ */
+export function reviewReminder(now = new Date()) {
+  const wd = weekday(now), mon = iso(monday(now));
+  const week = wd === 6 && now.getHours() >= REMINDER_HOUR ? mon : wd === 0 && now.getHours() < 12 ? shiftDate(mon, -7) : null;
+  return week && reviewState(week, now) !== 'done' ? week : null;
+}
+/** ¿Tiene algo escrito «Lo mejor del mes»? */
+export const hasMonthBest = ym => Object.values(S.m[ym]?.h || {}).some(v => clean(v));
+/** Mes cuyo «Lo mejor del mes» conviene recordar: el último día desde las 18:00, o el anterior los días 1 y 2. */
+export function monthReminder(now = new Date()) {
+  const T = iso(now), ym = T.slice(0, 7);
+  const lastDay = shiftDate(T, 1).slice(0, 7) !== ym;
+  const month = lastDay && now.getHours() >= REMINDER_HOUR ? ym : now.getDate() <= 2 ? shiftMonth(ym, -1) : null;
+  return month && !hasMonthBest(month) ? month : null;
 }

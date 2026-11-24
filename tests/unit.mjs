@@ -6,7 +6,9 @@ import {
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
   movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay,
 } from '../public/js/tasks.js';
-import { consistency, isDue, saveHabit, streak, toggle, weekCount } from '../public/js/habits.js';
+import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate } from '../public/js/habits.js';
+import { monthReminder, reviewReminder } from '../public/js/rituals.js';
+import { weekQuestions } from '../public/js/prefs.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
 import { U, tomorrowCard } from '../public/js/ui.js';
 import { todayView } from '../public/js/views/today.js';
@@ -494,6 +496,49 @@ test('hábitos semanales: cuentan en cualquier día y la versión anterior los v
   toggle(h, T);
   eq(weekCount(h, T), 1);
   eq(v1Accepts(S), true);
+});
+
+const parseDateT = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+test('revisión semanal: tres preguntas, y las semanas con la cuarta antigua la conservan', () => {
+  load(fixture());
+  S.w[WEEK] = { r: { 0: 'Bien' } };
+  eq(weekQuestions(WEEK).length, 3);
+  S.w[WEEK].r[3] = 'Dormir más';
+  eq(weekQuestions(WEEK).length, 4, 'versión anterior');
+});
+test('recordatorios: cerrar la semana (domingo 18:00 a lunes 12:00) y «Lo mejor del mes»', () => {
+  load(fixture());
+  S.w = {}; S.m = {};
+  const at = (s, h) => { const d = parseDateT(s); d.setHours(h); return d; };
+  // 2026-11-22 es domingo; 2026-11-16, su lunes.
+  eq(reviewReminder(at('2026-11-22', 17)), null, 'domingo antes de las 18');
+  eq(reviewReminder(at('2026-11-22', 18)), '2026-11-16', 'domingo en la tarde: esta semana');
+  eq(reviewReminder(at('2026-11-23', 9)), '2026-11-16', 'lunes en la mañana: la semana pasada');
+  eq(reviewReminder(at('2026-11-23', 12)), null, 'lunes desde mediodía, ya no');
+  eq(reviewReminder(at('2026-11-20', 20)), null, 'otro día, no');
+  S.w['2026-11-16'] = { closed: true };
+  eq(reviewReminder(at('2026-11-22', 20)), null, 'cerrada, no se recuerda');
+  eq(monthReminder(at('2026-11-30', 17)), null, 'último día antes de las 18');
+  eq(monthReminder(at('2026-11-30', 19)), '2026-11', 'último día en la tarde');
+  eq(monthReminder(at('2026-12-01', 10)), '2026-11', 'día 1: el mes anterior');
+  eq(monthReminder(at('2026-12-02', 22)), '2026-11', 'día 2, igual');
+  eq(monthReminder(at('2026-12-03', 10)), null, 'día 3, ya no');
+  eq(monthReminder(at('2026-11-15', 20)), null, 'mitad de mes, no');
+  S.m['2026-11'] = { h: { 0: 'El viaje' } };
+  eq(monthReminder(at('2026-11-30', 19)), null, 'escrito, no se recuerda');
+});
+test('revisión semanal: cumplimiento de hábitos de la semana', () => {
+  load(fixture());
+  S.h = []; S.hl = {};
+  const mon = '2026-11-16', T = '2026-11-22';
+  const daily = saveHabit({ name: 'Leer', color: 1, days: [0, 1, 2, 3, 4, 5, 6] }); daily.createdOn = '2026-11-01';
+  const twice = saveHabit({ name: 'Nadar', color: 2, perWeek: 2 }); twice.createdOn = '2026-11-01';
+  for (const d of ['2026-11-16', '2026-11-17', '2026-11-18']) toggle(daily, d);
+  toggle(twice, '2026-11-19');
+  eq(weekHabitRate(mon, T), Math.round((3 + 1) / (7 + 2) * 100), '3 de 7 días y 1 de 2 veces');
+  eq(weekHabitRate('2026-11-30', T), null, 'semana futura');
+  S.h = [];
+  eq(weekHabitRate(mon, T), null, 'sin hábitos');
 });
 
 // ——— Frases ———

@@ -130,6 +130,28 @@ function rememberRule(habit, next) {
   habit.past = [...past, old].slice(-MAX_PAST_RULES);
 }
 
+/**
+ * Cumplimiento de los hábitos en la semana que empieza `week`, hasta `T` (0-100), para la revisión
+ * semanal. Los de días fijos cuentan cada día que tocaba; los de «N veces», hasta su meta. null si
+ * no había nada que hacer.
+ */
+export function weekHabitRate(week, T = today()) {
+  const sunday = shiftDate(week, 6), end = sunday < T ? sunday : T;
+  if (end < week) return null;
+  let due = 0, done = 0;
+  for (const h of S.h) {
+    const goal = weekGoal(h, week);
+    if (goal !== null) {
+      if (!started(h, end)) continue;
+      due += goal;
+      done += Math.min(goal, weekCount(h, week));
+      continue;
+    }
+    for (let d = week; d <= end; d = shiftDate(d, 1)) if (isDue(h, d)) { due++; if (isDone(h, d)) done++; }
+  }
+  return due ? Math.round(done / due * 100) : null;
+}
+
 export function deleteHabit(id) {
   S.h = S.h.filter(x => x.id !== id);
   for (const day of Object.values(S.hl)) delete day[id];

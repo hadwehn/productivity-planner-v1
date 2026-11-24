@@ -96,7 +96,8 @@ dispositivo, en `localStorage`.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
 **Hoy**
-- Orden en celular: frase del día (siempre visible) → avisos (ayer sin cerrar, pendientes) →
+- Orden en celular: frase del día (siempre visible) → avisos (ayer sin cerrar, pendientes, cerrar
+  la semana, lo mejor del mes) →
   Empieza tu día → Tareas → Agenda → Hábitos → Cierra tu día → Notas. En pantalla amplia: frase y
   franja a todo el ancho; izquierda el recorrido del día, derecha hábitos, agenda y notas.
 - Empieza tu día y Cierra tu día se ven iguales (mismo ícono y formato), también ya terminados.
@@ -107,6 +108,15 @@ dispositivo, en `localStorage`.
   semana», quedan para leer y «Editar» las reabre (`w.started` y `w.closed`). La revisión se puede
   cerrar cualquier día de su semana o después (antes solo desde el domingo); la intención, también
   de antemano para la semana siguiente.
+- Revisión semanal: **tres** preguntas («¿Qué salió bien esta semana?», «¿Qué quedó pendiente y
+  qué haces con eso?», «¿Qué cambias para la próxima semana?»); con una respuesta ya se puede
+  cerrar. Las semanas con la 4.ª pregunta antigua escrita se muestran con las cuatro originales.
+  Antes de preguntar **muestra la semana**: foco cumplido, días cerrados, % de hábitos y el foco
+  con ✓. Se hizo porque los fundadores nunca la llenaban: pedía mucho y no devolvía nada.
+- Recordatorios en Hoy (avisos, no notificaciones): cerrar la semana el domingo desde las 18:00
+  hasta el lunes a mediodía (si no está cerrada) y «¿Qué fue lo mejor de noviembre?» el último día
+  del mes desde las 18:00 hasta el día 2 (si está vacío). Llevan a Plan con la revisión abierta o
+  al campo de «Lo mejor del mes» (`reviewReminder`/`monthReminder` en `rituals.js`).
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
@@ -161,7 +171,8 @@ dispositivo, en `localStorage`.
 
 - Antes de la prueba con usuarios: definir una métrica de uso (p. ej., días cerrados por semana)
   sin leer contenido; rehacer la bienvenida para vivir un primer día; que la revisión semanal y el
-  cierre del día **muestren** lo escrito antes de preguntar (el diario hoy pide mucho y devuelve poco).
+  cierre del día **muestren** lo escrito antes de preguntar (hecho en la revisión semanal; falta el
+  cierre del día).
 - Recordatorios a la mañana y a la noche (clave para que la gente vuelva; argumento para App Store).
 - Datos del usuario (nombre): tabla `profiles` nueva con un `sql/02-…sql` aditivo; no reejecutar
   `01-schema.sql`.

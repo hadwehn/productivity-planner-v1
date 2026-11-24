@@ -391,6 +391,20 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .goal-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; font-size: calc(10.5px * var(--ts)); font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--acc); }
 .goal-tag .icon { width: 13px; height: 13px; stroke-width: 1.8; fill: currentColor; }
 .day-count { align-self: center; margin-left: 4px; font-size: calc(12px * var(--ts)); color: var(--mute); font-variant-numeric: tabular-nums; }
+/* Destinos de los avisos de Hoy: quedan justo bajo la cabecera fija al llevarlos a la vista. */
+#week-review, #month-best { scroll-margin-top: calc(184px + (var(--ts) - 1) * 36px + env(safe-area-inset-top)); }
+/* Revisión semanal: la semana de un vistazo antes de las preguntas. */
+.week-look { margin: 2px 0 16px; padding: 12px 14px; border-radius: 14px; background: var(--sunken); }
+.look-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
+.look-stats div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.look-stats b { font: 600 calc(20px * var(--ts))/1.1 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+.look-stats span { font-size: calc(12px * var(--ts)); color: var(--mute); }
+.look-focus { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.look-focus li { display: flex; align-items: flex-start; gap: 8px; font-size: calc(14px * var(--ts)); color: var(--ink); overflow-wrap: anywhere; }
+.look-focus li .icon, .look-focus li i { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.look-focus li .icon { color: var(--acc); stroke-width: 2.4; }
+.look-focus li i { box-sizing: border-box; border: 1.5px solid var(--line-strong); border-radius: 50%; }
+.look-focus li.done span { color: var(--mute); }
 .review-q { font: 500 calc(16px * var(--ts))/1.4 var(--serif); margin: 0 0 8px; }
 .progress-line { display: flex; align-items: center; gap: 10px; }
 .progress-line .bar { flex: 1; height: 6px; background: var(--sunken); border-radius: 6px; overflow: hidden; }

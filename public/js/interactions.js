@@ -67,6 +67,13 @@ function watchSheetClose() {
 const navigate = fn => (d, b) => { rememberScroll(); fn(d, b); render(true); };
 const update = fn => (d, b) => { fn(d, b); render(); };
 const openDay = date => { U.date = date; U.tab = 'today'; };
+/** Tras dibujar, lleva a la vista un bloque (y enfoca su primer campo si se pide). */
+const revealLater = (sel, focus = false) => setTimeout(() => {
+  const el = $(sel);
+  if (!el) return;
+  el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  if (focus) el.querySelector('textarea, input')?.focus({ preventScroll: true });
+}, 60);
 
 const ACTIONS = {
   dismiss: (d, b) => b.closest('dialog')?.close(),
@@ -130,6 +137,9 @@ const ACTIONS = {
   taskweek: d => doTaskToWeek(U.date, +d.k),
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
+  // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.
+  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.review = true; revealLater('#week-review'); }),
+  monthbest: navigate(d => { U.tab = 'week'; U.weekMode = 'month'; U.month = d.k; revealLater('#month-best', true); }),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
   overdueweek: d => overdueAction('week', d.date, +d.k),

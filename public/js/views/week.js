@@ -3,6 +3,7 @@ import { S, get } from '../state.js';
 import { U } from '../ui.js';
 import { dayTasks, weekTasks } from '../tasks.js';
 import { categoryColor } from '../categories.js';
+import { weekHabitRate } from '../habits.js';
 import { weekQuestions } from '../prefs.js';
 import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
@@ -70,6 +71,27 @@ function intentFoot(week, state, thisWeek) {
   return `<button class="btn ritual-finish" data-a="intentdone">${icon('check')}${label}</button>`;
 }
 
+/**
+ * Antes de preguntar, la revisión muestra la semana con lo que ya está registrado: foco cumplido,
+ * días cerrados y hábitos. Así la primera pregunta se responde mirando, no recordando.
+ */
+function weekLook(week) {
+  const T = today(), end = shiftDate(week, 6) < T ? shiftDate(week, 6) : T;
+  if (end < week) return '';
+  const focus = weekTasks(week, 'a'), lived = Math.round((parseDate(end) - parseDate(week)) / 864e5) + 1;
+  let closed = 0;
+  for (let d = week; d <= end; d = shiftDate(d, 1)) if (S.d[d]?.closed?.e === true) closed++;
+  const habits = weekHabitRate(week, T);
+  const stat = (value, label) => `<div><b>${value}</b><span>${label}</span></div>`;
+  const stats = [
+    focus.length ? stat(`${focus.filter(x => x.row.c).length}/${focus.length}`, tr('Foco cumplido', 'Focus done')) : '',
+    stat(`${closed}/${lived}`, tr('Días cerrados', 'Days closed')),
+    habits === null ? '' : stat(`${habits} %`, tr('Hábitos', 'Habits')),
+  ].join('');
+  const list = focus.map(({ row }) => `<li class="${row.c ? 'done' : ''}">${row.c ? icon('check') : '<i aria-hidden="true"></i>'}<span>${esc(row.t)}</span></li>`).join('');
+  return `<div class="week-look"><div class="look-stats">${stats}</div>${list ? `<ul class="look-focus" aria-label="${tr('Foco de la semana', 'Weekly focus')}">${list}</ul>` : ''}</div>`;
+}
+
 /** «Intención de la semana», con el mismo formato que «Empieza tu día». */
 function weekIntent(week, thisWeek) {
   const W = `w.${week}.`, text = String(get(W + 'i')).trim(), state = intentState(week), done = state === 'done';
@@ -82,7 +104,7 @@ function weekIntent(week, thisWeek) {
 }
 
 function weekView() {
-  const week = U.week, W = `w.${week}.`, thisWeek = iso(monday(new Date())), questions = weekQuestions();
+  const week = U.week, W = `w.${week}.`, thisWeek = iso(monday(new Date())), questions = weekQuestions(week);
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
@@ -91,16 +113,16 @@ function weekView() {
   const summary = state === 'done' ? tr('Lista', 'Done') + (firstAnswer ? ` · “${esc(preview(firstAnswer, 70))}”` : '')
     : answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
       : state === 'future' ? tr('Disponible durante esa semana', 'Available during that week')
-        : week < thisWeek ? tr('Sin revisión · puedes completarla', 'No review · you can still fill it in') : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
+        : week < thisWeek ? tr('Sin revisión · puedes completarla', 'No review · you can still fill it in') : reviewDay ? tr('Buen momento para mirar tu semana · 2 minutos', 'A good moment to look at your week · 2 minutes') : tr('Tres preguntas para cerrar la semana · 2 minutos', 'Three questions to close the week · 2 minutes');
   return `<div class="cols"><div class="col">${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
     <section class="section">${weekIntent(week, thisWeek)}${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     </div><div class="col">
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
-    <div class="section">${foldable({
+    <div class="section" id="week-review">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'moon', iconCls: 'evening', title: tr('Revisión semanal', 'Weekly review'), summary, written: state !== 'done' && answered > 0,
-      body: questions.map((q, i) => {
+      body: (state === 'future' ? '' : weekLook(week)) + questions.map((q, i) => {
         if (editable) return `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`;
         const text = String(get(`${W}r.${i}`)).trim();
         return text ? `<div class="prompt"><span class="prompt-label">${q}</span><p class="ritual-read">${esc(text)}</p></div>` : '';
@@ -135,7 +157,7 @@ function monthView() {
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
     </div><div class="col">
     <section class="section">${sectionHead(tr('Foco del mes', 'Month focus'))}<div class="card">${three('p')}</div></section>
-    <section class="section">${sectionHead(tr('Lo mejor del mes', 'Best of the month'))}<div class="card">${three('h')}</div></section>
+    <section class="section" id="month-best">${sectionHead(tr('Lo mejor del mes', 'Best of the month'))}<div class="card">${three('h')}</div></section>
     </div></div>`;
 }
 

@@ -13,10 +13,18 @@ export const visible = k => { const v = S.cfg.hide[k]; return v === undefined ? 
 export const dayGroup = w => (w > 4 ? 'we' : 'wk');
 export const dayVisible = (k, w) => { const o = S.cfg.days[w] || {}; return o[k] === undefined ? visible(k + '_' + dayGroup(w)) : o[k]; };
 
-/** Preguntas de la revisión semanal (el índice se guarda en w.LUNES.r.i). */
-export const weekQuestions = () => [
+/**
+ * Preguntas de la revisión semanal (el índice se guarda en w.LUNES.r.i). Son tres: reconocer lo
+ * bueno, ser honesto con lo pendiente y llevarse un ajuste. Las semanas que ya tienen escrita la
+ * cuarta pregunta de la versión anterior se siguen mostrando con sus cuatro preguntas originales.
+ */
+export const weekQuestions = week => (String(S.w[week]?.r?.[3] ?? '').trim() ? [
   tr('¿Qué te hizo bien esta semana?', 'What was good for you this week?'),
   tr('¿Qué quieres retomar o dejar para después?', 'What do you want to pick up again, or set aside?'),
   tr('¿Qué aprendiste y te gustaría llevar a la próxima semana?', 'What did you learn that you want to carry into next week?'),
   tr('¿Qué podrías ajustar para cuidarte y enfocarte mejor?', 'What could you adjust to take care of yourself and focus better?'),
-];
+] : [
+  tr('¿Qué salió bien esta semana?', 'What went well this week?'),
+  tr('¿Qué quedó pendiente y qué haces con eso?', 'What was left undone, and what will you do about it?'),
+  tr('¿Qué cambias para la próxima semana?', 'What will you change for next week?'),
+]);

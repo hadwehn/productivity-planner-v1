@@ -8,11 +8,11 @@ import { categoryColor, MOOD_LEVELS, moodColor, moodName } from '../categories.j
 import { quoteFor } from '../quotes.js';
 import { icon } from '../icons.js';
 import { dayMonth, tr } from '../i18n.js';
-import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
+import { DAYS, DAY_SHORT, MONTHS, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
 import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { notesEditor } from './notes.js';
 import { eventRow, eventsOn } from '../events.js';
-import { hasContent, isFinished, ritualState } from '../rituals.js';
+import { hasContent, isFinished, monthReminder, reviewReminder, ritualState } from '../rituals.js';
 
 const wide = () => typeof matchMedia === 'function' && matchMedia('(min-width: 1200px)').matches;
 const greeting = () => {
@@ -157,8 +157,12 @@ function evening(date) {
  * Avisos de hoy, juntos en un solo bloque discreto:
  * - por la mañana, si ayer se usó pero quedó sin cerrar, se ofrece cerrarlo (p. ej., al llegar tarde
  *   a casa); desaparece solo al mediodía o al escribir algo en el cierre de ayer;
- * - tareas pendientes de días anteriores.
+ * - tareas pendientes de días anteriores;
+ * - el domingo desde las 18:00 (o el lunes en la mañana), cerrar la semana si no se ha cerrado;
+ * - el último día del mes desde las 18:00 (o los días 1 y 2), escribir «Lo mejor del mes».
  */
+const reviewWeek = () => reviewReminder();
+const bestMonth = () => monthReminder();
 function notices(T) {
   const rows = [];
   const Y = shiftDate(T, -1), { focus, rest } = dayTasks(Y);
@@ -168,8 +172,13 @@ function notices(T) {
   const late = overdue(T);
   if (late.length) rows.push([icon('inbox'), late.length === 1 ? tr('Quedó 1 tarea pendiente de días anteriores.', '1 task left over from previous days.')
     : tr(`Quedaron ${late.length} tareas pendientes de días anteriores.`, `${late.length} tasks left over from previous days.`), 'overdue', tr('Revisar', 'Review')]);
+  const week = reviewWeek();
+  if (week) rows.push([icon('leaf'), week === iso(monday(new Date())) ? tr('Tu semana termina: ciérrala en 2 minutos.', 'Your week is ending: close it in 2 minutes.')
+    : tr('La semana pasada quedó sin cerrar.', 'Last week wasn’t closed.'), 'reviewnow', tr('Cerrarla', 'Close it'), week]);
+  const month = bestMonth();
+  if (month) rows.push([icon('star'), tr(`¿Qué fue lo mejor de ${MONTHS[+month.slice(5) - 1]}?`, `What was the best of ${MONTHS[+month.slice(5) - 1]}?`), 'monthbest', tr('Escribirlo', 'Write it'), month]);
   if (!rows.length) return '';
-  return `<div class="notices">${rows.map(([ic, text, action, label]) => `<div class="notice">${ic}<p>${text}</p><button class="btn small" data-a="${action}">${label}</button></div>`).join('')}</div>`;
+  return `<div class="notices">${rows.map(([ic, text, action, label, k]) => `<div class="notice">${ic}<p>${text}</p><button class="btn small" data-a="${action}"${k ? ` data-k="${k}"` : ''}>${label}</button></div>`).join('')}</div>`;
 }
 
 /** De noche, estando en hoy o en mañana: elegir cuál de los dos días organizar. */
