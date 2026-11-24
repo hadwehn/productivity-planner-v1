@@ -75,7 +75,7 @@ svg { display: block; }
 #planner input, #planner textarea, #planner [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
 
 /* ===== Estructura ===== */
-main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter) calc(120px + env(safe-area-inset-bottom)); }
+main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter) calc(100px + env(safe-area-inset-bottom)); }
 /* Cabecera fija de cada pantalla: el contenido pasa por debajo al desplazarse. */
 .sticky-head { position: sticky; top: 0; z-index: 6; margin: 0 calc(-1 * var(--gutter)); padding: calc(14px + env(safe-area-inset-top)) var(--gutter) 10px; background: var(--bg); transition: box-shadow .2s; }
 .sticky-head .page-head { margin: 6px 0 12px; }
@@ -509,7 +509,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* Se centra con márgenes y no con transform: en Safari del iPhone un elemento fijo con transform y
    desenfoque de fondo, que además cambia de ancho al desplazarse, podía quedar a mitad de pantalla.
    translateZ(0) le da su propia capa para que se mantenga pegado abajo. */
-nav.tabbar { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateZ(0); -webkit-transform: translateZ(0); z-index: 10; display: flex; gap: 2px; padding: 6px; width: min(calc(100vw - 24px), 420px); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-up); }
+/* Barra flotante pegada abajo, sobre la raya de inicio del iPhone (deja más pantalla a la vista). */
+nav.tabbar { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: max(10px, calc(env(safe-area-inset-bottom) - 12px)); transform: translateZ(0); -webkit-transform: translateZ(0); z-index: 10; display: flex; gap: 2px; padding: 6px; width: min(calc(100vw - 24px), 420px); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-up); }
 nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 18px; font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); transition: color .2s, background .2s; }
 nav.tabbar button .icon { width: 23px; height: 23px; }
 /* Punto de aviso (ver navDots en render.js): sobre el ícono, en el color de acción. */
@@ -643,7 +644,7 @@ dialog.sheet .sheet-head { touch-action: none; }
 .pillar p { margin: 2px 0 0; color: var(--ink-2); font-size: calc(14px * var(--ts)); line-height: 1.5; }
 
 /* ===== Avisos ===== */
-#status { width: max-content; position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 10px); z-index: 30; display: flex; align-items: center; gap: 14px; max-width: calc(100vw - 32px); padding: 12px 16px; border-radius: 14px; background: var(--ink); color: var(--bg); font-size: calc(14px * var(--ts)); box-shadow: var(--shadow-up); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); }
+#status { width: max-content; position: fixed; left: 50%; bottom: calc(max(10px, calc(env(safe-area-inset-bottom) - 12px)) + 84px); /* justo sobre la barra */ transform: translate(-50%, 10px); z-index: 30; display: flex; align-items: center; gap: 14px; max-width: calc(100vw - 32px); padding: 12px 16px; border-radius: 14px; background: var(--ink); color: var(--bg); font-size: calc(14px * var(--ts)); box-shadow: var(--shadow-up); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); }
 #status.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 /* «Volver al presente»: cuelga de la cabecera fija (va dentro de ella, ver render.js), arriba a la
    derecha justo bajo su línea; así se mueven siempre juntos. Igual en Hoy, Plan y Diario. Relleno con

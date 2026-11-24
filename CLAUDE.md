@@ -70,7 +70,8 @@ dispositivo, en `localStorage`.
 
 **Navegación y cabeceras**
 - Pestañas: Hoy, Plan, Hábitos, Diario. En celular, barra inferior flotante **siempre del mismo
-  tamaño**, con íconos y nombres. Se probó achicarla al bajar (solo íconos, volvía a los 0,4 s) y
+  tamaño**, con íconos y nombres, pegada abajo (sobre la raya de inicio del iPhone: unos 22 px del
+  borde) para dejar más pantalla a la vista. Se probó achicarla al bajar (solo íconos, volvía a los 0,4 s) y
   se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
 - Punto de aviso en la barra de secciones (como WhatsApp): un punto verde/amarillo en Hoy desde las
   19:00 si el día sigue sin cerrar, y en Plan cuando toca cerrar la semana (`reviewReminder`). No se
