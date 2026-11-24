@@ -71,7 +71,8 @@ dispositivo, en `localStorage`.
 **Navegación y cabeceras**
 - Pestañas: Hoy, Plan, Hábitos, Diario. En celular, barra inferior que se achica al bajar y vuelve
   a su tamaño al subir o 0,4 s después de dejar de desplazarse (igual al final de la página; los
-  rebotes del celular se ignoran). En computador, barra lateral.
+  rebotes del celular se ignoran). Los desplazamientos que hace la app (cambiar de sección o de
+  periodo, volver a donde quedaste) no la achican. En computador, barra lateral.
 - Todas las cabeceras: título grande arriba, el periodo en negrita debajo y **la línea separadora
   a la misma altura en las cinco pantallas** (`min-height` de `.sticky-head`). Cualquier cambio en
   una cabecera debe mantener esa altura (medir con texto normal y «Texto más grande»).
@@ -132,7 +133,9 @@ dispositivo, en `localStorage`.
   «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). Con el teclado del celular abierto, la
   ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
   se mantiene a la vista. La ventana sigue a la pantalla visible (`--vv-top`): aunque el iPhone
-  desplace la vista al escribir, el título y la barra de formato quedan siempre arriba. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
+  desplace la vista al escribir, el título y la barra de formato quedan siempre arriba. Se probó
+  una ventana más baja, del alto justo para quedar sobre el teclado (quieta), y los fundadores
+  prefirieron esta, más alta. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
   Basurero junto a la ✕ (solo con algo escrito) para empezarla de cero: borra al instante con
   «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).
@@ -141,7 +144,12 @@ dispositivo, en `localStorage`.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
-  sin día».
+  sin día». Sin «Poner en foco»: para eso está la estrella.
+- Tarea hecha: queda como registro. No se renombra, la estrella no cambia el foco y el menú ⋯
+  ofrece solo «Repetir mañana» (copia nueva sin tachar al día siguiente; en foco si lo estaba y
+  hay espacio; «Repetir al día siguiente» si no es mañana) y «Eliminar». Para corregirla, se desmarca.
+- Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de
+  otro día, «Notas · Martes 24».
 - Opción «Frase en días futuros» (encendida por defecto).
 - **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
   renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de

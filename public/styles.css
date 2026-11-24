@@ -274,6 +274,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .task-btn { width: 36px; height: 40px; display: grid; place-items: center; color: var(--mute); flex: none; border-radius: 10px; }
 .task-btn:hover { color: var(--ink); }
 .task-btn.star.on { color: var(--gold); }
+.task-btn.star.still { cursor: default; opacity: .55; } /* tarea hecha: muestra si era del foco, sin cambiarlo */
 .task-btn.star.on .icon { fill: currentColor; }
 /* El título «En foco» lleva la misma estrella rellena que marca las tareas en foco. */
 .group-label .label.gold .icon, .section-head .label.gold .icon { fill: currentColor; }

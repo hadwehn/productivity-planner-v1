@@ -27,10 +27,13 @@ addEventListener('scroll', markScrolled, { passive: true });
 // La barra de pestañas se achica al bajar y vuelve a su tamaño al subir, al llegar arriba o 0,4 s
 // después de dejar de desplazarse (igual a mitad de página que al final).
 const NAV_IDLE = 400;
-let lastScroll = 0, scrollIdle = 0;
+let lastScroll = 0, scrollIdle = 0, quietUntil = 0;
+/** Los desplazamientos que hace la app (cambiar de sección o de periodo, volver a donde quedaste) no achican la barra. */
+function quietScroll(y) { quietUntil = performance.now() + 400; lastScroll = y; document.documentElement.classList.remove('nav-compact'); }
 const regrowLater = () => { clearTimeout(scrollIdle); scrollIdle = setTimeout(() => { scrollIdle = 0; document.documentElement.classList.remove('nav-compact'); }, NAV_IDLE); };
 addEventListener('scroll', () => {
   const y = scrollY, root = document.documentElement, dy = y - lastScroll;
+  if (performance.now() < quietUntil) { lastScroll = y; return; }
   if (y <= 4) { lastScroll = y; clearTimeout(scrollIdle); scrollIdle = 0; root.classList.remove('nav-compact'); return; }
   // En el final (y al estirar la página más allá con el dedo) los rebotes del celular no cambian la
   // barra ni alargan la espera: vuelve a su tamaño a los 0,4 s de llegar, igual que a mitad de página.
@@ -91,8 +94,9 @@ export function savedScroll(tab, now = Date.now()) {
 }
 export function restoreScroll(y) {
   if (!y) return;
+  quietScroll(y);
   scrollTo(0, y);
-  requestAnimationFrame(() => { scrollTo(0, y); markScrolled(); }); // tras ajustar la altura de los textos
+  requestAnimationFrame(() => { quietScroll(y); scrollTo(0, y); markScrolled(); }); // tras ajustar la altura de los textos
 }
 
 /** Vuelve a dibujar. `toTop` lleva el scroll arriba (cambio de pantalla). Conserva el campo enfocado. */
@@ -121,6 +125,7 @@ export function render(toTop = false) {
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   drawBackNow();
+  if (top) quietScroll(0);
   scrollTo(0, top ? 0 : y);
   markScrolled();
   restoreScroll(back);

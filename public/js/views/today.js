@@ -49,8 +49,11 @@ function weekStrip(date) {
 function taskItem(date, { key, row }, focus) {
   const linked = row.source ? `<span class="task-meta">${tr('De tu semana', 'From your week')}</span>` : '';
   const star = focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus');
-  const text = `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
-  const starBtn = `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
+  // Una tarea hecha ya no se renombra ni cambia de foco: queda como registro (se desmarca con el círculo).
+  const text = row.c ? `<span>${esc(row.t)}</span>`
+    : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
+  const starBtn = row.c ? `<span class="task-btn star${focus ? ' on' : ''} still" aria-hidden="true">${icon('star')}</span>`
+    : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort>
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>
@@ -205,7 +208,8 @@ function notes(date) {
 export function todayView() {
   const date = U.date, d = parseDate(date), T = today(), isToday = date === T;
   // La fecha va bajo el saludo, como las fechas bajo el título en Plan y Diario: así el título queda a la misma altura en todas las pantallas.
-  const subtitle = `<span class="period">${DAYS[(d.getDay() + 6) % 7]}, ${dayMonth(d)}</span>`;
+  const dayName = DAYS[(d.getDay() + 6) % 7];
+  const subtitle = `<span class="period">${tr(`${dayName} ${dayMonth(d)}`, `${dayName}, ${dayMonth(d)}`)}</span>`;
   const title = isToday ? greeting() : date < T ? tr('Mirando atrás', 'Looking back') : tr('Planificando', 'Planning ahead');
   // «Volver a hoy» es el botón flotante de abajo (render.js), igual que en Plan y Diario.
   const side = `<div class="head-actions">${settingsButton()}</div>`;

@@ -3,7 +3,7 @@
 import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
-  bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
+  addTask, bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
   deleteWeekTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
@@ -73,7 +73,8 @@ export function clearNotesNow() {
 }
 export function notesSheet(date) {
   const d = parseDate(date);
-  openSheet(`${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`, notesEditor(date), dlg => {
+  const title = date === today() ? tr('Notas de hoy', 'Today’s notes') : `${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`;
+  openSheet(title, notesEditor(date), dlg => {
     dlg.classList.add('notes-sheet');
     trackKeyboard();
     window.visualViewport?.addEventListener('resize', trackKeyboard);
@@ -148,10 +149,19 @@ export function taskMenu(date, key) {
       ? `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`
       // En un día futuro, «mañana» no es el día siguiente: se dice así y se muestra la fecha.
       : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}<span class="menu-text">${tr('Pasar al día siguiente', 'Move to the next day')}<small>${shortDay(tomorrow)}</small></span></button>`;
+  // Hecha: solo repetirla al día siguiente (sin tachar) o eliminarla. El foco se cambia con la estrella.
+  if (row.c) {
+    const repeat = tomorrow === shiftDate(T, 1) ? tr('Repetir mañana', 'Repeat tomorrow')
+      : `<span class="menu-text">${tr('Repetir al día siguiente', 'Repeat the next day')}<small>${shortDay(tomorrow)}</small></span>`;
+    openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="taskrepeat" data-k="${key}">${icon('tomorrow')}${repeat}</button>
+      <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
+    </div>`);
+    return;
+  }
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveFirst}
     <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir cuándo', 'Choose when')}</button>
-    <button data-a="taskfocus" data-k="${key}" data-close="1">${icon(focus ? 'starOff' : 'star')}${focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus')}</button>
     <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí. Si cambias su nombre, dejan de estar vinculadas.', 'This comes from your week: marking it done also marks it there. If you rename it, they are no longer linked.')}</p>` : ''}`);
 }
@@ -187,6 +197,16 @@ export function doMoveTask(date, key, target) {
   const message = result.merged ? tr('Ese día ya la tenía: quedó una sola', 'That day already had it: kept just one') : dayName(target, 'Pasada a', 'Moved to');
   toastUndo(message, () => { restore(result.undo); render(); });
 }
+/** Repite una tarea hecha al día siguiente, como tarea nueva sin tachar (en foco si lo estaba y hay espacio). */
+export function doRepeatTask(date, key) {
+  const row = getTask(date, key);
+  if (!row) return;
+  const next = shiftDate(date, 1), undo = snapshot([next]);
+  addTask(next, row.t, { focus: isFocusKey(key) });
+  closeSheet();
+  render();
+  toastUndo(next === shiftDate(today(), 1) ? tr('Se repite mañana', 'Repeats tomorrow') : tr(`Se repite el ${shortDay(next)}`, `Repeats on ${shortDay(next)}`), () => { restore(undo); render(); });
+}
 export function doDeleteTask(date, key) {
   const undo = snapshot([date]);
   removeTask(date, key);
@@ -195,6 +215,7 @@ export function doDeleteTask(date, key) {
   toastUndo(tr('Tarea eliminada', 'Task deleted'), () => { restore(undo); render(); });
 }
 export function doToggleFocus(date, key) {
+  if (getTask(date, key)?.c) return; // una tarea hecha no cambia de foco
   const result = toggleFocus(date, key);
   if (result.error) toast(result.error);
   render();

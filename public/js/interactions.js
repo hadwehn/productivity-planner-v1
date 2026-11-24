@@ -7,7 +7,7 @@ import {
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, clearNotesNow, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
+  closeSheet, doRepeatTask, clearNotesNow, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
@@ -153,6 +153,7 @@ const ACTIONS = {
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
   taskweek: d => doTaskToWeek(U.date, +d.k),
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
+  taskrepeat: d => doRepeatTask(U.date, +d.k),
   overdue: () => overdueSheet(),
   // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.
   reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
