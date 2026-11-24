@@ -146,12 +146,10 @@ dispositivo, en `localStorage`.
   siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
   sin día». Sin «Poner en foco»: para eso está la estrella.
 - Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca); la estrella
-  **sí** funciona, para darle o quitarle importancia ya hecha. El menú ⋯ ofrece solo «Repetir
-  mañana» (copia nueva sin tachar al día siguiente; en foco si lo estaba y hay espacio; «Repetir al
-  día siguiente» si no es mañana) y «Eliminar». En Plan, igual: una tarea semanal hecha no se
-  renombra ni se lleva a días (las letras quedan solo para ver cuándo se hizo) y su menú ofrece
-  «Repetir la próxima semana» (o «esta semana» si es de la pasada; sigue siendo objetivo si lo
-  era), pasar entre foco y «También esta semana», y «Eliminar».
+  **sí** funciona, para darle o quitarle importancia ya hecha. El menú ⋯ ofrece solo «Eliminar»
+  (se probó «Repetir mañana» y se descartó por inútil). En Plan, igual: una tarea semanal hecha no
+  se renombra ni se lleva a días (las letras quedan solo para ver cuándo se hizo) y su menú ofrece
+  solo «Eliminar».
 - Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de
   otro día, «Notas · Martes 24».
 - Opción «Frase en días futuros» (encendida por defecto).
