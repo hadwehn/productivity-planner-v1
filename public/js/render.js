@@ -66,27 +66,28 @@ export function autosize(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
-// ——— Cada sección recuerda dónde quedaste ———
-// Al ir y volver entre secciones (sobre todo Hoy ↔ Plan) se vuelve al mismo punto, si se regresa
-// antes de 7 minutos y la sección sigue mostrando lo mismo (mismo día, semana, mes o pestaña).
-// Pasado ese tiempo, o si cambió lo que muestra, se vuelve arriba. Solo en memoria: al cerrar la
-// app se olvida.
+// ——— Cada sección y cada periodo recuerdan dónde quedaste ———
+// La posición se anota por sección y periodo (cada día en Hoy, cada semana o mes en Plan, cada mes
+// en Diario). Al ir y volver entre secciones, o entre días (p. ej., ir a mañana y volver a hoy), se
+// vuelve al mismo punto si pasaron menos de 7 minutos. Un periodo que no se había abierto, o
+// pasado ese tiempo, se ve desde el inicio. Solo en memoria: al cerrar la app se olvida.
 export const SCROLL_MEMORY_MS = 7 * 60 * 1000;
 const scrollMemory = {};
+const memoryKey = (tab, key = viewKey(tab)) => `${tab}|${key}`;
 export function viewKey(tab) {
   if (tab === 'today') return U.date;
   if (tab === 'week') return U.weekMode === 'week' ? 'w' + U.week : 'm' + U.month;
   if (tab === 'journal') return `${U.journalTab}·${U.journalMonth}·${isUnlocked() ? 1 : 0}`;
   return tab;
 }
-/** Anota la posición de la sección que se deja. */
-export function rememberScroll(tab = U.tab) {
-  scrollMemory[tab] = { y: scrollY, key: viewKey(tab), at: Date.now() };
+/** Anota la posición de lo que se deja (la sección y el periodo que muestra). */
+export function rememberScroll(tab = U.tab, key = viewKey(tab), y = scrollY) {
+  scrollMemory[memoryKey(tab, key)] = { y, at: Date.now() };
 }
-/** Posición a la que volver en `tab`, o 0 si pasó el tiempo o cambió lo que muestra. */
+/** Posición a la que volver en `tab` (con el periodo que muestra), o 0 si no se abrió o pasó el tiempo. */
 export function savedScroll(tab, now = Date.now()) {
-  const m = scrollMemory[tab];
-  return m && now - m.at < SCROLL_MEMORY_MS && m.key === viewKey(tab) ? m.y : 0;
+  const m = scrollMemory[memoryKey(tab)];
+  return m && now - m.at < SCROLL_MEMORY_MS ? m.y : 0;
 }
 export function restoreScroll(y) {
   if (!y) return;
@@ -98,10 +99,12 @@ export function restoreScroll(y) {
 let shownTab = null, shownKey = null;
 export function render(toTop = false) {
   // Si la misma sección pasa a mostrar otro periodo (otro día en Hoy, otra semana o mes en Plan,
-  // otro mes en Diario), se ve desde el inicio: la altura del periodo anterior no le sirve.
+  // otro mes en Diario), se anota dónde quedó el anterior y el nuevo vuelve a su posición si se
+  // vio hace poco; si no, se ve desde el inicio (la altura del periodo anterior no le sirve).
   const key = viewKey(U.tab), otherPeriod = U.tab === shownTab && key !== shownKey;
+  if (otherPeriod) rememberScroll(shownTab, shownKey);
   shownKey = key;
-  const top = toTop || otherPeriod;
+  const top = toTop || otherPeriod, back = otherPeriod && !toTop ? savedScroll(U.tab) : 0;
   journalTab(shownTab, U.tab);
   shownTab = U.tab;
   const y = scrollY, active = document.activeElement;
@@ -120,6 +123,7 @@ export function render(toTop = false) {
   drawBackNow();
   scrollTo(0, top ? 0 : y);
   markScrolled();
+  restoreScroll(back);
   if (focusKey && !top) {
     const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
     if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }

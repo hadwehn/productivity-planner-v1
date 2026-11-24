@@ -90,13 +90,13 @@ dispositivo, en `localStorage`.
   la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras. El botón va dentro de la cabecera
   fija y cuelga bajo su línea, así se mueven siempre juntos (también en el rebote del iPhone).
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
-- Cada sección recuerda dónde quedaste: al volver antes de 7 minutos y si muestra lo mismo (mismo
-  día, semana, mes o pestaña), vuelve a ese punto; si no, arriba (`rememberScroll` en `render.js`).
-  Tocar la sección activa sube al inicio; en Hoy, si ya estás arriba, vuelve al día de hoy.
-  Dentro de una sección, pasar a otro periodo (otro día en Hoy, otra semana o mes en Plan, otro
-  mes en Diario) muestra el nuevo desde el inicio, venga de flechas, deslizar, la franja, ← → o
-  «Volver al presente». Lo que no cambia el periodo (marcar una tarea, elegir un día del
-  calendario del mes) deja la página donde está (`render` en `render.js`).
+- Cada sección y cada periodo (cada día en Hoy, cada semana o mes en Plan, cada mes en Diario)
+  recuerdan dónde quedaste por 7 minutos: al volver a una sección, o a un día/semana/mes que viste
+  hace poco (p. ej., ir a mañana y volver a hoy), apareces en ese punto. Un periodo que no habías
+  abierto, o pasado ese tiempo, se ve desde el inicio; también si se abre un día desde Plan. Lo que
+  no cambia el periodo (marcar una tarea, elegir un día del calendario del mes) deja la página
+  donde está. Tocar la sección activa sube al inicio; en Hoy, si estás en otro día, vuelve a hoy
+  (`rememberScroll`/`savedScroll` y `render` en `render.js`).
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
 **Hoy**

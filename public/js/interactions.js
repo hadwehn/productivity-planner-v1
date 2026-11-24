@@ -109,7 +109,8 @@ const ACTIONS = {
   go: d => {
     if (d.k === U.tab) {
       if (scrollY > 4) { scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); return; }
-      if (d.k === 'today') U.date = today();
+      // En otro día, vuelve a hoy (a donde lo dejaste, si fue hace poco: ver render).
+      if (d.k === 'today' && U.date !== today()) { U.date = today(); render(); return; }
       render(true);
       return;
     }
