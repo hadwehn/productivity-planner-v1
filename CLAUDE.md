@@ -90,6 +90,9 @@ dispositivo, en `localStorage`.
   la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras. El botón va dentro de la cabecera
   fija y cuelga bajo su línea, así se mueven siempre juntos (también en el rebote del iPhone).
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
+- Cada sección recuerda dónde quedaste: al volver antes de 7 minutos y si muestra lo mismo (mismo
+  día, semana, mes o pestaña), vuelve a ese punto; si no, arriba (`rememberScroll` en `render.js`).
+  Tocar la sección activa sube al inicio; en Hoy, si ya estás arriba, vuelve al día de hoy.
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
 **Hoy**

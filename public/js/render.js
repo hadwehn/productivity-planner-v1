@@ -66,6 +66,34 @@ export function autosize(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
+// ——— Cada sección recuerda dónde quedaste ———
+// Al ir y volver entre secciones (sobre todo Hoy ↔ Plan) se vuelve al mismo punto, si se regresa
+// antes de 7 minutos y la sección sigue mostrando lo mismo (mismo día, semana, mes o pestaña).
+// Pasado ese tiempo, o si cambió lo que muestra, se vuelve arriba. Solo en memoria: al cerrar la
+// app se olvida.
+export const SCROLL_MEMORY_MS = 7 * 60 * 1000;
+const scrollMemory = {};
+export function viewKey(tab) {
+  if (tab === 'today') return U.date;
+  if (tab === 'week') return U.weekMode === 'week' ? 'w' + U.week : 'm' + U.month;
+  if (tab === 'journal') return `${U.journalTab}·${U.journalMonth}·${isUnlocked() ? 1 : 0}`;
+  return tab;
+}
+/** Anota la posición de la sección que se deja. */
+export function rememberScroll(tab = U.tab) {
+  scrollMemory[tab] = { y: scrollY, key: viewKey(tab), at: Date.now() };
+}
+/** Posición a la que volver en `tab`, o 0 si pasó el tiempo o cambió lo que muestra. */
+export function savedScroll(tab, now = Date.now()) {
+  const m = scrollMemory[tab];
+  return m && now - m.at < SCROLL_MEMORY_MS && m.key === viewKey(tab) ? m.y : 0;
+}
+export function restoreScroll(y) {
+  if (!y) return;
+  scrollTo(0, y);
+  requestAnimationFrame(() => { scrollTo(0, y); markScrolled(); }); // tras ajustar la altura de los textos
+}
+
 /** Vuelve a dibujar. `toTop` lleva el scroll arriba (cambio de pantalla). Conserva el campo enfocado. */
 let shownTab = null;
 export function render(toTop = false) {

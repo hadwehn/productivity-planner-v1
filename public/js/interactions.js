@@ -15,7 +15,7 @@ import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose 
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
-import { autosize, focusEnd, render, renderNav } from './render.js';
+import { autosize, focusEnd, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
 import { canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
@@ -64,7 +64,7 @@ function watchSheetClose() {
 }
 
 // El Diario pide el código al abrir la app (o al volver a ella), no al cambiar de pestaña.
-const navigate = fn => (d, b) => { fn(d, b); render(true); };
+const navigate = fn => (d, b) => { rememberScroll(); fn(d, b); render(true); };
 const update = fn => (d, b) => { fn(d, b); render(); };
 const openDay = date => { U.date = date; U.tab = 'today'; };
 
@@ -89,7 +89,20 @@ const ACTIONS = {
 
   // Navegación
   // Tocar «Hoy» estando en Hoy vuelve al día de hoy.
-  go: navigate(d => { if (d.k === 'today' && U.tab === 'today') U.date = today(); U.tab = d.k; }),
+  // Otra sección: vuelve a donde la dejaste (ver rememberScroll). La misma sección: sube al inicio;
+  // en Hoy, si ya estás arriba, vuelve al día de hoy.
+  go: d => {
+    if (d.k === U.tab) {
+      if (scrollY > 4) { scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); return; }
+      if (d.k === 'today') U.date = today();
+      render(true);
+      return;
+    }
+    rememberScroll();
+    U.tab = d.k;
+    render(true);
+    restoreScroll(savedScroll(d.k));
+  },
   date: update(d => { U.date = d.k; }),
   planday: update(d => { const tomorrow = d.k === 'tomorrow'; U.date = shiftDate(today(), tomorrow ? 1 : 0); rememberPlan(tomorrow); }),
   openday: navigate(d => openDay(d.k)),
