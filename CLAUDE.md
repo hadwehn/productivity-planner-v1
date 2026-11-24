@@ -93,6 +93,10 @@ dispositivo, en `localStorage`.
 - Cada sección recuerda dónde quedaste: al volver antes de 7 minutos y si muestra lo mismo (mismo
   día, semana, mes o pestaña), vuelve a ese punto; si no, arriba (`rememberScroll` en `render.js`).
   Tocar la sección activa sube al inicio; en Hoy, si ya estás arriba, vuelve al día de hoy.
+  Dentro de una sección, pasar a otro periodo (otro día en Hoy, otra semana o mes en Plan, otro
+  mes en Diario) muestra el nuevo desde el inicio, venga de flechas, deslizar, la franja, ← → o
+  «Volver al presente». Lo que no cambia el periodo (marcar una tarea, elegir un día del
+  calendario del mes) deja la página donde está (`render` en `render.js`).
 - Sin zoom en el celular. Sin barra de desplazamiento visible.
 
 **Hoy**

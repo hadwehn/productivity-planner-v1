@@ -95,8 +95,13 @@ export function restoreScroll(y) {
 }
 
 /** Vuelve a dibujar. `toTop` lleva el scroll arriba (cambio de pantalla). Conserva el campo enfocado. */
-let shownTab = null;
+let shownTab = null, shownKey = null;
 export function render(toTop = false) {
+  // Si la misma sección pasa a mostrar otro periodo (otro día en Hoy, otra semana o mes en Plan,
+  // otro mes en Diario), se ve desde el inicio: la altura del periodo anterior no le sirve.
+  const key = viewKey(U.tab), otherPeriod = U.tab === shownTab && key !== shownKey;
+  shownKey = key;
+  const top = toTop || otherPeriod;
   journalTab(shownTab, U.tab);
   shownTab = U.tab;
   const y = scrollY, active = document.activeElement;
@@ -113,9 +118,9 @@ export function render(toTop = false) {
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   drawBackNow();
-  scrollTo(0, toTop ? 0 : y);
+  scrollTo(0, top ? 0 : y);
   markScrolled();
-  if (focusKey && !toTop) {
+  if (focusKey && !top) {
     const el = $(`[data-p="${focusKey}"],[data-task-text="${focusKey}"],[data-week-text="${focusKey}"]`);
     if (el) { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange?.(caret, caret); }
   }
