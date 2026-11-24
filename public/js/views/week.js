@@ -33,9 +33,13 @@ function weekList(week, list, title, hint) {
     const toggles = DAY_SHORT.map((label, w) => {
       const d = shiftDate(week, w), on = days.includes(d), ok = done.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
       const cls = `day-toggle${on ? ' on' : ''}${ok ? ' ok' : ''}`, face = ok ? icon('check') : label.slice(0, 1);
+      // Hecha: las letras quedan solo para ver en qué días se hizo (ya no se lleva a otros días).
+      if (row.c) return `<span class="${cls}${d < T ? ' past' : ''} still" aria-label="${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}">${face}</span>`;
       return `<button class="${cls}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}" title="${what} ${DAYS[w]}">${face}</button>`;
     }).join('') + (days.length > 1 ? `<span class="day-count">${done.filter(d => days.includes(d)).length}/${days.length}</span>` : '');
-    const text = `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
+    // Hecha: el nombre queda como registro (se desmarca con el círculo para corregirlo).
+    const text = row.c ? `<span>${esc(row.t)}</span>`
+      : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}">
       ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
       <div class="task-main">${text}</div>

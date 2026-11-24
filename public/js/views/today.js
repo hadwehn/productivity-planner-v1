@@ -49,11 +49,11 @@ function weekStrip(date) {
 function taskItem(date, { key, row }, focus) {
   const linked = row.source ? `<span class="task-meta">${tr('De tu semana', 'From your week')}</span>` : '';
   const star = focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus');
-  // Una tarea hecha ya no se renombra ni cambia de foco: queda como registro (se desmarca con el círculo).
+  // Una tarea hecha ya no se renombra (queda como registro; se desmarca con el círculo). La estrella
+  // sí funciona: una tarea hecha puede ganar o perder importancia.
   const text = row.c ? `<span>${esc(row.t)}</span>`
     : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
-  const starBtn = row.c ? `<span class="task-btn star${focus ? ' on' : ''} still" aria-hidden="true">${icon('star')}</span>`
-    : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
+  const starBtn = `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort>
     ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>

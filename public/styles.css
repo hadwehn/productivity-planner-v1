@@ -274,7 +274,6 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .task-btn { width: 36px; height: 40px; display: grid; place-items: center; color: var(--mute); flex: none; border-radius: 10px; }
 .task-btn:hover { color: var(--ink); }
 .task-btn.star.on { color: var(--gold); }
-.task-btn.star.still { cursor: default; opacity: .55; } /* tarea hecha: muestra si era del foco, sin cambiarlo */
 .task-btn.star.on .icon { fill: currentColor; }
 /* El título «En foco» lleva la misma estrella rellena que marca las tareas en foco. */
 .group-label .label.gold .icon, .section-head .label.gold .icon { fill: currentColor; }
@@ -380,6 +379,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .day-toggle { display: inline-grid; place-items: center; flex: none; width: 32px; height: 30px; border-radius: 9px; font-size: calc(12px * var(--ts)); font-weight: 600; color: var(--mute); background: var(--sunken); }
 .day-toggle.on { background: var(--acc); color: var(--acc-ink); }
 .day-toggle.past:not(.on) { opacity: .4; }
+.day-toggle.still { cursor: default; }
 .day-toggle.ok .icon { width: 14px; height: 14px; stroke-width: 2.4; }
 /* Marca de objetivo: con el lenguaje de las etiquetas («EN FOCO»), en verde y con la bandera
    rellena, para que se note; sin fondo ni borde, para que no parezca un botón. */

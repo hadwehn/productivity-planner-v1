@@ -3,7 +3,7 @@
 import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
-  addTask, bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
+  addTask, addWeekTask, bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
   deleteWeekTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
@@ -215,7 +215,6 @@ export function doDeleteTask(date, key) {
   toastUndo(tr('Tarea eliminada', 'Task deleted'), () => { restore(undo); render(); });
 }
 export function doToggleFocus(date, key) {
-  if (getTask(date, key)?.c) return; // una tarea hecha no cambia de foco
   const result = toggleFocus(date, key);
   if (result.error) toast(result.error);
   render();
@@ -255,13 +254,26 @@ export function overdueAction(kind, date, key) {
 export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
+  const focusMove = `<button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>`;
+  // Hecha (misma regla que en los días): repetirla la semana siguiente, cambiar su importancia o eliminarla.
+  if (row.c) {
+    const next = shiftDate(U.week, 7), thisWeek = iso(monday(new Date()));
+    const repeat = next === thisWeek ? tr('Repetir esta semana', 'Repeat this week')
+      : next === shiftDate(thisWeek, 7) ? tr('Repetir la próxima semana', 'Repeat next week')
+        : tr('Repetir la semana siguiente', 'Repeat the following week');
+    openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="weekrepeat" data-list="${list}" data-i="${i}">${icon('arrowRight')}${repeat}</button>
+      ${focusMove}
+      <button class="danger" data-a="weekdelete" data-list="${list}" data-i="${i}">${icon('trash')}${tr('Eliminar', 'Delete')}</button></div>`);
+    return;
+  }
   // En una semana pasada lo natural es traerla a esta semana; en las demás, pasarla a la siguiente.
   const moveOn = isPastWeek(U.week)
     ? `<button data-a="weekthis" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a esta semana', 'Move to this week')}</button>`
     : `<button data-a="weeknext" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a la próxima semana', 'Move to next week')}</button>`;
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveOn}
-    <button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>
+    ${focusMove}
     ${row.goal
       ? `<button data-a="weekgoal" data-list="${list}" data-i="${i}">${icon('calendar')}${tr('Repartir en días', 'Split into days')}</button>`
       : `<button data-a="weekgoal" data-list="${list}" data-i="${i}" data-on="1">${icon('flag')}${tr('Convertir en objetivo', 'Turn into a goal')}</button>`}
@@ -288,6 +300,20 @@ export function weekAction(kind, list, i) {
     const msg = r.removed === 0 ? tr('Ahora es un objetivo de la semana', 'Now it’s a goal for the week')
       : r.removed === 1 ? tr('Ahora es un objetivo. Se quitó de 1 día.', 'Now it’s a goal. Removed from 1 day.')
         : tr(`Ahora es un objetivo. Se quitó de ${r.removed} días.`, `Now it’s a goal. Removed from ${r.removed} days.`);
+    toastUndo(msg, () => { restore(undo); render(); });
+    return;
+  }
+  if (kind === 'repeat') {
+    const row = S.w[U.week]?.[list]?.[i], next = shiftDate(U.week, 7);
+    const r = row ? addWeekTask(next, list, row.t) : { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
+    closeSheet();
+    if (r.error) { toast(r.error); return; }
+    if (row.goal) S.w[next][list][r.i].goal = true; // sigue siendo objetivo
+    save();
+    render();
+    const thisWeek = iso(monday(new Date()));
+    const msg = next === thisWeek ? tr('Se repite esta semana', 'Repeats this week')
+      : next === shiftDate(thisWeek, 7) ? tr('Se repite la próxima semana', 'Repeats next week') : tr('Se repite la semana siguiente', 'Repeats the following week');
     toastUndo(msg, () => { restore(undo); render(); });
     return;
   }
