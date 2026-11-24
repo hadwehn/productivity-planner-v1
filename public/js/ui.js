@@ -13,6 +13,7 @@ export const U = {
   week: iso(monday(new Date())),
   weekMode: 'week',      // week · month
   review: false,
+  weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),
   calDay: today(),
   journalMonth: today().slice(0, 7),

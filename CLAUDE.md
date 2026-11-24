@@ -62,7 +62,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 Un solo objeto JSON por usuario: `h` hábitos · `hl` registros de hábitos · `m` meses · `ev` eventos ·
 `w` semanas (`a` foco de la semana, `b` otras; máx. 5 cada una) · `d` días (`k` tareas: claves 0, 501,
 502 = foco; 1…500 = resto; `i` intención, `g` gratitud, `r` reflexión, `mood`, `n`/`nRich` notas,
-`closed`) · `nd` antigua lista «Algún día», retirada (se acepta y se pasa a hoy al abrir) · `cfg` preferencias. Cualquier campo nuevo debe validarse en
+`closed`) · `w.started`/`w.closed` intención y revisión de la semana terminadas · `nd` antigua lista «Algún día», retirada (se acepta y se pasa a hoy al abrir) · `cfg` preferencias. Cualquier campo nuevo debe validarse en
 `checkedState` y tener prueba. Las preferencias de la cuenta van en `cfg`; lo que es solo del
 dispositivo, en `localStorage`.
 
@@ -102,6 +102,11 @@ dispositivo, en `localStorage`.
 - Empieza tu día y Cierra tu día se ven iguales (mismo ícono y formato), también ya terminados.
   Se pueden escribir el mismo día o cualquier día pasado, sin límite de hora; terminados quedan
   para leer y «Editar» los reabre. Los días futuros, no.
+- Plan › Semana: «Intención de la semana» y «Revisión semanal» funcionan como «Empieza/Cierra tu
+  día»: plegables con el mismo ícono y formato, botón «Listo, empezar la semana» / «Cerrar la
+  semana», quedan para leer y «Editar» las reabre (`w.started` y `w.closed`). La revisión se puede
+  cerrar cualquier día de su semana o después (antes solo desde el domingo); la intención, también
+  de antemano para la semana siguiente.
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).

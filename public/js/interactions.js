@@ -16,7 +16,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { autosize, focusEnd, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
-import { canEditReview, canEditRitual, finishReview, finishRitual, hasContent, hasReview, reopenReview, reopenRitual, reviewState } from './rituals.js';
+import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
@@ -145,8 +145,19 @@ const ACTIONS = {
     const undo = finishReview(week);
     U.review = false;
     render();
-    toastUndo(tr('Semana revisada. Bien hecho.', 'Week reviewed. Well done.'), () => { undo(); U.review = true; render(); });
+    toastUndo(tr('Semana cerrada. Bien hecho.', 'Week closed. Well done.'), () => { undo(); U.review = true; render(); });
   },
+  intentdone: () => {
+    const week = U.week;
+    if (!canEditIntent(week)) { render(); return; }
+    if (!hasIntent(week)) { toast(tr('Escribe tu intención antes de terminar.', 'Write your intention before finishing.')); return; }
+    document.activeElement?.blur?.();
+    const undo = finishIntent(week);
+    U.weekIntent = false;
+    render();
+    toastUndo(tr('Listo. Que tengas una buena semana.', 'Done. Have a good week.'), () => { undo(); U.weekIntent = true; render(); });
+  },
+  intentedit: () => { if (reopenIntent(U.week)) U.weekIntent = true; render(); },
   ritualdone: d => {
     const which = d.k, date = U.date;
     if (!canEditRitual(date, which)) { render(); return; }
@@ -302,6 +313,8 @@ function onInput(e) {
     if (m && !canEditRitual(m[1], ['i', 'g'].includes(m[2]) ? 'm' : 'e')) { render(); return; }
     const w = /^w\.(\d{4}-\d{2}-\d{2})\.r\.\d+$/.exec(el.dataset.p);
     if (w && !canEditReview(w[1])) { render(); return; }
+    const wi = /^w\.(\d{4}-\d{2}-\d{2})\.i$/.exec(el.dataset.p);
+    if (wi && !canEditIntent(wi[1])) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);

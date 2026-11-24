@@ -8,7 +8,7 @@ import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { reviewState } from '../rituals.js';
+import { intentState, reviewState } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
@@ -57,11 +57,28 @@ function progress(week) {
 }
 
 /** Pie de la revisión: desde el domingo se puede dar por terminada; terminada, se puede volver a editar. */
+const preview = (value, max = 90) => { const t = String(value || '').replace(/\s+/g, ' ').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+// Pies de la intención y la revisión: mismo botón y misma nota que «Empieza/Cierra tu día» en Hoy.
 function reviewFoot(state) {
-  if (state === 'ready') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Terminar la revisión', 'Finish the review')}</button>`;
-  if (state === 'done') return `<p class="ritual-note">${icon('check')}${tr('Terminaste la revisión de esta semana.', 'You finished this week’s review.')}<button class="link" data-a="reviewedit">${tr('Editar', 'Edit')}</button></p>`;
-  const note = state === 'open' ? tr('Desde el domingo podrás darla por terminada.', 'From Sunday you can mark it as finished.') : tr('Podrás escribirla cuando llegue esa semana.', 'You can write it when that week comes.');
-  return `<p class="ritual-note">${icon('calendar')}${note}</p>`;
+  if (state === 'ready') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Cerrar la semana', 'Close the week')}</button>`;
+  if (state === 'done') return `<p class="ritual-note">${icon('check')}${tr('Cerraste esta semana.', 'You closed this week.')}<button class="link" data-a="reviewedit">${tr('Editar', 'Edit')}</button></p>`;
+  return `<p class="ritual-note">${icon('calendar')}${tr('Podrás escribirla cuando llegue esa semana.', 'You can write it when that week comes.')}</p>`;
+}
+function intentFoot(week, state, thisWeek) {
+  if (state === 'done') return `<p class="ritual-note">${icon('check')}${week < thisWeek ? tr('Definiste la intención de esa semana.', 'You set the intention for that week.') : tr('Empezaste esta semana.', 'You started this week.')}<button class="link" data-a="intentedit">${tr('Editar', 'Edit')}</button></p>`;
+  const label = week < thisWeek ? tr('Listo', 'Done') : week > thisWeek ? tr('Listo, dejarla definida', 'Done, set it') : tr('Listo, empezar la semana', 'Done, start the week');
+  return `<button class="btn ritual-finish" data-a="intentdone">${icon('check')}${label}</button>`;
+}
+
+/** «Intención de la semana», con el mismo formato que «Empieza tu día». */
+function weekIntent(week, thisWeek) {
+  const W = `w.${week}.`, text = String(get(W + 'i')).trim(), state = intentState(week), done = state === 'done';
+  const body = done
+    ? `<div class="prompt"><span class="prompt-label">${tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?')}</span><p class="ritual-read serif">${esc(text)}</p></div>`
+    : `<div class="prompt"><label for="f-wintent">${tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?')}</label>${field(W + 'i', tr('Una palabra o una frase que te guíe…', 'A word or a phrase to guide you…'), '', ' id="f-wintent"')}</div>`;
+  const summary = done ? tr('Lista', 'Set') + (text ? ` · “${esc(preview(text, 70))}”` : '')
+    : text ? `“${esc(preview(text))}”` : week < thisWeek ? tr('Sin escribir · puedes completarla', 'Not written · you can still fill it in') : tr('Una frase para tu semana · 1 minuto', 'A phrase for your week · 1 minute');
+  return foldable({ key: 'weekIntent', open: U.weekIntent, iconName: done ? 'check' : 'sunrise', iconCls: 'evening', title: tr('Intención de la semana', 'Intention for the week'), summary, written: !done && !!text, body: body + intentFoot(week, state, thisWeek) });
 }
 
 function weekView() {
@@ -69,19 +86,20 @@ function weekView() {
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
-  const state = reviewState(week), editable = state === 'open' || state === 'ready';
-  const summary = state === 'done' ? tr(`Revisión terminada · ${answered} de ${questions.length}`, `Review done · ${answered} of ${questions.length}`)
+  const state = reviewState(week), editable = state === 'ready';
+  const firstAnswer = questions.map((_, i) => String(get(`${W}r.${i}`)).trim()).find(Boolean);
+  const summary = state === 'done' ? tr('Lista', 'Done') + (firstAnswer ? ` · “${esc(preview(firstAnswer, 70))}”` : '')
     : answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
       : state === 'future' ? tr('Disponible durante esa semana', 'Available during that week')
         : week < thisWeek ? tr('Sin revisión · puedes completarla', 'No review · you can still fill it in') : reviewDay ? tr('Buen momento para mirar tu semana', 'A good moment to look at your week') : tr('Cuatro preguntas para cerrar la semana', 'Four questions to close the week');
   return `<div class="cols"><div class="col">${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
-    <section class="section">${sectionHead(tr('Intención de la semana', 'Intention for the week'))}<div class="card week-intent">${field(W + 'i', tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?'))}</div>${progress(week)}</section>
+    <section class="section">${weekIntent(week, thisWeek)}${progress(week)}</section>
     ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
     ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
     </div><div class="col">
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
     <div class="section">${foldable({
-      key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'leaf', iconCls: state === 'done' ? 'done' : '', title: tr('Revisión semanal', 'Weekly review'), summary, written: state === 'done',
+      key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'moon', iconCls: 'evening', title: tr('Revisión semanal', 'Weekly review'), summary, written: state !== 'done' && answered > 0,
       body: questions.map((q, i) => {
         if (editable) return `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`;
         const text = String(get(`${W}r.${i}`)).trim();

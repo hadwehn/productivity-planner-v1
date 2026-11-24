@@ -47,16 +47,36 @@ export function finishRitual(date, which) {
   };
 }
 
+// ——— Intención de la semana ———
+// Como «Empieza tu día»: se escribe y el botón la da por definida; queda solo para leer y «Editar» la
+// vuelve a abrir. Se puede definir de antemano (p. ej., el domingo para la semana siguiente).
+// Se guarda en w[lunes].started.
+export const intentState = week => (S.w[week]?.started === true ? 'done' : 'open');
+export const canEditIntent = week => intentState(week) === 'open';
+export const hasIntent = week => !!clean(S.w[week]?.i);
+export function finishIntent(week) {
+  const w = S.w[week] = S.w[week] || {};
+  w.started = true;
+  save();
+  return () => { if (S.w[week]) delete S.w[week].started; save(); };
+}
+export function reopenIntent(week) {
+  if (S.w[week]?.started !== true) return false;
+  delete S.w[week].started;
+  save();
+  return true;
+}
+
 // ——— Revisión semanal ———
-// Se escribe durante su semana o después. Desde el domingo aparece el botón para darla por
-// terminada; terminada queda solo para leer, y «Editar» la vuelve a abrir. Se guarda en w[lunes].closed.
-/** 'open' (se escribe, aún no es domingo) | 'ready' (se puede terminar) | 'done' | 'future' */
+// Como «Cierra tu día»: se escribe durante su semana o después, sin límite de hora, y el botón la da
+// por terminada cuando se quiera; terminada queda solo para leer, y «Editar» la vuelve a abrir.
+// Se guarda en w[lunes].closed.
+/** 'ready' (se escribe y se puede terminar) | 'done' | 'future' (la semana aún no empieza) */
 export function reviewState(week, now = new Date()) {
   if (S.w[week]?.closed === true) return 'done';
-  if (now < parseDate(week)) return 'future';
-  return now >= parseDate(shiftDate(week, 6)) ? 'ready' : 'open';
+  return now < parseDate(week) ? 'future' : 'ready';
 }
-export const canEditReview = (week, now) => ['open', 'ready'].includes(reviewState(week, now));
+export const canEditReview = (week, now) => reviewState(week, now) === 'ready';
 export const hasReview = week => Object.values(S.w[week]?.r || {}).some(v => clean(v));
 export function finishReview(week) {
   const w = S.w[week] = S.w[week] || {};

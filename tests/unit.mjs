@@ -15,7 +15,7 @@ import { habitsView } from '../public/js/views/habits.js';
 import { journalView } from '../public/js/views/journal.js';
 import { shiftDate, today, weekdayOf } from '../public/js/util.js';
 import { eventsOn } from '../public/js/events.js';
-import { canEditRitual, finishRitual, reopenReview, reopenRitual, reviewState, ritualState } from '../public/js/rituals.js';
+import { canEditIntent, canEditRitual, finishIntent, finishRitual, hasIntent, intentState, reopenIntent, reopenReview, reopenRitual, reviewState, ritualState } from '../public/js/rituals.js';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -274,7 +274,7 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   let failed = false; try { checkedState(copy); } catch { failed = true; }
   eq(failed, true, 'cierre inválido');
   const W = '2026-11-09';
-  eq(['2026-11-12T12:00', '2026-11-15T00:00', '2026-11-16T02:59', '2026-11-16T03:00', '2026-11-08T23:00'].map(t => reviewState(W, new Date(t))), ['open', 'ready', 'ready', 'ready', 'future'], 'revisión: se puede terminar desde el domingo, sin límite de hora');
+  eq(['2026-11-12T12:00', '2026-11-15T00:00', '2026-11-16T02:59', '2026-11-16T03:00', '2026-11-08T23:00'].map(t => reviewState(W, new Date(t))), ['ready', 'ready', 'ready', 'ready', 'future'], 'revisión: se puede terminar cualquier día de su semana o después, sin límite de hora');
   S.w[W] = { r: { 0: 'Bien' }, closed: true };
   eq(reviewState(W, new Date('2026-11-15T10:00')), 'done');
   eq([reopenReview(W), reviewState(W, new Date('2026-11-20T10:00'))], [true, 'ready'], '«Editar» vuelve a abrir la revisión');
@@ -283,6 +283,20 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   const badW = JSON.parse(JSON.stringify(S)); badW.w[W].closed = 'sí';
   let badFailed = false; try { checkedState(badW); } catch { badFailed = true; }
   eq(badFailed, true, 'cierre de revisión inválido');
+  // Intención de la semana: como «Empieza tu día»; se da por definida y «Editar» la reabre.
+  eq([intentState(W), canEditIntent(W), hasIntent(W)], ['open', true, false]);
+  S.w[W].i = 'Calma';
+  const undoIntent = finishIntent(W);
+  eq([intentState(W), canEditIntent(W), S.w[W].started], ['done', false, true], 'intención definida queda para leer');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  eq(v1Accepts(S), true);
+  undoIntent();
+  eq([intentState(W), S.w[W].started], ['open', undefined], 'deshacer');
+  finishIntent(W);
+  eq([reopenIntent(W), intentState(W), reopenIntent(W)], [true, 'open', false], '«Editar» la vuelve a abrir');
+  const badI = JSON.parse(JSON.stringify(S)); badI.w[W].started = 1;
+  let badIFailed = false; try { checkedState(badI); } catch { badIFailed = true; }
+  eq(badIFailed, true, 'intención terminada inválida');
   // Rituales: se escriben el mismo día o después, sin límite de hora; un día futuro, todavía no.
   const R = '2026-11-11', at = t => new Date(t);
   delete S.d[R];
