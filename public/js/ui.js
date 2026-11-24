@@ -18,6 +18,7 @@ export const U = {
   calDay: today(),
   journalMonth: today().slice(0, 7),
   journalTab: 'summary',  // summary · entries
+  journalQuery: '',       // búsqueda en «Escritos» (no se guarda)
 };
 
 // ——— Cambio de día ———

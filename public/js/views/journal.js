@@ -13,6 +13,53 @@ import { isUnlocked, showUnlock } from '../lock.js';
 const clean = v => String(v || '').trim();
 const hasEntry = d => d && (clean(d.i) || clean(d.g) || clean(d.r) || clean(d.n) || d.mood);
 
+// ——— Buscar en el Diario ———
+// Busca en todo lo escrito (intención, gratitud, reflexión y notas), en cualquier mes, sin importar
+// tildes ni mayúsculas, y resalta lo encontrado. La búsqueda es solo de la pantalla (no se guarda).
+const MIN_QUERY = 2, MAX_RESULTS = 60;
+const fold = ch => ch.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+/** Texto escapado con las coincidencias de `q` dentro de <mark>. */
+function highlight(text, q) {
+  const needle = [...q].map(fold).join('');
+  if (!needle) return esc(text);
+  const chars = [...text], folded = chars.map(fold), flat = folded.join('');
+  // Posición de cada carácter original dentro del texto plegado.
+  const starts = []; let pos = 0;
+  for (const f of folded) { starts.push(pos); pos += f.length; }
+  let out = '', i = 0, from = 0;
+  while ((i = flat.indexOf(needle, from)) !== -1) {
+    const a = starts.findIndex(s => s >= i), endFlat = i + needle.length;
+    let b = starts.findIndex(s => s >= endFlat); if (b === -1) b = chars.length;
+    out += esc(chars.slice(starts.findIndex(s => s >= from) === -1 ? chars.length : starts.findIndex(s => s >= from), a).join('')) + `<mark>${esc(chars.slice(a, b).join(''))}</mark>`;
+    from = endFlat;
+  }
+  const rest = starts.findIndex(s => s >= from);
+  return out + (rest === -1 ? '' : esc(chars.slice(rest).join('')));
+}
+const matches = (d, needle) => ['i', 'g', 'r', 'n'].some(k => [...clean(d[k])].map(fold).join('').includes(needle));
+
+/** Lista de «Escritos»: lo del mes o, con una búsqueda, lo que coincide en todo el Diario. */
+export function journalEntries() {
+  const m = U.journalMonth, T = today(), q = clean(U.journalQuery);
+  if (q.length >= MIN_QUERY) {
+    const needle = [...q].map(fold).join('');
+    const found = Object.entries(S.d).filter(([date, d]) => date <= T && hasEntry(d) && matches(d, needle)).sort(([a], [b]) => b.localeCompare(a));
+    const shown = found.slice(0, MAX_RESULTS);
+    const head = sectionHead(tr('En todo tu diario', 'Across your journal'), `<span class="muted small">${found.length} ${plural(found.length, 'resultado', 'resultados', 'result', 'results')}</span>`);
+    return `<section class="section">${head}${shown.length ? `<div class="entry-grid">${shown.map(([date, d]) => entry(date, d, q, true)).join('')}</div>`
+      : `<div class="card"><p class="empty-note">${tr(`No encontramos «${esc(q)}» en lo que has escrito.`, `We couldn’t find “${esc(q)}” in what you’ve written.`)}</p></div>`}</section>`;
+  }
+  const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
+  return `<section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'), days.length ? `<span class="muted small">${days.length} ${plural(days.length, 'día', 'días', 'day', 'days')}</span>` : '')}
+      ${days.length ? `<div class="entry-grid">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
+        : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write a line when you close your day; over time this becomes your best record.')}</p></div>`}
+    </section>`;
+}
+function searchBox() {
+  const q = U.journalQuery || '';
+  return `<div class="journal-search">${icon('search')}<input type="search" data-journal-search value="${esc(q)}" placeholder="${tr('Buscar en tu diario', 'Search your journal')}" aria-label="${tr('Buscar en tu diario', 'Search your journal')}" autocomplete="off" autocapitalize="none" enterkeyhint="search"><button type="button" class="icon-btn" data-a="journalclear" aria-label="${tr('Borrar búsqueda', 'Clear search')}"${q ? '' : ' hidden'}>${icon('close')}</button></div>`;
+}
+
 const written = d => clean(d?.g) || clean(d?.r);
 /** El mismo día de hace `n` meses, si ese día existe (el 31 no existe en todos los meses). */
 function monthsAgo(T, n) {
@@ -97,16 +144,17 @@ function moodMonth(m) {
     <div class="card"><div class="mood-month">${cells}</div><div class="legend">${MOOD_LEVELS.map(k => `<span style="--c:${moodColor(k)}"><i></i>${moodName(k)}</span>`).join('')}</div></div></section>`;
 }
 
-function entry(date, d) {
+function entry(date, d, q = '', withYear = false) {
   const pd = parseDate(date), rows = [];
   if (clean(d.i)) rows.push([tr('Intención', 'Intention'), clean(d.i), true]);
   if (clean(d.g)) rows.push([tr('Gratitud', 'Gratitude'), clean(d.g)]);
   if (clean(d.r)) rows.push([tr('Reflexión', 'Reflection'), clean(d.r)]);
   if (clean(d.n)) rows.push([tr('Notas', 'Notes'), clean(d.n)]);
   const mood = d.mood ? `<span class="mood-tag" style="--c:${moodColor(d.mood)}">${icon('mood' + d.mood, 'icon face')}${moodName(d.mood)}</span>` : '';
-  const title = `${DAYS[weekday(pd)]} ${pd.getDate()}`;
+  // En los resultados de una búsqueda (de cualquier mes) va la fecha completa.
+  const title = withYear ? `${DAYS[weekday(pd)]} ${dayMonth(pd)}${pd.getFullYear() !== new Date().getFullYear() ? ` ${pd.getFullYear()}` : ''}` : `${DAYS[weekday(pd)]} ${pd.getDate()}`;
   return `<article class="card entry" data-a="openday" data-k="${date}" role="link" tabindex="0" aria-label="${tr('Abrir', 'Open')} ${title}"><div class="entry-head"><strong>${title}</strong>${mood}</div>
-    ${rows.length ? `<dl>${rows.map(([t, v, serif]) => `<div><dt>${t}</dt><dd class="${serif ? 'serif' : ''}">${esc(v)}</dd></div>`).join('')}</dl>` : ''}</article>`;
+    ${rows.length ? `<dl>${rows.map(([t, v, serif]) => `<div><dt>${t}</dt><dd class="${serif ? 'serif' : ''}">${q ? highlight(v, q) : esc(v)}</dd></div>`).join('')}</dl>` : ''}</article>`;
 }
 
 export function journalView() {
@@ -125,10 +173,7 @@ export function journalView() {
   // Dos pestañas, como «Semana | Mes» en Plan: el resumen del mes y lo que escribiste.
   const tabs = segmented('journaltab', [['summary', tr('Resumen', 'Summary')], ['entries', tr('Escritos', 'Entries')]], U.journalTab);
   const body = U.journalTab === 'entries'
-    ? `<section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'), days.length ? `<span class="muted small">${days.length} ${plural(days.length, 'día', 'días', 'day', 'days')}</span>` : '')}
-      ${days.length ? `<div class="entry-grid">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
-        : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write one line when you close the day; over time, this becomes your best record.')}</p></div>`}
-    </section>`
+    ? `${searchBox()}<div id="journal-results">${journalEntries()}</div>`
     : `<div class="cols"><div class="col">${m === T.slice(0, 7) ? memory(T) : ''}${monthSummary(m, T)}</div><div class="col">${moodMonth(m)}</div></div>`;
   return `<div class="view">${stickyHead(head + tabs)}${body}</div>`;
 }

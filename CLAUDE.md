@@ -200,6 +200,9 @@ dispositivo, en `localStorage`.
   una vista «Ampliar» con los nombres en cada día, y los fundadores lo descartaron: vuelven los puntos.
 
 **Hábitos y Diario**
+- Diario › Escritos: buscador arriba («Buscar en tu diario»). Desde 2 letras busca en todo lo escrito
+  (intención, gratitud, reflexión y notas), en cualquier mes, sin importar tildes ni mayúsculas;
+  resalta lo encontrado y muestra la fecha completa. La búsqueda no se guarda (`journalEntries`).
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
   abajo. Cambiar la frecuencia guarda la anterior en `h.past` para no reescribir la racha ni la
   constancia pasadas; si cambia el tipo (días ↔ veces por semana), la racha cuenta desde el cambio. Diario: pestañas «Resumen | Escritos». Con código, el Diario muestra solo el teclado

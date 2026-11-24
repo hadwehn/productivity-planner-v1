@@ -518,6 +518,15 @@ nav.tabbar button.has-dot::after { content: ""; position: absolute; top: 6px; le
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
 /* La barra queda siempre igual, con íconos y nombres (se probó achicarla al bajar y se descartó). */
 nav.tabbar button span { display: block; }
+/* Buscar en el Diario (pestaña «Escritos»). */
+.journal-search { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 0 4px 0 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); }
+.journal-search > .icon { width: 18px; height: 18px; color: var(--mute); flex: none; }
+.journal-search input { flex: 1; padding: 12px 0; -webkit-appearance: none; appearance: none; }
+.journal-search input::-webkit-search-cancel-button { display: none; }
+.journal-search:focus-within { border-color: var(--acc); }
+.journal-search input:focus-visible { outline: none; } /* el recuadro ya marca el foco */
+.entry mark { background: var(--gold-soft); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+:root[data-appearance="dark"] .entry mark { background: var(--acc-soft); color: var(--acc); }
 /* Deslizar una tarea (celular, ver swipeRows): el contenido se corre a la izquierda y detrás aparecen
    sus acciones, que crecen con el dedo. */
 [data-swipe-row] { touch-action: pan-y; overflow-x: clip; }

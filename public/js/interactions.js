@@ -15,6 +15,7 @@ import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose 
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
+import { journalEntries } from './views/journal.js';
 import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
 import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
@@ -241,6 +242,7 @@ const ACTIONS = {
   shiftmonth: update(d => shiftMonthBy(+d.n)),
   shiftjournal: update(d => { if (canMove('journal', +d.n)) U.journalMonth = shiftMonth(U.journalMonth, +d.n); }),
   journaltab: navigate(d => { U.journalTab = d.k; }),
+  journalclear: () => { U.journalQuery = ''; render(); $('[data-journal-search]')?.focus(); },
 
   // Ajustes
   appearance: d => {
@@ -333,6 +335,14 @@ function addOnLeave(form) {
 // ——— Escritura ———
 function onInput(e) {
   const el = e.target;
+  // Buscar en el Diario: filtra al instante sin redibujar la pantalla (el campo no pierde el foco).
+  if (el.matches?.('[data-journal-search]')) {
+    U.journalQuery = el.value;
+    const box = $('#journal-results');
+    if (box) box.innerHTML = journalEntries();
+    el.parentElement.querySelector('[data-a="journalclear"]')?.toggleAttribute('hidden', !el.value);
+    return;
+  }
   autosize(el);
   if (!canEdit()) return;
   if (el.dataset.p) {
