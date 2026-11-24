@@ -15,7 +15,7 @@ import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose 
 import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
-import { RITUALS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
+import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
 import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
@@ -116,9 +116,9 @@ const ACTIONS = {
   shiftweek: d => shiftWeek(+d.n),
   // Al abrir un ritual se pliegan los demás y sube al primer plano (ver focusRitual en render.js).
   fold: d => {
-    const opening = !U[d.k], ritual = RITUALS.includes(d.k);
+    const opening = !U[d.k], ritual = FOCUS_CARDS.includes(d.k);
     U[d.k] = opening;
-    if (opening && ritual) for (const k of RITUALS) if (k !== d.k) U[k] = false;
+    if (opening && ritual) for (const k of FOCUS_CARDS) if (k !== d.k) U[k] = false;
     render();
     if (opening && ritual) focusRitual(d.k);
   },

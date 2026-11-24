@@ -123,13 +123,13 @@ export function render(toTop = false) {
 }
 
 // ——— Rituales en primer plano ———
-// Con un ritual abierto (Empieza/Cierra tu día, Intención/Revisión de la semana), el resto de la
+// Con un ritual abierto (Empieza/Cierra tu día, Intención/Revisión de la semana) o Notas, el resto de la
 // pantalla se atenúa: es un momento propio, no un formulario en el camino. Al abrirlo, además,
 // la página lo sube hasta quedar justo bajo la cabecera (ver focusRitual).
 // Solo cuando la persona lo abre: la apertura automática de la mañana o la noche no atenúa nada.
-export const RITUALS = ['morning', 'evening', 'weekIntent', 'review'];
+export const FOCUS_CARDS = ['morning', 'evening', 'weekIntent', 'review', 'notes']; // los cuatro rituales y Notas
 let focused = null; // ritual abierto en primer plano
-const openRitual = view => [...view.querySelectorAll('.ritual.open')].find(s => RITUALS.includes(s.querySelector('.ritual-head')?.dataset.k));
+const openRitual = view => [...view.querySelectorAll('.ritual.open')].find(s => FOCUS_CARDS.includes(s.querySelector('.ritual-head')?.dataset.k));
 function applyRitualFocus(view) {
   const open = openRitual(view), card = open?.querySelector('.ritual-head').dataset.k === focused ? open : null;
   if (!card) focused = null;

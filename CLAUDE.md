@@ -118,10 +118,10 @@ dispositivo, en `localStorage`.
   hasta el lunes a mediodía (si no está cerrada) y «¿Qué fue lo mejor de noviembre?» el último día
   del mes desde las 18:00 hasta el día 2 (si está vacío). Llevan a Plan con la revisión abierta o
   al campo de «Lo mejor del mes» (`reviewReminder`/`monthReminder` en `rituals.js`).
-- Rituales en primer plano (Empieza/Cierra tu día, Intención/Revisión de la semana): al abrirlos
+- Rituales y Notas en primer plano (Empieza/Cierra tu día, Intención/Revisión de la semana, Notas): al abrirlos
   (o «Editar») la página los sube hasta quedar justo bajo la cabecera, el resto se atenúa y los
   otros rituales se pliegan; si están al final, se agrega espacio abajo para que suban. La
-  apertura automática de la mañana o la noche no atenúa nada. Notas no entra (`focusRitual`).
+  apertura automática de la mañana o la noche no atenúa nada (`focusRitual`).
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
