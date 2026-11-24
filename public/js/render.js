@@ -112,9 +112,11 @@ function drawBackNow() {
   if (!btn) return;
   btn.hidden = !b;
   if (!b) return;
-  // Justo bajo la línea de la cabecera fija (su alto cambia con «Texto más grande»).
+  // Justo bajo la línea de la cabecera fija (su alto cambia con «Texto más grande»). Se usa solo su
+  // alto: la cabecera siempre parte arriba de la pantalla, y su posición (offsetTop) incluye lo
+  // desplazado cuando se redibuja con la página abajo, lo que dejaba el botón a media pantalla.
   const head = $('#v .sticky-head');
-  if (head) document.documentElement.style.setProperty('--head-bottom', `${Math.round(head.offsetTop + head.offsetHeight)}px`);
+  if (head) document.documentElement.style.setProperty('--head-bottom', `${Math.round(head.offsetHeight)}px`);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
   // Texto corto («Esta semana») con flecha curva de regreso; el nombre completo, para lectores de pantalla.
