@@ -129,13 +129,11 @@ dispositivo, en `localStorage`.
 - Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una ventana
   flotante con bordes redondeados que no ocupa toda la pantalla (en el celular, arriba y con margen
   a los lados; en computador, centrada), con la barra de formato arriba, el espacio para escribir y
-  «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). En el
-  celular la ventana tiene **siempre el alto justo para quedar entera sobre el teclado** (unas 6–7
-  líneas visibles; lo largo se desplaza dentro), así queda quieta: no se mueve al abrir el teclado
-  ni al escribir, y «Guardar» siempre se ve. El alto del teclado se aprende la primera vez y se
-  recuerda en el dispositivo (`focus-teclado`, `sizeNotes`). Se probaron una hoja a pantalla
-  completa, una ventana alta con el teclado encima (Safari movía la pantalla) y achicarla al abrir
-  el teclado, y no gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
+  «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). Con el teclado del celular abierto, la
+  ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
+  se mantiene a la vista. La ventana sigue a la pantalla visible (`--vv-top`): aunque el iPhone
+  desplace la vista al escribir, el título y la barra de formato quedan siempre arriba. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
+  gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
   Basurero junto a la ✕ (solo con algo escrito) para empezarla de cero: borra al instante con
   «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
