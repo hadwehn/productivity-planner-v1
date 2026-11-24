@@ -24,17 +24,6 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
 
-// Rebote del iPhone (o del trackpad en Safari) al tirar más arriba del inicio: la cabecera baja con
-// la página, pero lo fijo se queda. El botón «Volver al presente» baja lo mismo (scrollY negativo)
-// para no quedar nunca por encima de la línea de la cabecera.
-let lastPull = 0;
-addEventListener('scroll', () => {
-  const pull = Math.max(0, Math.round(-scrollY));
-  if (pull === lastPull) return;
-  lastPull = pull;
-  $('#back-now')?.style.setProperty('--pull', `${pull}px`);
-}, { passive: true });
-
 // La barra de pestañas se achica al bajar y vuelve a su tamaño al subir, al llegar arriba o 0,4 s
 // después de dejar de desplazarse (igual a mitad de página que al final).
 const NAV_IDLE = 400;
@@ -105,7 +94,7 @@ export function render(toTop = false) {
 }
 
 /**
- * «Volver al presente»: un solo botón flotante, arriba a la derecha bajo la cabecera fija, igual en
+ * «Volver al presente»: un solo botón, arriba a la derecha bajo la cabecera fija, igual en
  * Hoy, Plan y Diario, que aparece solo cuando se mira otro día, semana o mes. Texto corto («Hoy»,
  * «Esta semana», «Este mes») con una flecha curva de regreso, que se refleja si el presente queda adelante.
  */
@@ -118,16 +107,20 @@ function backNow() {
   if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: thisMonth };
   return null;
 }
+// El botón vive dentro de la cabecera fija y cuelga bajo su línea: así se mueven siempre juntos
+// (también en el rebote del iPhone al tirar más arriba del inicio). Como la vista se vuelve a dibujar,
+// se guarda aquí y se vuelve a poner en la cabecera nueva cada vez.
+let backBtn = null;
 function drawBackNow() {
-  const btn = $('#back-now'), b = backNow();
+  backBtn ||= $('#back-now');
+  const btn = backBtn, b = backNow(), head = $('#v .sticky-head');
   if (!btn) return;
-  btn.hidden = !b;
-  if (!b) return;
-  // Justo bajo la línea de la cabecera fija (su alto cambia con «Texto más grande»). Se usa solo su
-  // alto: la cabecera siempre parte arriba de la pantalla, y su posición (offsetTop) incluye lo
-  // desplazado cuando se redibuja con la página abajo, lo que dejaba el botón a media pantalla.
-  const head = $('#v .sticky-head');
-  if (head) document.documentElement.style.setProperty('--head-bottom', `${Math.round(head.offsetHeight)}px`);
+  const wasHidden = btn.hidden || !btn.isConnected;
+  btn.hidden = !b || !head;
+  if (btn.hidden) return;
+  if (btn.parentElement !== head) head.append(btn);
+  // Aparece con una animación solo al mostrarse, no cada vez que se redibuja la pantalla.
+  btn.classList.toggle('enter', wasHidden);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
   // Texto corto («Esta semana») con flecha curva de regreso; el nombre completo, para lectores de pantalla.
