@@ -195,9 +195,9 @@ dispositivo, en `localStorage`.
 **Estilo**
 - Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
-- Tareas (del día y de la semana) y hábitos se escriben en MAYÚSCULAS con la letra normal de la
-  app, un poco más chica y espaciada (`text-transform`: se guardan tal como se escriben). Antes iban
-  en versalitas. Lo escrito para uno mismo (intención, reflexión, notas) va en texto corrido.
+- Tareas (del día y de la semana) y hábitos van con la letra normal de la app, tal como se
+  escriben, a 16 px. Se probaron versalitas y MAYÚSCULAS (incluso del tamaño de «TAREAS») y se
+  descartaron: se leían más lento y se confundían con las etiquetas, que sí van en mayúsculas chicas.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   La hoja de notas tiene «Listo» abajo a la derecha (verde, con ✓) para dejar la nota lista: la X

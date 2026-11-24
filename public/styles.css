@@ -293,16 +293,9 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .banner p { flex: 1; margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.4; }
 .banner .btn.small { background: var(--surface); color: var(--ink); }
 
-/* Lo accionable (tareas, foco de la semana y hábitos) va en MAYÚSCULAS con la letra normal de la
-   app; lo escrito para uno mismo (intención, gratitud, reflexión, revisión, notas) queda en texto
-   corrido. Antes iba en versalitas. Solo cambia cómo se ve: se guarda tal como se escribe.
-   Un poco más chica y espaciada, para que las mayúsculas no griten. */
-.task textarea, .add-row input, .task-main > span:not(.task-meta),
-.habit-chip > span:not(.dot), .habit-top strong, .caps, #habitName {
-  text-transform: uppercase; letter-spacing: .035em; font-size: .94em;
-}
-.task textarea, .add-row input, #habitName { font-size: calc(15px * var(--ts)); }
-#habitName::placeholder, .add-row input::placeholder, .task textarea::placeholder { text-transform: none; letter-spacing: 0; }
+/* Tareas, foco de la semana y hábitos van con la letra normal de la app, tal como se escriben
+   (se probaron versalitas y MAYÚSCULAS: se leían más lento en listas largas y se confundían con
+   las etiquetas como «TAREAS» o «EN FOCO», que sí van en mayúsculas chicas). */
 
 /* Arrastrar */
 .dragging { opacity: .3; }
@@ -784,7 +777,6 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .wo-list { display: grid; gap: 3px; flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; font-size: calc(14px * var(--ts)); color: var(--ink-2); }
   .wo-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wo-list li.done { color: var(--mute); text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .wo-list li:not(.ev):not(.more) { text-transform: uppercase; letter-spacing: .035em; font-size: .94em; }
   .wo-list li.ev { color: var(--acc); }
   .wo-list li.more { color: var(--mute); font-size: calc(12px * var(--ts)); }
   .wo-list time { font-variant-numeric: tabular-nums; opacity: .8; }
