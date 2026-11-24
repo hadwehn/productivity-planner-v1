@@ -513,16 +513,8 @@ nav.tabbar { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(12
 nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 18px; font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); transition: color .2s, background .2s; }
 nav.tabbar button .icon { width: 23px; height: 23px; }
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
-/* Al bajar por la página la barra se achica (solo íconos); al subir vuelve a su tamaño. */
-/* Al agrandarse (volver a su tamaño) tarda un poco más que al achicarse, para que no aparezca de golpe. */
-nav.tabbar { transition: width .38s var(--ease), padding .38s var(--ease), border-radius .38s var(--ease); }
-nav.tabbar button span { display: block; max-height: 1.6em; overflow: hidden; transition: max-height .38s var(--ease), opacity .3s .05s; }
-nav.tabbar button { transition: color .2s, background .2s, padding .38s var(--ease), gap .38s var(--ease); }
-.nav-compact nav.tabbar, .nav-compact nav.tabbar button { transition-duration: .28s; }
-.nav-compact nav.tabbar button span { transition: max-height .28s var(--ease), opacity .2s; }
-.nav-compact nav.tabbar { width: min(calc(100vw - 96px), 300px); padding: 4px; border-radius: 20px; }
-.nav-compact nav.tabbar button { padding: 7px 0; gap: 0; border-radius: 16px; }
-.nav-compact nav.tabbar button span { max-height: 0; opacity: 0; }
+/* La barra queda siempre igual, con íconos y nombres (se probó achicarla al bajar y se descartó). */
+nav.tabbar button span { display: block; }
 /* Áreas táctiles: los controles chicos se ven igual, pero se pueden tocar en un área de ~44 px
    (mínimo recomendado por Apple y WCAG). El área extra es invisible y no mueve nada. */
 .check, .range-nav button, .add-btn, .day-toggle { position: relative; }
@@ -552,7 +544,6 @@ dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidd
 @media (min-width: 1000px) {
   dialog.sheet.notes-sheet { width: 100%; max-width: 760px; height: min(80dvh, 760px); margin: auto; }
 }
-@media (prefers-reduced-motion: reduce) { nav.tabbar, nav.tabbar button, nav.tabbar button span { transition: none; } }
 
 /* ===== Hojas (diálogos) ===== */
 dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: calc(100dvh - 100px - env(safe-area-inset-top)); border-radius: 26px 26px 0 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-up); overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box; }
@@ -738,9 +729,9 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .plan-head-panel .plan-range b { flex: 0 0 auto; min-width: 18em; }
   .range-nav button:hover { background: var(--line); }
 
-  nav.tabbar, .nav-compact nav.tabbar { left: 0; right: auto; margin: 0; top: 0; bottom: 0; transform: none; -webkit-transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
-  nav.tabbar button, .nav-compact nav.tabbar button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; border-radius: 12px; font-size: calc(15px * var(--ts)); font-weight: 550; }
-  nav.tabbar button span, .nav-compact nav.tabbar button span { max-height: none; opacity: 1; }
+  nav.tabbar { left: 0; right: auto; margin: 0; top: 0; bottom: 0; transform: none; -webkit-transform: none; width: 232px; flex-direction: column; gap: 4px; padding: 26px 16px 18px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; transition: none; }
+  nav.tabbar button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; border-radius: 12px; font-size: calc(15px * var(--ts)); font-weight: 550; }
+  nav.tabbar button span { max-height: none; opacity: 1; }
   nav.tabbar button .icon { width: 21px; height: 21px; }
   nav.tabbar button:hover { color: var(--ink); background: color-mix(in srgb, var(--sunken) 60%, transparent); }
   nav.tabbar button.on { background: var(--sunken); }

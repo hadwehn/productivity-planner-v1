@@ -69,10 +69,9 @@ dispositivo, en `localStorage`.
 ## Decisiones ya tomadas (no deshacer sin conversarlo)
 
 **Navegación y cabeceras**
-- Pestañas: Hoy, Plan, Hábitos, Diario. En celular, barra inferior que se achica al bajar y vuelve
-  a su tamaño al subir o 0,4 s después de dejar de desplazarse (igual al final de la página; los
-  rebotes del celular se ignoran). Los desplazamientos que hace la app (cambiar de sección o de
-  periodo, volver a donde quedaste) no la achican. En computador, barra lateral.
+- Pestañas: Hoy, Plan, Hábitos, Diario. En celular, barra inferior flotante **siempre del mismo
+  tamaño**, con íconos y nombres. Se probó achicarla al bajar (solo íconos, volvía a los 0,4 s) y
+  se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
 - Todas las cabeceras: título grande arriba, el periodo en negrita debajo y **la línea separadora
   a la misma altura en las cinco pantallas** (`min-height` de `.sticky-head`). Cualquier cambio en
   una cabecera debe mantener esa altura (medir con texto normal y «Texto más grande»).
