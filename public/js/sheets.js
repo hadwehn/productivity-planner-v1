@@ -149,7 +149,7 @@ export function taskMenu(date, key) {
       ? `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`
       // En un día futuro, «mañana» no es el día siguiente: se dice así y se muestra la fecha.
       : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}<span class="menu-text">${tr('Pasar al día siguiente', 'Move to the next day')}<small>${shortDay(tomorrow)}</small></span></button>`;
-  // Hecha: solo eliminarla. El foco se cambia con la estrella.
+  // Hecha: solo eliminarla (queda como registro: ni nombre ni foco cambian).
   if (row.c) {
     openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
       <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
@@ -202,6 +202,7 @@ export function doDeleteTask(date, key) {
   toastUndo(tr('Tarea eliminada', 'Task deleted'), () => { restore(undo); render(); });
 }
 export function doToggleFocus(date, key) {
+  if (getTask(date, key)?.c) return; // una tarea hecha no cambia de foco
   const result = toggleFocus(date, key);
   if (result.error) toast(result.error);
   render();

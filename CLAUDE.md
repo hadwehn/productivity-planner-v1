@@ -145,8 +145,8 @@ dispositivo, en `localStorage`.
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
   sin día». Sin «Poner en foco»: para eso está la estrella.
-- Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca); la estrella
-  **sí** funciona, para darle o quitarle importancia ya hecha. El menú ⋯ ofrece solo «Eliminar»
+- Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca) ni cambia de
+  foco: si era del foco conserva la estrella, quieta; si no, no tiene estrella. El menú ⋯ ofrece solo «Eliminar»
   (se probó «Repetir mañana» y se descartó por inútil). En Plan, igual: una tarea semanal hecha no
   se renombra ni se lleva a días (las letras quedan solo para ver cuándo se hizo) y su menú ofrece
   solo «Eliminar».
@@ -203,9 +203,10 @@ dispositivo, en `localStorage`.
 **Estilo**
 - Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
-- Tareas (del día y de la semana) y hábitos van con la letra normal de la app, tal como se
-  escriben, a 16 px. Se probaron versalitas y MAYÚSCULAS (incluso del tamaño de «TAREAS») y se
-  descartaron: se leían más lento y se confundían con las etiquetas, que sí van en mayúsculas chicas.
+- Tareas (del día y de la semana) y hábitos en MAYÚSCULAS del mismo tamaño y grosor que las
+  etiquetas («TAREAS», 12 px), en color de tinta, para que todo se vea uniforme (decisión de los
+  fundadores tras probar versalitas, mayúsculas más grandes y minúsculas). Se guardan tal como se
+  escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   La hoja de notas tiene «Listo» abajo a la derecha (verde, con ✓) para dejar la nota lista: la X
