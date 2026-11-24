@@ -29,28 +29,48 @@ export const closeSheet = () => { if (sheet().open) sheet().close(); };
 // ——— Notas en modo enfoque ———
 // Una hoja que cubre casi toda la pantalla (en computador, una ventana centrada): la barra de formato
 // arriba y todo el espacio para escribir. Se guarda sola mientras se escribe (views/notes.js).
-// Con el teclado del celular abierto, la hoja se achica y sube sobre él (visualViewport).
-function fitAboveKeyboard() {
-  const dlg = sheet(), vv = window.visualViewport;
-  if (!vv || !dlg.classList.contains('notes-sheet')) return;
-  const keyboard = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+// Con el teclado del celular abierto, la hoja no se mueve ni se achica: el teclado queda encima de
+// su parte de abajo, como en la app Notas. El texto gana espacio abajo (--kb) para poder subir, y
+// la línea en que se escribe se mantiene a la vista sobre el teclado (keepCaretVisible).
+function keyboardHeight() {
+  const vv = window.visualViewport;
+  return vv ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0;
+}
+function trackKeyboard() {
+  const dlg = sheet();
+  if (!dlg.classList.contains('notes-sheet')) return;
+  const keyboard = keyboardHeight();
   dlg.style.setProperty('--kb', `${keyboard}px`);
-  dlg.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
-  dlg.classList.toggle('keyboard', keyboard > 80); // con teclado, la ayuda de abajo se esconde
+  dlg.classList.toggle('keyboard', keyboard > 80);
+  keepCaretVisible();
+}
+function keepCaretVisible() {
+  const editor = $('#notesEditor', sheet()), sel = window.getSelection(), vv = window.visualViewport;
+  if (!editor || !vv || !sel?.rangeCount || !editor.contains(sel.anchorNode)) return;
+  const range = sel.getRangeAt(0).cloneRange();
+  let rect = range.getClientRects()[0];
+  if (!rect) { const node = sel.anchorNode.nodeType === Node.ELEMENT_NODE ? sel.anchorNode : sel.anchorNode.parentElement; rect = node?.getBoundingClientRect(); }
+  if (!rect) return;
+  const limit = vv.offsetTop + vv.height - 28; // borde de arriba del teclado, con un margen
+  if (rect.bottom > limit) editor.scrollTop += rect.bottom - limit;
 }
 export function notesSheet(date) {
   const d = parseDate(date);
   openSheet(`${tr('Notas', 'Notes')} · ${DAYS[weekday(d)]} ${d.getDate()}`, notesEditor(date), dlg => {
     dlg.classList.add('notes-sheet');
-    fitAboveKeyboard();
-    window.visualViewport?.addEventListener('resize', fitAboveKeyboard);
-    window.visualViewport?.addEventListener('scroll', fitAboveKeyboard);
+    trackKeyboard();
+    window.visualViewport?.addEventListener('resize', trackKeyboard);
+    window.visualViewport?.addEventListener('scroll', trackKeyboard);
+    const onType = () => requestAnimationFrame(keepCaretVisible);
+    dlg.addEventListener('input', onType);
+    document.addEventListener('selectionchange', onType);
     dlg.addEventListener('close', () => {
-      window.visualViewport?.removeEventListener('resize', fitAboveKeyboard);
-      window.visualViewport?.removeEventListener('scroll', fitAboveKeyboard);
+      window.visualViewport?.removeEventListener('resize', trackKeyboard);
+      window.visualViewport?.removeEventListener('scroll', trackKeyboard);
+      dlg.removeEventListener('input', onType);
+      document.removeEventListener('selectionchange', onType);
       dlg.classList.remove('notes-sheet', 'keyboard');
       dlg.style.removeProperty('--kb');
-      dlg.style.removeProperty('--vvh');
       render(); // la tarjeta de Hoy muestra lo recién escrito
     }, { once: true });
     // Una nota vacía queda lista para escribir; una con texto se abre para leer primero.
