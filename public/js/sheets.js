@@ -10,6 +10,7 @@ import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, 
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
 import { icon } from './icons.js';
 import { render } from './render.js';
+import { HABIT_IDEAS } from './habitIdeas.js';
 import { clearNotes, notesEditor, notesWritten } from './views/notes.js';
 import { MAX_EVENT_DAYS, putEvent, shiftEnd } from './events.js';
 import { isPastWeek } from './rituals.js';
@@ -403,13 +404,26 @@ export function weekAction(kind, list, i) {
 const FREQ_PRESETS = () => [['all', tr('Todos los días', 'Every day'), [0, 1, 2, 3, 4, 5, 6]], ['wk', tr('Lunes a viernes', 'Weekdays'), [0, 1, 2, 3, 4]], ['we', tr('Fin de semana', 'Weekends'), [5, 6]]];
 export function habitEditor(id) {
   const h = S.h.find(x => x.id === id);
-  const draft = { name: h?.name || '', color: h?.color ?? 2, mode: h && isWeekly(h) ? 'week' : 'days', days: h?.days || [0, 1, 2, 3, 4, 5, 6], perWeek: h?.perWeek || 3 };
+  const draft = { name: h?.name || '', color: h?.color ?? 2, mode: h && isWeekly(h) ? 'week' : 'days', days: h?.days || [0, 1, 2, 3, 4, 5, 6], perWeek: h?.perWeek || 3, ideas: false };
+  // Ideas (solo al crear): se despliegan bajo el nombre; elegir una rellena nombre, frecuencia y área.
+  const fold = v => String(v).normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase();
+  const taken = new Set(S.h.map(x => fold(x.name)));
+  const ideas = () => HABIT_IDEAS().map(g => ({ ...g, items: g.items.filter(([name]) => !taken.has(fold(name))) })).filter(g => g.items.length);
+  const ideasBlock = () => {
+    if (h) return '';
+    const groups = ideas();
+    if (!groups.length) return '';
+    const toggle = `<button type="button" class="link ideas-toggle" data-ideas="1" aria-expanded="${draft.ideas}">${icon('sparkle')}${draft.ideas ? tr('Ocultar ideas', 'Hide ideas') : tr('¿Sin ideas? Ver hábitos para empezar', 'No ideas? See habits to start with')}</button>`;
+    if (!draft.ideas) return toggle;
+    return toggle + `<div class="habit-ideas">${groups.map((g, gi) => `<div class="idea-group"><span class="idea-title">${g.title}</span><div class="choices">${g.items.map(([name, color], ii) =>
+      `<button type="button" class="choice idea${fold(draft.name) === fold(name) ? ' on' : ''}" data-idea="${gi}.${ii}" style="--c:${categoryColor(color)}"><i></i>${esc(name)}</button>`).join('')}</div></div>`).join('')}</div>`;
+  };
   const draw = () => {
     const days = DAY_SHORT.map((d, i) => `<button type="button" class="choice${draft.days.includes(i) ? ' on' : ''}" data-day="${i}" aria-pressed="${draft.days.includes(i)}">${d.slice(0, 1)}</button>`).join('');
     const presets = FREQ_PRESETS().map(([k, label, list]) => `<button type="button" class="choice${draft.days.join() === list.join() ? ' on' : ''}" data-preset="${k}">${label}</button>`).join('');
     const times = tr(`${draft.perWeek === 1 ? 'vez' : 'veces'} por semana, cualquier día`, `${draft.perWeek === 1 ? 'time' : 'times'} a week, any day`);
     openSheet(h ? tr('Editar hábito', 'Edit habit') : tr('Nuevo hábito', 'New habit'), `<form id="habitForm">
-      <div class="field"><label for="habitName">${tr('¿Qué quieres hacer?', 'What do you want to do?')}</label><input id="habitName" class="input" required maxlength="100" autocapitalize="none" placeholder="${tr('Leer 10 páginas, caminar, meditar…', 'Read 10 pages, walk, meditate…')}" value="${esc(draft.name)}"></div>
+      <div class="field"><label for="habitName">${tr('¿Qué quieres hacer?', 'What do you want to do?')}</label><input id="habitName" class="input" required maxlength="100" autocapitalize="none" placeholder="${tr('Leer 10 páginas, caminar, meditar…', 'Read 10 pages, walk, meditate…')}" value="${esc(draft.name)}">${ideasBlock()}</div>
       <div class="field"><span class="field-label">${tr('Frecuencia', 'Frequency')}</span><div class="seg" style="margin-bottom:10px"><button type="button" class="${draft.mode === 'days' ? 'on' : ''}" data-mode="days">${tr('Días fijos', 'Set days')}</button><button type="button" class="${draft.mode === 'week' ? 'on' : ''}" data-mode="week">${tr('Veces por semana', 'Times a week')}</button></div>
         ${draft.mode === 'days' ? `<div class="choices" style="margin-bottom:8px">${presets}</div><div class="day-choices">${days}</div>`
           : `<div class="stepper"><button type="button" data-step="-1" aria-label="${tr('Menos', 'Fewer')}">−</button><b>${draft.perWeek}</b><button type="button" data-step="1" aria-label="${tr('Más', 'More')}">+</button><span class="muted">${times}</span></div>`}</div>
@@ -428,6 +442,15 @@ export function habitEditor(id) {
         if (b.dataset.day) { const d = +b.dataset.day; draft.days = draft.days.includes(d) ? draft.days.filter(x => x !== d) : [...draft.days, d].sort(); }
         if (b.dataset.step) draft.perWeek = Math.min(7, Math.max(1, draft.perWeek + +b.dataset.step));
         if (b.dataset.color) draft.color = +b.dataset.color;
+        if (b.dataset.ideas) { draft.ideas = !draft.ideas; draw(); return; }
+        if (b.dataset.idea) {
+          // Una idea rellena el hábito; se puede ajustar antes de crearlo.
+          const [gi, ii] = b.dataset.idea.split('.').map(Number), [name, color, freq] = ideas()[gi].items[ii];
+          Object.assign(draft, { name, color, ideas: false, mode: freq.perWeek ? 'week' : 'days' });
+          if (freq.perWeek) draft.perWeek = freq.perWeek; else draft.days = freq.days.slice();
+          draw();
+          return;
+        }
         draw();
         $('#habitName', sheet())?.focus({ preventScroll: true });
       });
@@ -444,7 +467,8 @@ export function habitEditor(id) {
     });
   };
   draw();
-  if (!h) setTimeout(() => $('#habitName')?.focus(), 50);
+  // Al crear no se abre el teclado solo: así se ve la opción de ideas (en computador, sí se enfoca).
+  if (!h && matchMedia('(pointer: fine)').matches) setTimeout(() => $('#habitName')?.focus(), 50);
 }
 
 export function habitDetail(id, month = today().slice(0, 7)) {

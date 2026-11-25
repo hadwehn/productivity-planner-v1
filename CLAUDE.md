@@ -217,6 +217,11 @@ dispositivo, en `localStorage`.
 - Diario › Escritos: buscador arriba («Buscar en tu diario»). Desde 2 letras busca en todo lo escrito
   (intención, gratitud, reflexión y notas), en cualquier mes, sin importar tildes ni mayúsculas;
   resalta lo encontrado y muestra la fecha completa. La búsqueda no se guarda (`journalEntries`).
+- Ideas de hábitos: en «Nuevo hábito», bajo el nombre, «¿Sin ideas? Ver hábitos para empezar»
+  despliega unas 22 ideas en cuatro grupos (Cuerpo, Mente, Descanso y pantallas, Orden y personas;
+  `habitIdeas.js`). Elegir una rellena nombre, frecuencia y área, que se pueden ajustar antes de
+  crear. No se muestran las que ya son hábitos. Al crear en el celular no se abre el teclado solo,
+  para que se vean las ideas.
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
   abajo. El orden se cambia **solo** desde «Reordenar» (bajo la cabecera, con 2+ hábitos; ícono ≡):
   una ventana centrada (como Notas, `center-sheet`) con una fila compacta por hábito (color, nombre,

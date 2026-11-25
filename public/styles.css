@@ -716,6 +716,12 @@ dialog.sheet.center-sheet[open] { animation: center-in .26s var(--ease); }
 .center-sheet .sheet-grip { display: none; }
 .center-sheet .sheet-head { padding-top: 16px; }
 .center-sheet .sheet-body { padding-bottom: 20px; }
+/* Ideas de hábitos (en «Nuevo hábito»). */
+.ideas-toggle { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--acc); font-weight: 600; font-size: calc(14px * var(--ts)); min-height: 36px; }
+.ideas-toggle .icon { width: 17px; height: 17px; }
+.habit-ideas { display: grid; gap: 14px; margin-top: 10px; padding: 14px; border-radius: var(--r-md); background: var(--sunken); }
+.idea-title { display: block; margin: 0 0 8px 2px; font-size: calc(12px * var(--ts)); font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.habit-ideas .choice { background: var(--surface); text-align: left; justify-content: flex-start; }
 /* Hoja «Ordenar hábitos»: filas compactas. */
 .order-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; position: relative; }
 .order-row { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 4px 12px 4px 16px; transition: transform .17s var(--ease), box-shadow .17s; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; border-radius: var(--r-md); background: var(--sunken); }
