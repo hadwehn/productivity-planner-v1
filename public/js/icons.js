@@ -14,6 +14,7 @@ const P = {
   left: '<path d="m15 5-7 7 7 7"/>',
   right: '<path d="m9 5 7 7-7 7"/>',
   down: '<path d="m6 9 6 6 6-6"/>',
+  up: '<path d="m6 15 6-6 6 6"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
   sunrise: '<path d="M3 18h18M6.5 18a5.5 5.5 0 0 1 11 0M12 4v4M5 9.5l1.6 1.2M19 9.5l-1.6 1.2M8.5 6.5 9.5 8M15.5 6.5 14.5 8"/>',

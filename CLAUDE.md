@@ -218,7 +218,9 @@ dispositivo, en `localStorage`.
   (intención, gratitud, reflexión y notas), en cualquier mes, sin importar tildes ni mayúsculas;
   resalta lo encontrado y muestra la fecha completa. La búsqueda no se guarda (`journalEntries`).
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
-  abajo. Cambiar la frecuencia guarda la anterior en `h.past` para no reescribir la racha ni la
+  abajo. El orden se cambia **solo** desde «Ordenar» (bajo la cabecera, con 2+ hábitos): una hoja con
+  filas compactas que se arrastran desde ⠿ o se mueven con ↑ ↓. Las tarjetas ya no se arrastran
+  (eran grandes y pesadas de mover; `habitOrderSheet`). Cambiar la frecuencia guarda la anterior en `h.past` para no reescribir la racha ni la
   constancia pasadas; si cambia el tipo (días ↔ veces por semana), la racha cuenta desde el cambio. Diario: pestañas «Resumen | Escritos». Con código, el Diario muestra solo el teclado
   (sin cabecera). El código es un candado en pantalla, **no cifra** (los datos son legibles en
   Supabase); si se promete privacidad real, hay que cifrar.

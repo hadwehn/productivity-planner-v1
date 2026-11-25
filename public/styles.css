@@ -351,7 +351,6 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .week-dot.today.on i { border-color: var(--c); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c); }
 .week-dot:disabled { opacity: .35; }
 /* Los hábitos se reordenan manteniendo presionada la tarjeta (sin manija). */
-.habit[data-habit] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 /* Pie de la tarjeta: constancia (o progreso semanal) a la izquierda, opciones a la derecha. */
 .habit-foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; min-height: 24px; }
 .habit-top .task-btn { align-self: flex-start; margin: -6px -8px 0 0; }
@@ -704,6 +703,20 @@ html:has(dialog[open]) #back-now { display: none; }
 /* ===== Barra lateral, atajos y avisos (lo propio del computador se activa en «Escritorio») ===== */
 .nav-brand, nav.tabbar .nav-help, .wo-list { display: none; }
 .wo-date { display: contents; }
+/* Bajo la cabecera: cuántos hábitos hay y «Ordenar» (misma distancia a la cabecera que en Hoy). */
+.habit-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 2px 12px; }
+.habit-tools .pill .icon { width: 16px; height: 16px; }
+.sticky-head + .habit-tools { margin-top: 20px; }
+.habit-tools + .habit-grid { margin-top: 0; }
+/* Hoja «Ordenar hábitos»: filas compactas. */
+.order-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.order-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 4px 4px 4px 6px; border-radius: var(--r-md); background: var(--sunken); }
+.order-grip { display: grid; place-items: center; width: 36px; height: 44px; color: var(--mute); cursor: grab; touch-action: none; flex: none; }
+.order-grip .icon { width: 20px; height: 20px; }
+.order-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.order-name { flex: 1; min-width: 0; font-size: calc(12px * var(--ts)); letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-row .task-btn[disabled] { opacity: .3; cursor: default; }
+.order-row.dragging { opacity: .3; }
 .habit-grid { display: grid; gap: 24px; }
 .habit-grid .card + .card { margin-top: 0; }
 .sticky-head + .cols { margin-top: 0; }

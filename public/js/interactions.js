@@ -7,7 +7,7 @@ import {
 } from './tasks.js';
 import { moveHabit, toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, clearNotesNow, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
+  closeSheet, clearNotesNow, habitOrderSheet, refreshHabitOrder, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
@@ -209,6 +209,9 @@ const ACTIONS = {
   habitnew: () => habitEditor(),
   habitopen: d => habitDetail(d.id),
   habitmenu: d => habitMenu(d.id),
+  habitorder: () => habitOrderSheet(),
+  habitup: d => { const i = S.h.findIndex(h => h.id === d.id); if (i > 0 && moveHabit(d.id, S.h[i - 1].id)) refreshHabitOrder(); },
+  habitdown: d => { const i = S.h.findIndex(h => h.id === d.id); if (i >= 0 && i < S.h.length - 1 && moveHabit(d.id, S.h[i + 1].id)) refreshHabitOrder(); },
   habitedit: d => habitEditor(d.id),
   habitdelete: d => confirmDeleteHabit(d.id),
   habitday: d => habitDayToggle(d.id, d.date, d.month),
@@ -471,7 +474,7 @@ function swipeRows() {
 // ——— Arrastrar para ordenar (pulsación sostenida en el asa) ———
 // Reordenar: se mantiene presionada la tarjeta (o la manija, en los hábitos) y se arrastra.
 // Al empezar a arrastrar se suelta el campo de texto, para que no aparezca el teclado ni la lupa.
-function sortable({ handle, item, key, onDrop, ignore = 'button, a, input, [contenteditable]' }) {
+function sortable({ handle, item, key, onDrop, ignore = 'button, a, input, [contenteditable]', delay }) {
   let drag = null, timer = null;
   const clear = () => {
     clearTimeout(timer);
@@ -494,13 +497,13 @@ function sortable({ handle, item, key, onDrop, ignore = 'button, a, input, [cont
       const rect = source.getBoundingClientRect(), clone = source.cloneNode(true);
       clone.classList.add('drag-preview');
       Object.assign(clone.style, { width: rect.width + 'px', left: rect.left + 'px', top: rect.top + 'px' });
-      document.body.append(clone);
+      (source.closest('dialog') || document.body).append(clone); // dentro de una hoja abierta, para que se vea encima
       Object.assign(drag, { preview: clone, dx: drag.x - rect.left, dy: drag.y - rect.top });
       source.classList.add('dragging');
       document.activeElement?.blur?.();
       getSelection?.()?.removeAllRanges();
       navigator.vibrate?.(8);
-    }, e.target.closest('textarea') ? 380 : e.pointerType === 'mouse' ? 150 : 320);
+    }, delay ?? (e.target.closest('textarea') ? 380 : e.pointerType === 'mouse' ? 150 : 320));
   });
   document.addEventListener('pointermove', e => {
     if (!drag || drag.pointer !== e.pointerId) return;
@@ -670,6 +673,7 @@ export function initInteractions(isReady) {
   swipeZones();
   swipeRows();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
-  sortable({ handle: '.habit[data-habit]', item: '.habit[data-habit]', key: el => el.dataset.habit, ignore: '.week-dot, .task-btn, a, input', onDrop: (a, b) => { if (moveHabit(a, b)) render(); } });
+  // Hábitos: solo desde la hoja «Ordenar», arrastrando desde ⠿ (sin espera: la manija es solo para eso).
+  sortable({ handle: '.order-grip', item: '.order-row', key: el => el.dataset.order, delay: 0, onDrop: (a, b) => { if (moveHabit(a, b)) refreshHabitOrder(); } });
 }
 export { openSettings };
