@@ -118,7 +118,9 @@ dispositivo, en `localStorage`.
   para leer. Los días futuros, no. «Editar» (también en la intención y la revisión de la semana) es
   solo un modo de la pantalla (`U.editing`): lo terminado **sigue terminado**, se corrige y
   «Guardar» lo vuelve a dejar para leer. Lo escrito, para leer, va como texto sin el recuadro de fondo de los
-  campos (`.ritual-read`): con recuadro parecía editable. El recuadro aparece solo con «Editar». Antes «Editar» reabría de verdad y, si uno salía sin
+  campos (`.ritual-read`): con recuadro parecía editable. El recuadro aparece solo con «Editar».
+  Ese texto va justificado (bordes parejos), con guiones automáticos para que en el celular no
+  queden espacios muy grandes entre palabras. Antes «Editar» reabría de verdad y, si uno salía sin
   volver a cerrar, el día quedaba abierto y pedía «Cerrar el día» otra vez.
 - Al pasar a otro día (u otra semana en Plan), las tarjetas que estaban abiertas se pliegan y se
   sale del modo «Editar»: el periodo nuevo se ve como siempre (`U.foldsFor` en `render`).

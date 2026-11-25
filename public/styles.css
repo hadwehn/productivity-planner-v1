@@ -877,7 +877,9 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 
 /* Rituales terminados o fuera de su día: se leen, no se editan. */
 /* Lo ya escrito, para leer: sin el recuadro de fondo de los campos, así no parece editable (para eso está «Editar»). */
-.ritual-read { margin: 4px 0 0; padding: 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; color: var(--ink); }
+.ritual-read { margin: 4px 0 0; padding: 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; color: var(--ink);
+  /* Justificado, con guiones para que en el celular no queden espacios grandes entre palabras. */
+  text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
 .ritual-read.serif { font-family: var(--serif); font-size: calc(17px * var(--ts)); }
 .ritual-finish { margin-top: 6px; gap: 8px; }
 .ritual-finish .icon { width: 18px; height: 18px; }
