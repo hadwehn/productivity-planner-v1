@@ -86,7 +86,7 @@ function tasksSection(date) {
   const items = (list, focus) => list.map(t => taskItem(date, t, focus)).join('');
   const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`
     + (focus.length ? items(focus, true)
-      : `<p class="empty-note" style="padding:0 8px 6px">${tr('Marca con ★ hasta tres tareas prioritarias: las que más importa sacar adelante hoy.', 'Star up to three priority tasks: the ones that matter most to get done today.')}</p>`);
+      : `<p class="empty-note" style="padding:0 8px 6px">${tr('Tus prioridades del día: marca con ★ hasta tres tareas, las que más importa sacar adelante hoy.', 'Your priorities for the day: star up to three tasks, the ones that matter most to get done today.')}</p>`);
   const restBlock = rest.length ? `<div class="divider"></div>${items(rest, false)}` : '';
   const add = `<form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>`;
   const card = `<div class="card tasks">${focusBlock}${restBlock}${add}</div>`;
