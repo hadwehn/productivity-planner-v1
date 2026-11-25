@@ -165,8 +165,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* Calendario del Mes: los meses vecinos no suman altura (solo se asoman al deslizar). */
 .cal-swipe { overflow: hidden; touch-action: pan-y; margin: 0 -18px; } /* llega al borde de la tarjeta… */
 .cal-swipe .strip-track { align-items: flex-start; }
-.strip-track > .cal { flex: 0 0 100%; min-width: 0; padding: 0 18px; } /* …y cada mes lleva su margen, así no se mezclan al deslizar */
-.strip-track > .cal[aria-hidden] { height: 0; overflow: visible; }
+.strip-track > .cal-panel { flex: 0 0 100%; min-width: 0; padding: 0 18px; } /* …y cada mes lleva su margen, así no se mezclan al deslizar */
+.strip-track > .cal-panel[aria-hidden] { height: 0; overflow: visible; }
 /* Cabecera de Plan y «Tu semana día a día»: tres paneles, como la franja de Hoy. Llegan al borde de la
    pantalla y cada panel lleva su margen, así los vecinos no se mezclan al deslizar. */
 .plan-head { position: relative; margin: 6px 0 0; }
@@ -416,6 +416,9 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 
 /* ===== Mes ===== */
 .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+/* Nombre del mes dentro de la tarjeta del calendario, grande y centrado (va dentro de la tarjeta: no
+   cambia los espacios entre tarjetas). */
+.cal-month { margin: 2px 0 14px; text-align: center; font-size: calc(15px * var(--ts)); font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
 .cal .wd { font-size: calc(11px * var(--ts)); font-weight: 600; color: var(--mute); padding-bottom: 4px; }
 .cal-day { position: relative; aspect-ratio: 1; border-radius: 12px; font-size: calc(15px * var(--ts)); font-variant-numeric: tabular-nums; display: grid; place-items: center; }
 .cal-day.today { color: var(--acc); font-weight: 700; }

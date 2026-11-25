@@ -156,7 +156,8 @@ function calGrid(m, T, side) {
     const marks = events.slice(0, 3).map(({ e }) => `<u style="--c:${categoryColor(e.c ?? -1)}"></u>`).join('');
     grid += `<button class="cal-day${events.length ? ' has-ev' : ''}${k === selected ? ' on' : ''}${k === T ? ' today' : ''}" data-a="calday" data-k="${k}"${side ? ' tabindex="-1"' : ''}>${d}<span class="marks">${marks}</span></button>`;
   }
-  return `<div class="cal"${side ? ' aria-hidden="true"' : ''}>${grid}</div>`;
+  // Arriba de cada mes, su nombre grande y centrado: se ve de inmediato qué mes es, y se desliza con él.
+  return `<div class="cal-panel"${side ? ' aria-hidden="true"' : ''}><p class="cal-month">${monthYear(m)}</p><div class="cal">${grid}</div></div>`;
 }
 
 function monthView() {
