@@ -162,6 +162,8 @@ dispositivo, en `localStorage`.
   solo «Eliminar».
 - Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de
   otro día, «Notas · Martes 24».
+- Frase del día centrada, con el autor centrado debajo y sin guion; las comillas decorativas
+  arriba al centro. En computador, también centrada (frase y autor en dos líneas).
 - Opción «Frase en días futuros» (encendida por defecto).
 - **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
   renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
@@ -208,7 +210,7 @@ dispositivo, en `localStorage`.
   «Foco del mes» y «Lo mejor del mes» muestran sus tres campos de una vez, con el mismo estilo que
   los campos de la intención y la revisión de la semana (fondo hundido, bordes redondeados, letra normal).
 - Calendario del mes: los días con eventos llevan puntos de 6 px (uno por evento, hasta 3, del color
-  de su área) y el número en negrita. Se probó teñir el día, franjas para eventos de varios días y
+  de su área); el número va normal (se probó en negrita y se descartó: bastan los puntos). Se probó teñir el día, franjas para eventos de varios días y
   una vista «Ampliar» con los nombres en cada día, y los fundadores lo descartaron: vuelven los puntos.
 
 **Hábitos y Diario**
