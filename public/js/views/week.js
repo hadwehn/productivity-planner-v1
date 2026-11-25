@@ -24,7 +24,7 @@ function overview(week, side = false) {
   }).join('')}</div>`;
 }
 
-function weekList(week, list, title, hint) {
+function weekList(week, list, title, hint, lettersHint = false) {
   const T = today(), items = weekTasks(week, list);
   const rows = items.map(({ i, row, days, done }) => {
     // Un objetivo no se reparte en días: en vez de las letras, una marca que lo distingue.
@@ -57,7 +57,7 @@ function weekList(week, list, title, hint) {
   return `<section class="section">${sectionHead(title, list === 'a' ? `<span class="muted small">${items.length}/5</span>` : items.length ? `<span class="muted small">${items.length}</span>` : '', list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${empty}</p>`}
       ${full ? (list === 'a' ? `<p class="empty-note" style="padding:8px 8px 4px">${tr('Foco completo. Lo demás va en «También esta semana».', 'Focus is full. Everything else goes in “Also this week”.')}</p>` : '') : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
-    </div></section>`;
+    </div>${lettersHint ? `<p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día.', 'Tap the letters under each task to move it to a day.')}</p>` : ''}</section>`;
 }
 
 function progress(week) {
@@ -117,6 +117,9 @@ function weekIntent(week, thisWeek) {
 function weekView() {
   const week = U.week, W = `w.${week}.`, thisWeek = iso(monday(new Date())), questions = weekQuestions(week);
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
+  // La ayuda «Toca las letras…» va bajo la primera lista que tenga tareas con letras (pendientes y no objetivos).
+  const hasLetters = list => weekTasks(week, list).some(({ row }) => !row.goal && !row.c);
+  const lettersIn = hasLetters('a') ? 'a' : hasLetters('b') ? 'b' : '';
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
   const state = reviewState(week), editable = state === 'ready' || U.editing === `review:${week}`;
@@ -127,10 +130,10 @@ function weekView() {
         : week < thisWeek ? tr('Sin revisión · puedes completarla', 'No review · you can still fill it in') : reviewDay ? tr('Buen momento para mirar tu semana · 2 minutos', 'A good moment to look at your week · 2 minutes') : tr('Tres preguntas para cerrar la semana · 2 minutos', 'Three questions to close the week · 2 minutes');
   return `<div class="cols"><div class="col">${monthFocus.length ? `<p class="muted small" style="margin:14px 4px 0">${tr('Foco del mes', 'Month focus')}: <span style="color:var(--ink)">${monthFocus.map(esc).join(' · ')}</span></p>` : ''}
     <section class="section">${weekIntent(week, thisWeek)}${progress(week)}</section>
-    ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'))}
-    ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'))}
+    ${weekList(week, 'a', `${icon('star')}${tr('Foco de la semana', 'Weekly focus')}`, tr('Lo que, si lo logras, hará que la semana valga la pena. Hasta cinco.', 'What would make this week worth it. Up to five.'), lettersIn === 'a')}
+    ${weekList(week, 'b', tr('También esta semana', 'Also this week'), tr('Pendientes que conviene resolver, sin que sean el centro.', 'Things worth getting done, without being the center.'), lettersIn === 'b')}
     </div><div class="col">
-    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día. Toca un día para abrirlo.', 'Tap the letters under each task to move it to a day. Tap a day to open it.')}</p></section>
+    <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca un día para abrirlo.', 'Tap a day to open it.')}</p></section>
     <div class="section" id="week-review">${foldable({
       key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'moon', iconCls: 'evening', title: tr('Revisión semanal', 'Weekly review'), summary, written: state !== 'done' && answered > 0,
       body: (state === 'future' ? '' : weekLook(week)) + questions.map((q, i) => {

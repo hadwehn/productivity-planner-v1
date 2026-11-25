@@ -212,6 +212,8 @@ dispositivo, en `localStorage`.
 - Eliminar: una copia borrada en el día no toca la semana; borrar la tarea en Plan la quita también
   de los días donde está pendiente (las hechas quedan como registro, sueltas), con aviso «… y de N
   días» y deshacer (`deleteWeekTask`). Misma regla que «Convertir en objetivo» y «Pasar a la próxima».
+- Ayudas en Plan › Semana: «Toca las letras bajo cada tarea para llevarla a un día.» va bajo la
+  primera lista con tareas que tengan letras; bajo «Tu semana día a día» solo «Toca un día para abrirlo.».
 - Objetivo (sin días): opción del menú ⋯ de una tarea semanal («Convertir en objetivo» / «Repartir
   en días», debajo de la opción de foco). Guarda `goal`, oculta las letras de los días y muestra
   la marca «Objetivo» como etiqueta verde en mayúsculas con bandera (estilo «EN FOCO», sin fondo para que no parezca botón); se marca a
