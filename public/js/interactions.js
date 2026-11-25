@@ -223,10 +223,12 @@ const ACTIONS = {
     if (!hasMonthText(ym, key)) { toast(key === 'p' ? tr('Escribe al menos una prioridad del mes.', 'Write at least one priority for the month.') : tr('Escribe al menos una cosa que valió la pena.', 'Write at least one thing that was worth it.')); return; }
     document.activeElement?.blur?.();
     const undo = finishMonth(ym, key);
+    U.editing = null;
     render();
     toastUndo(key === 'p' ? tr('Foco del mes listo.', 'Month focus set.') : tr('Lo mejor del mes, guardado.', 'Best of the month saved.'), () => { undo(); render(); });
   },
   monthedit: d => { U.editing = `month-${d.k}:${U.month}`; render(); },
+  monthfill: d => { U.editing = `month-${d.k}:${U.month}`; render(); $(`[data-p="m.${U.month}.${d.k}.0"]`)?.focus(); },
   monthsave: d => {
     document.activeElement?.blur?.();
     U.editing = null;

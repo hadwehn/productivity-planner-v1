@@ -174,10 +174,15 @@ function monthView() {
       const note = key === 'p' ? tr('Definiste el foco del mes.', 'You set the month’s focus.') : tr('Guardaste lo mejor del mes.', 'You saved the best of the month.');
       return `<div class="numbered">${lines}</div><p class="ritual-note">${icon('check')}${note}<button class="link" data-a="monthedit" data-k="${key}">${tr('Editar', 'Edit')}</button></p>`;
     }
+    // Sin nada escrito: solo una línea y «Completar»; al tocarlo aparecen los tres campos.
+    if (!done && !editing && !hasMonthText(m, key)) {
+      const hint = key === 'p' ? tr('Hasta tres prioridades para este mes.', 'Up to three priorities for this month.') : tr('Lo que valió la pena este mes.', 'What was worth it this month.');
+      return `<div class="month-empty"><span class="muted">${hint}</span><button class="btn small" data-a="monthfill" data-k="${key}">${icon('edit')}${tr('Completar', 'Fill in')}</button></div>`;
+    }
     const fields = [0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('');
-    const foot = editing ? `<button class="btn ritual-finish" data-a="monthsave" data-k="${key}">${icon('check')}${tr('Guardar', 'Save')}</button>`
-      : `<button class="btn ritual-finish" data-a="monthdone" data-k="${key}">${icon('check')}${tr('Listo', 'Done')}</button>`;
-    return `<div class="numbered">${fields}</div>${foot}`;
+    const foot = done && editing ? `<button class="btn small" data-a="monthsave" data-k="${key}">${icon('check')}${tr('Guardar', 'Save')}</button>`
+      : `<button class="btn small" data-a="monthdone" data-k="${key}">${icon('check')}${tr('Listo', 'Done')}</button>`;
+    return `<div class="numbered">${fields}</div><div class="month-foot">${foot}</div>`;
   };
   return `<div class="cols"><div class="col">
     <div class="card cal-card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>

@@ -436,6 +436,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .numbered textarea { background: var(--sunken); border-radius: var(--r-md); padding: 12px 14px; min-height: 48px; line-height: 1.55; }
 .numbered .ritual-read { flex: 1; min-width: 0; margin: 0; padding: 0 2px; } /* lectura: sin recuadro, como los rituales terminados */
 .numbered .line:has(.ritual-read) span { padding-top: 4px; }
+/* Foco y Lo mejor del mes: vacíos, una línea con «Completar»; botones chicos a la derecha. */
+.month-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: calc(14px * var(--ts)); }
+.month-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+.month-empty .btn.small, .month-foot .btn.small { flex: none; gap: 6px; border-radius: 999px; padding-inline: 16px; }
+.month-empty .icon, .month-foot .icon { width: 16px; height: 16px; }
 
 /* ===== Diario ===== */
 .mood-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px 6px; justify-items: center; }
