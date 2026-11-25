@@ -260,11 +260,11 @@ export function taskMenu(date, key) {
   }
   openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
     ${moveFirst}
-    <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Elegir cuándo', 'Choose when')}</button>
+    <button data-a="taskpick" data-k="${key}">${icon('calendar')}${tr('Pasar a otro día', 'Move to another day')}</button>
     <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí, y si le cambias el nombre, cambia en tu semana y en los demás días.', 'This comes from your week: marking it done also marks it there, and renaming it renames it in your week and on the other days.')}</p>` : ''}`);
 }
-/** «Elegir cuándo»: un día, esta semana o la próxima (sin día). */
+/** «Pasar a otro día»: un día, esta semana o la próxima (sin día). */
 export function taskPick(date, key) {
   const row = getTask(date, key);
   if (!row) return;
