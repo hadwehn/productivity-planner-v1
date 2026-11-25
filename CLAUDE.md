@@ -273,6 +273,12 @@ dispositivo, en `localStorage`.
 
 ## Pendientes y criterios para lo que viene
 
+- Ideas para reforzar «Focus» que los fundadores descartaron (no volver a proponerlas sin un motivo
+  nuevo): elegir las 3 prioridades dentro de «Empieza tu día», mostrar «2 de 3 prioridades» al
+  cerrar el día, preguntar qué sale del foco al marcar una cuarta estrella, una pantalla «Ahora»
+  con una sola tarea y temporizador, y plegar las tareas que no son del foco. Sentían que
+  entorpecían lo ya construido.
+
 - Antes de la prueba con usuarios: definir una métrica de uso (p. ej., días cerrados por semana)
   sin leer contenido; rehacer la bienvenida para vivir un primer día; que la revisión semanal y el
   cierre del día **muestren** lo escrito antes de preguntar (hecho en la revisión semanal; falta el
