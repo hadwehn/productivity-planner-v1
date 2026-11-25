@@ -39,27 +39,6 @@ export function rollDay() {
   return true;
 }
 
-// ——— De noche: organizar hoy o mañana ———
-// Desde la hora elegida (18:00 por defecto), «Hoy» ofrece pasar al día de mañana para planificarlo (se puede apagar en Ajustes →
-// Qué ver en «Hoy»; es la opción que se está probando con usuarios). Si esa noche se eligió
-// «Mañana», la app vuelve a abrir en mañana hasta la medianoche (se recuerda en el dispositivo).
-const PLAN_KEY = 'diario-organizar-manana';
-/** Hora desde la que aparece la tarjeta (Ajustes; 18:00 si no se eligió otra). */
-export const planHour = () => S.cfg.planHour ?? 18;
-/** ¿Está encendida la tarjeta? (cfg.today.tomorrow; las cuentas que probaron el modo «Flechas» la tenían apagada). */
-export const tomorrowCard = () => (S.cfg.today?.tomorrow !== undefined ? S.cfg.today.tomorrow !== false : S.cfg.nav !== 'arrows');
-export const planningTime = () => tomorrowCard() && new Date().getHours() >= planHour();
-export function rememberPlan(tomorrow) {
-  try { if (tomorrow) localStorage.setItem(PLAN_KEY, today()); else localStorage.removeItem(PLAN_KEY); } catch { /* almacenamiento bloqueado */ }
-}
-/** Al abrir la app de noche: si hoy se eligió organizar mañana, se abre en mañana. */
-export function openOnPlannedDay() {
-  if (!planningTime() || U.date !== today()) return;
-  let chosen = '';
-  try { chosen = localStorage.getItem(PLAN_KEY) || ''; } catch { /* almacenamiento bloqueado */ }
-  if (chosen === today()) U.date = shiftDate(today(), 1);
-}
-
 // ——— Rituales según la hora ———
 // En la mañana se abre «Empieza tu día» y en la noche «Cierra tu día», una sola vez por día
 // en cada dispositivo y solo si aún no escribiste nada. Si lo cierras, no vuelve a abrirse.

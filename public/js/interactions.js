@@ -1,6 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
-import { U, applyTextSize, planHour, setAppearance, storedAppearance, rememberPlan, runUndo, showToday, toast, toastUndo, tomorrowCard } from './ui.js';
+import { U, applyTextSize, setAppearance, storedAppearance, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
@@ -25,19 +25,10 @@ let canEdit = () => false;
 let settleTimer = 0;
 
 // ——— Ajustes ———
-const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Frase en días futuros', 'Quote on future days')], ['tomorrow', tr('Ofrecer organizar mañana', 'Offer to plan tomorrow')]];
+const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Frase en días futuros', 'Quote on future days')]];
 export function drawSettings() {
-  // Con «Ofrecer organizar mañana» encendido, debajo se elige desde qué hora aparece la tarjeta.
-  const hours = Array.from({ length: 12 }, (_, i) => i + 12);
-  const hourRow = () => `<label class="toggle-row sub-row"><span>${tr('Desde las', 'From')}</span><select id="planHour" class="hour-select" aria-label="${tr('Hora desde la que se ofrece organizar mañana', 'Time from which to offer planning tomorrow')}">${hours.map(h => `<option value="${h}"${h === planHour() ? ' selected' : ''}>${h}:00</option>`).join('')}</select></label>`;
   $('#today-prefs').innerHTML = TODAY_PREFS().map(([k, label]) =>
-    `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${(k === 'tomorrow' ? tomorrowCard() : showToday(k)) ? ' checked' : ''}><i></i></span></label>`
-    + (k === 'tomorrow' && tomorrowCard() ? hourRow() : '')).join('');
-  $('#planHour')?.addEventListener('change', e => {
-    const h = +e.target.value;
-    if (h === 18) delete S.cfg.planHour; else S.cfg.planHour = h;
-    save(); render();
-  });
+    `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = storedAppearance();
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
@@ -122,7 +113,6 @@ const ACTIONS = {
     restoreScroll(savedScroll(d.k));
   },
   date: update(d => { U.date = d.k; }),
-  planday: update(d => { const tomorrow = d.k === 'tomorrow'; U.date = shiftDate(today(), tomorrow ? 1 : 0); rememberPlan(tomorrow); }),
   openday: navigate(d => openDay(d.k)),
   shiftweek: d => shiftWeek(+d.n),
   // Al abrir un ritual se pliegan los demás y sube al primer plano (ver focusRitual en render.js).
@@ -257,11 +247,6 @@ const ACTIONS = {
   lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },
   todaypref: (d, b) => {
     S.cfg.today = { ...(S.cfg.today || {}), [d.k]: b.checked };
-    if (d.k === 'tomorrow') { // la tarjeta «¿Qué día quieres organizar?» (al encenderla aparece la hora; ver drawSettings)
-      drawSettings();
-      delete S.cfg.nav; // reemplaza a la opción «Navegación» de la prueba anterior
-      if (!b.checked) { rememberPlan(false); if (U.tab === 'today' && U.date === shiftDate(today(), 1)) U.date = today(); }
-    }
     save(); render();
   },
 };

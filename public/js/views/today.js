@@ -1,7 +1,7 @@
 // «Hoy»: lo que importa del día en una sola pantalla.
 // Orden pensado para el uso real: empezar (intención, gratitud) → tareas → agenda → hábitos → cerrar (ánimo, reflexión) → notas.
 import { S, get } from '../state.js';
-import { U, planningTime, showToday } from '../ui.js';
+import { U, showToday } from '../ui.js';
 import { dayTasks, overdue } from '../tasks.js';
 import { isDue, isDone, isWeekly, weekCount } from '../habits.js';
 import { categoryColor, MOOD_LEVELS, moodColor, moodName } from '../categories.js';
@@ -196,13 +196,6 @@ function notices(T) {
 }
 
 /** De noche, estando en hoy o en mañana: elegir cuál de los dos días organizar. */
-function planSwitch(date, T) {
-  const next = shiftDate(T, 1);
-  if (!planningTime() || (date !== T && date !== next)) return '';
-  const option = (k, label, on) => `<button role="tab" class="${on ? 'on' : ''}" data-a="planday" data-k="${k}" aria-selected="${on}">${label}</button>`;
-  return `<div class="plan-switch">${icon('moon')}<span>${tr('¿Qué día quieres organizar?', 'Which day do you want to plan?')}</span>
-    <div class="seg" role="tablist">${option('today', tr('Hoy', 'Today'), date === T)}${option('tomorrow', tr('Mañana', 'Tomorrow'), date === next)}</div></div>`;
-}
 
 // Notas: la tarjeta muestra el comienzo de lo escrito y al tocarla se abre la hoja para escribir
 // (modo enfoque, ver notesSheet en sheets.js).
@@ -240,5 +233,5 @@ export function todayView() {
         <div class="col">${habits}${agendaSection(date)}${section(pad)}</div></div>`
     : `${quote}${nudge}${start}${tasksSection(date)}${agendaSection(date)}${habits}
         <div class="section">${close}${close ? '<div style="height:12px"></div>' : ''}${pad}</div>`;
-  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + weekStrip(date))}${planSwitch(date, T)}${body}</div>`;
+  return `<div class="view">${stickyHead(pageHead({ title, subtitle, side }) + weekStrip(date))}${body}</div>`;
 }

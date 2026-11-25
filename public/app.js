@@ -4,7 +4,7 @@ import { CloudStore } from './store.js';
 import { S, blank, checkedState, normalize, onSave, setState, summary } from './js/state.js';
 import { migrate } from './js/migrate.js';
 import { dropOldOverdue, undatedToDay } from './js/tasks.js';
-import { U, applyTextSize, applyTheme, openOnPlannedDay, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
+import { U, applyTextSize, applyTheme, openRitualForNow, rollDay, storedAppearance, toast } from './js/ui.js';
 import { render, renderNav, navDots } from './js/render.js';
 import { initInteractions } from './js/interactions.js';
 import { welcome } from './js/sheets.js';
@@ -152,7 +152,6 @@ async function loadUser(user) {
     $('#planner').hidden = false;
     setReady(true);
     openRitualForNow();
-    openOnPlannedDay();
     render(true);
     cloudStatus('saved');
     if (!row || JSON.stringify(S) !== before) { store.schedule(() => checkedState(S)); await store.flush(); }

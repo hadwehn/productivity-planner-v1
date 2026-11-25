@@ -10,7 +10,7 @@ import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate
 import { monthReminder, reviewReminder } from '../public/js/rituals.js';
 import { weekQuestions } from '../public/js/prefs.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
-import { U, tomorrowCard } from '../public/js/ui.js';
+import { U } from '../public/js/ui.js';
 import { todayView } from '../public/js/views/today.js';
 import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
@@ -593,21 +593,16 @@ test('las cuatro vistas se dibujan con datos y vacías', () => {
     ok(journalView().includes('Diario'));
   }
 });
-test('navegación única (días vecinos asomados y flechas fijas) y opción de la tarjeta «organizar mañana»', () => {
+test('navegación única (días vecinos asomados y flechas fijas); las cuentas con la antigua tarjeta «organizar mañana» se siguen aceptando', () => {
   load(fixture());
   Object.assign(U, { date: DAY, week: WEEK, weekMode: 'week', month: '2026-10', calDay: DAY, journalMonth: '2026-10' });
   const html = todayView();
   ok(html.includes('data-a="shiftweek" data-n="-1" tabindex="-1"') && html.includes('data-a="shiftweek" data-n="1" tabindex="-1"'), 'los días vecinos llevan a su semana');
   ok(!html.includes('swipe-hint'), 'sin pista de texto');
   ok(planView().includes('range-nav') && planView().includes('data-swipe="plan"') && journalView().includes('range-nav'), 'flechas y deslizado en Plan y Diario');
-  eq(tomorrowCard(), true, 'tarjeta encendida por defecto');
-  S.cfg.nav = 'arrows'; // cuentas que probaron el modo «Flechas»
-  eq(tomorrowCard(), false, 'venía apagada con «Flechas»');
-  checkedState(JSON.parse(JSON.stringify(S)));
-  S.cfg.today = { ...(S.cfg.today || {}), tomorrow: true };
-  eq(tomorrowCard(), true, 'la opción nueva manda');
-  S.cfg.today.tomorrow = false; delete S.cfg.nav;
-  eq(tomorrowCard(), false);
+  ok(!html.includes('plan-switch'), 'sin la tarjeta «¿Qué día quieres organizar?»');
+  // Datos guardados con la tarjeta (cfg.today.tomorrow, cfg.planHour, cfg.nav) se siguen aceptando.
+  S.cfg.nav = 'arrows'; S.cfg.planHour = 20; S.cfg.today = { ...(S.cfg.today || {}), tomorrow: false };
   checkedState(JSON.parse(JSON.stringify(S)));
 });
 test('Hoy: rituales plegados por defecto y texto escapado', () => {

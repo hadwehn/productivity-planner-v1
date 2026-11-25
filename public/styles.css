@@ -710,13 +710,8 @@ html:has(dialog[open]) #back-now { display: none; }
 .page-head + .strip-wrap { margin-top: -4px; }
 .ritual { scroll-margin-top: 200px; }
 .ritual-note .link { min-height: 28px; margin-left: 4px; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.plan-switch { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
-.plan-switch > .icon { width: 18px; height: 18px; color: var(--gold); }
-.plan-switch > span { flex: 1; min-width: 0; font-size: calc(14px * var(--ts)); color: var(--ink-2); line-height: 1.3; }
-.plan-switch .seg { flex: none; }
-.plan-switch .seg button { min-height: 34px; padding: 0 14px; }
 /* Hoy: selector de noche → frase → avisos → «Empieza tu día», con el mismo espacio entre cada bloque. */
-.plan-switch + .quote, .quote + .notices, .quote + .section, .notices + .section { margin-top: 20px; }
+.quote + .notices, .quote + .section, .notices + .section { margin-top: 20px; }
 .notices { margin-top: 14px; padding: 2px 14px; border-radius: var(--r-md); background: var(--gold-soft); }
 .notice { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
 .notice + .notice { border-top: 1px solid color-mix(in srgb, var(--gold) 20%, transparent); }

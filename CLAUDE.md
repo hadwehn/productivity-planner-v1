@@ -54,7 +54,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 | `public/js/interactions.js` | Eventos: acciones `data-a`, teclado, arrastrar, deslizar, hojas. |
 | `public/js/sheets.js` | Hojas inferiores (menús, mover tarea, pendientes, hábitos, eventos, atajos). |
 | `public/js/views/*.js` | Pantallas: `today.js` (Hoy), `week.js` (Plan: semana y mes), `habits.js`, `journal.js` (Diario), `notes.js` (editor de notas). |
-| `public/js/ui.js` | Estado de la interfaz (no se guarda), avisos, tema, tarjeta «organizar mañana». |
+| `public/js/ui.js` | Estado de la interfaz (no se guarda), avisos, tema. |
 | `sql/01-schema.sql` | Base en Supabase: tabla `planner_states` (un JSON por usuario) y RPC `save_planner`. |
 
 ### Datos (`state.js`)
@@ -148,8 +148,9 @@ dispositivo, en `localStorage`.
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
   Basurero junto a «Guardar» (solo con algo escrito) para empezarla de cero: borra al instante con
   «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).
-- Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
-  a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
+- Se quitó la tarjeta «¿Qué día quieres organizar? Hoy | Mañana» y su ajuste («Ofrecer organizar
+  mañana», con hora): repetía lo que ya hacen la franja de días (mañana está al lado) y el botón
+  «Hoy». Los datos antiguos (`cfg.today.tomorrow`, `cfg.planHour`) se siguen aceptando.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
