@@ -204,6 +204,9 @@ dispositivo, en `localStorage`.
   al crear o al editar (pasar un evento a otro día sin borrarlo). Si tiene «Hasta», se corre igual
   y conserva la duración (`putEvent`/`shiftEnd` en `events.js`). En Mes queda elegido el día nuevo.
   Se descartó arrastrar eventos en el calendario del celular (celdas chicas, choca con deslizar).
+- Plan › Mes: el calendario queda a 20 px de la cabecera fija (igual que la frase del día en Hoy).
+  «Foco del mes» y «Lo mejor del mes» muestran sus tres campos de una vez, con el mismo estilo que
+  los campos de la intención y la revisión de la semana (fondo hundido, bordes redondeados, letra normal).
 - Calendario del mes: los días con eventos llevan puntos de 6 px (uno por evento, hasta 3, del color
   de su área) y el número en negrita. Se probó teñir el día, franjas para eventos de varios días y
   una vista «Ampliar» con los nombres en cada día, y los fundadores lo descartaron: vuelven los puntos.

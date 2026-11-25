@@ -426,10 +426,13 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .cal-day .marks { position: absolute; bottom: 4px; left: 0; right: 0; display: flex; justify-content: center; gap: 3px; }
 .cal-day .marks u { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
 .cal-day.on .marks u { background: var(--bg); }
-.numbered { display: grid; gap: 4px; }
+/* Calendario del mes: misma distancia a la cabecera fija que la frase del día en Hoy (20 px). */
+.cal-card { margin-top: 20px; }
+.numbered { display: grid; gap: 10px; }
 .numbered .line { display: flex; gap: 10px; align-items: flex-start; }
-.numbered .line span { font: 500 calc(15px * var(--ts))/1 var(--serif); color: var(--mute); width: 16px; padding-top: 12px; }
-.numbered textarea { padding: 9px 0; border-bottom: 1px solid var(--line); }
+.numbered .line span { font: 500 calc(15px * var(--ts))/1 var(--serif); color: var(--mute); width: 16px; padding-top: 16px; }
+/* Mismos campos que «Intención de la semana» y la revisión: fondo hundido, bordes redondeados, letra normal. */
+.numbered textarea { background: var(--sunken); border-radius: var(--r-md); padding: 12px 14px; min-height: 48px; line-height: 1.55; }
 
 /* ===== Diario ===== */
 .mood-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px 6px; justify-items: center; }
@@ -782,6 +785,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   main { max-width: 1120px; }
   .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 36px; align-items: start; }
   .cols > .col > :first-child { margin-top: 10px; }
+  .cols > .col > .cal-card:first-child { margin-top: 20px; }
   .today-cols { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 0 40px; }
   .today-cols > .col > :first-child { margin-top: 20px; }
   .today-cols .notices + .section { margin-top: 20px; }
