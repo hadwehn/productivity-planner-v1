@@ -60,33 +60,94 @@ function keepCaretVisible() {
   const limit = vv.offsetTop + vv.height - 28; // borde de arriba del teclado, con un margen
   if (rect.bottom > limit) editor.scrollTop += rect.bottom - limit;
 }
-// ——— Ordenar hábitos ———
-// Lista compacta (una fila por hábito, con su color): se arrastra la fila entera o se usan ↑ ↓. Las
-// tarjetas de la pantalla eran muy grandes para arrastrarlas; el orden se cambia solo aquí.
-export function habitOrderList() {
-  const last = S.h.length - 1;
-  return S.h.map((h, i) => {
-    const name = esc(h.name), c = categoryColor(h.color ?? 0);
-    return `<div class="order-row" data-order="${esc(h.id)}" style="--c:${c}">
-      <i class="order-dot"></i><span class="order-name">${name}</span>
-      <button type="button" class="task-btn" data-a="habitup" data-id="${esc(h.id)}" aria-label="${tr('Subir', 'Move up')} ${name}"${i === 0 ? ' disabled' : ''}>${icon('up')}</button>
-      <button type="button" class="task-btn" data-a="habitdown" data-id="${esc(h.id)}" aria-label="${tr('Bajar', 'Move down')} ${name}"${i === last ? ' disabled' : ''}>${icon('down')}</button>
+// ——— Reordenar hábitos ———
+// Ventana centrada con una fila compacta por hábito (su color, su nombre y ≡). Se arrastra la fila y
+// las demás se corren en vivo para hacerle espacio (como en la app Bolsa del iPhone). El orden es un
+// borrador: queda fijo al tocar ✓ arriba a la derecha; si se cierra de otra forma, no cambia nada.
+let orderDraft = [];
+const habitById = id => S.h.find(h => h.id === id);
+function orderRows() {
+  return orderDraft.map(id => {
+    const h = habitById(id);
+    if (!h) return '';
+    return `<div class="order-row" data-order="${esc(h.id)}" style="--c:${categoryColor(h.color ?? 0)}">
+      <i class="order-dot"></i><span class="order-name">${esc(h.name)}</span><span class="order-bars" aria-hidden="true">${icon('bars')}</span>
     </div>`;
   }).join('');
 }
+/** Arrastre con desplazamiento en vivo: la fila sigue al dedo y las demás se corren a su lugar. */
+function orderDrag(list) {
+  let drag = null;
+  const rowsOf = () => [...list.querySelectorAll('.order-row')];
+  list.addEventListener('pointerdown', e => {
+    const row = e.target.closest('.order-row');
+    if (!row || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const rows = rowsOf(), from = rows.indexOf(row);
+    const step = rows.length > 1 ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top : row.offsetHeight + 8;
+    drag = { row, rows, from, to: from, step, y0: e.clientY, id: e.pointerId, active: false };
+  });
+  list.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const dy = e.clientY - drag.y0;
+    if (!drag.active) {
+      if (Math.abs(dy) < 4) return;
+      drag.active = true;
+      list.classList.add('is-sorting');
+      drag.row.classList.add('lifted');
+      try { drag.row.setPointerCapture(e.pointerId); } catch { /* sin captura */ }
+    }
+    e.preventDefault();
+    const { rows, from, step } = drag, last = rows.length - 1;
+    // La fila no sale de la lista.
+    const clamped = Math.max(-from * step - 6, Math.min((last - from) * step + 6, dy));
+    drag.row.style.transform = `translateY(${clamped}px)`;
+    const to = Math.max(0, Math.min(last, from + Math.round(clamped / step)));
+    if (to === drag.to) return;
+    drag.to = to;
+    rows.forEach((r, i) => {
+      if (r === drag.row) return;
+      const shift = from < to && i > from && i <= to ? -step : to < from && i >= to && i < from ? step : 0;
+      r.style.transform = shift ? `translateY(${shift}px)` : '';
+    });
+  });
+  const end = e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const { row, from, to, step, active } = drag;
+    drag = null;
+    if (!active) return;
+    // La fila se acomoda en su lugar nuevo y después la lista se vuelve a dibujar en el orden borrador.
+    row.classList.remove('lifted');
+    row.style.transform = `translateY(${(to - from) * step}px)`;
+    setTimeout(() => {
+      const [id] = orderDraft.splice(from, 1);
+      orderDraft.splice(to, 0, id);
+      list.classList.remove('is-sorting');
+      list.innerHTML = orderRows();
+    }, 170);
+  };
+  list.addEventListener('pointerup', end);
+  list.addEventListener('pointercancel', end);
+}
 export function habitOrderSheet() {
-  openSheet(tr('Ordenar hábitos', 'Reorder habits'), `<p class="muted small" style="margin:-2px 2px 12px">${tr('Arrastra un hábito o usa las flechas.', 'Drag a habit or use the arrows.')}</p>
-    <div class="order-list" id="habitOrder">${habitOrderList()}</div>
-    <button type="button" class="btn" data-a="dismiss" style="margin-top:16px">${tr('Listo', 'Done')}</button>`, dlg => {
+  orderDraft = S.h.map(h => h.id);
+  openSheet(tr('Reordenar hábitos', 'Reorder habits'), `<p class="muted small" style="margin:-2px 2px 12px">${tr('Arrastra los hábitos para cambiar su orden.', 'Drag habits to change their order.')}</p>
+    <div class="order-list" id="habitOrder">${orderRows()}</div>`, dlg => {
     // Ventana al centro de la pantalla, con bordes redondeados (como Notas), en vez de hoja desde abajo.
     dlg.classList.add('center-sheet');
-    dlg.addEventListener('close', () => dlg.classList.remove('center-sheet'), { once: true });
+    dlg.addEventListener('close', () => { dlg.classList.remove('center-sheet'); orderDraft = []; }, { once: true });
+    // Arriba a la derecha, ✓ deja fijo el orden (en lugar de la ✕).
+    const close = $('.sheet-head [data-a="dismiss"]', dlg);
+    if (close) close.outerHTML = `<button type="button" class="order-done" data-a="habitorderdone" aria-label="${tr('Listo: guardar el orden', 'Done: save the order')}" title="${tr('Listo', 'Done')}">${icon('check')}</button>`;
+    orderDrag($('#habitOrder', dlg));
   });
 }
-/** Vuelve a dibujar la lista abierta y la pantalla de atrás. */
-export function refreshHabitOrder() {
-  const list = $('#habitOrder');
-  if (list) list.innerHTML = habitOrderList();
+/** ✓: el orden del borrador queda fijo. */
+export function saveHabitOrder() {
+  if (orderDraft.length === S.h.length) {
+    const next = orderDraft.map(habitById).filter(Boolean);
+    if (next.length === S.h.length && next.some((h, i) => h !== S.h[i])) { S.h = next; save(); }
+  }
+  closeSheet();
   render();
 }
 

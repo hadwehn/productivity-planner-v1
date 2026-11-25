@@ -717,12 +717,18 @@ dialog.sheet.center-sheet[open] { animation: center-in .26s var(--ease); }
 .center-sheet .sheet-head { padding-top: 16px; }
 .center-sheet .sheet-body { padding-bottom: 20px; }
 /* Hoja «Ordenar hábitos»: filas compactas. */
-.order-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.order-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 4px 4px 4px 16px; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; border-radius: var(--r-md); background: var(--sunken); }
+.order-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; position: relative; }
+.order-row { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 4px 12px 4px 16px; transition: transform .17s var(--ease), box-shadow .17s; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; border-radius: var(--r-md); background: var(--sunken); }
 .order-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
 .order-name { flex: 1; min-width: 0; font-size: calc(12px * var(--ts)); letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.order-row .task-btn[disabled] { opacity: .3; cursor: default; }
-.order-row.dragging { opacity: .3; }
+.order-bars { display: grid; place-items: center; width: 28px; height: 40px; color: var(--mute); flex: none; }
+.order-bars .icon { width: 22px; height: 22px; }
+/* La fila que se arrastra se levanta y sigue al dedo sin demora; las demás se corren con suavidad. */
+.order-row.lifted { z-index: 2; transition: box-shadow .17s; box-shadow: var(--shadow-up); background: var(--surface); cursor: grabbing; }
+.is-sorting { cursor: grabbing; }
+/* ✓ arriba a la derecha de «Reordenar hábitos»: deja fijo el orden. */
+.order-done { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--acc); color: var(--acc-ink); flex: none; }
+.order-done .icon { width: 20px; height: 20px; stroke-width: 2.4; }
 .habit-grid { display: grid; gap: 24px; }
 .habit-grid .card + .card { margin-top: 0; }
 .sticky-head + .cols { margin-top: 0; }

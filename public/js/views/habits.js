@@ -19,7 +19,7 @@ function habitCard(h, week, T) {
   const progress = weekly !== null
     ? `<div class="habit-progress"><i style="width:${Math.min(100, Math.round(weekly / h.perWeek * 100))}%"></i></div>`
     : pct !== null ? `<p class="muted small">${tr('Constancia en 4 semanas', 'Consistency, last 4 weeks')}: <b style="color:var(--ink)">${pct}%</b></p>` : '<span></span>';
-  // Un toque en el nombre abre el historial. El orden se cambia desde «Ordenar» (ver habitOrderSheet).
+  // Un toque en el nombre abre el historial. El orden se cambia desde «Reordenar» (ver habitOrderSheet).
   return `<article class="card habit" style="--c:${c}" data-habit="${esc(h.id)}">
     <div class="habit-top">
       <button class="name" data-a="habitopen" data-id="${esc(h.id)}"><strong>${name}</strong><small>${sub}</small></button>
@@ -54,8 +54,8 @@ export function habitsView() {
   const motto = tr('Constancia, no perfección.', 'Consistency, not perfection.');
   // El avance de hoy ya se ve en el anillo del día; la línea bajo el título queda corta, así cabe en una línea.
   const subtitle = S.h.length && dueToday.length ? `${tr('Hoy', 'Today')}: ${doneToday} ${tr('de', 'of')} ${dueToday.length}` : motto;
-  // Bajo la cabecera: cuántos hábitos hay y «Ordenar», que abre una lista compacta para cambiar el orden.
-  const tools = S.h.length > 1 ? `<div class="habit-tools"><span class="muted small">${S.h.length} ${tr('hábitos', 'habits')}</span><button type="button" class="pill" data-a="habitorder">${icon('reorder')}${tr('Ordenar', 'Reorder')}</button></div>` : '';
+  // Bajo la cabecera: cuántos hábitos hay y «Reordenar», que abre una lista compacta para cambiar el orden.
+  const tools = S.h.length > 1 ? `<div class="habit-tools"><span class="muted small">${S.h.length} ${tr('hábitos', 'habits')}</span><button type="button" class="pill" data-a="habitorder">${icon('bars')}${tr('Reordenar', 'Reorder')}</button></div>` : '';
   return `<div class="view narrow">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }) + (S.h.length ? weekRings(week, T) : ''))}
     ${tools}${cards ? `<div class="habit-grid">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
     <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>

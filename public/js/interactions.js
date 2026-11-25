@@ -5,9 +5,9 @@ import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
 } from './tasks.js';
-import { moveHabit, toggle as toggleHabit } from './habits.js';
+import { toggle as toggleHabit } from './habits.js';
 import {
-  closeSheet, clearNotesNow, habitOrderSheet, refreshHabitOrder, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
+  closeSheet, clearNotesNow, habitOrderSheet, saveHabitOrder, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
   weekAction, weekMenu,
 } from './sheets.js';
@@ -210,8 +210,7 @@ const ACTIONS = {
   habitopen: d => habitDetail(d.id),
   habitmenu: d => habitMenu(d.id),
   habitorder: () => habitOrderSheet(),
-  habitup: d => { const i = S.h.findIndex(h => h.id === d.id); if (i > 0 && moveHabit(d.id, S.h[i - 1].id)) refreshHabitOrder(); },
-  habitdown: d => { const i = S.h.findIndex(h => h.id === d.id); if (i >= 0 && i < S.h.length - 1 && moveHabit(d.id, S.h[i + 1].id)) refreshHabitOrder(); },
+  habitorderdone: () => saveHabitOrder(),
   habitedit: d => habitEditor(d.id),
   habitdelete: d => confirmDeleteHabit(d.id),
   habitday: d => habitDayToggle(d.id, d.date, d.month),
@@ -673,7 +672,6 @@ export function initInteractions(isReady) {
   swipeZones();
   swipeRows();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
-  // Hábitos: solo desde la ventana «Ordenar», arrastrando la fila entera (las flechas no la mueven).
-  sortable({ handle: '.order-row', item: '.order-row', key: el => el.dataset.order, delay: 120, onDrop: (a, b) => { if (moveHabit(a, b)) refreshHabitOrder(); } });
+  // Hábitos: se reordenan solo en la ventana «Reordenar» (arrastre propio, ver orderDrag en sheets.js).
 }
 export { openSettings };
