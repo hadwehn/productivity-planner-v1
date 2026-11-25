@@ -146,12 +146,20 @@ test('pendientes de días anteriores: traer, soltar y traer todo', () => {
   const r = bringOverdue(T);
   eq([r.count, texts(T).rest, texts(y1).rest], [1, ['Ayer'], ['Hecha']]);
 });
-test('renombrar una tarea traída de la semana rompe el vínculo', () => {
+test('renombrar una tarea traída de la semana cambia el nombre en la semana y en los demás días', () => {
   load(fixture());
+  const source = S.d[DAY].k[1].source;
+  toggleWeekDay(WEEK, 'a', 0, NEXT);
+  renameTask(DAY, 1, '');
+  eq([S.d[DAY].k[1].source, weekTasks(WEEK, 'a')[0].row.t], [source, 'Estudiar'], 'vacío mientras se escribe: no se propaga');
   renameTask(DAY, 1, 'Estudiar química');
-  eq(S.d[DAY].k[1].source, undefined);
+  eq(S.d[DAY].k[1].source, source, 'sigue vinculada');
+  eq(weekTasks(WEEK, 'a')[0].row.t, 'Estudiar química', 'en Plan');
+  eq(Object.values(S.d[NEXT].k).find(r => r.source === source).t, 'Estudiar química', 'en el otro día');
   setWeekDone(WEEK, 'a', 0, true);
-  eq(S.d[DAY].k[1].c, false);
+  eq(S.d[DAY].k[1].c, true, 'marcar en Plan sigue marcando el día');
+  renameWeekTask(WEEK, 'a', 0, 'Estudiar química y física');
+  eq([S.d[DAY].k[1].t, Object.values(S.d[NEXT].k).find(r => r.source === source).t], ['Estudiar química y física', 'Estudiar química y física'], 'desde Plan, también');
 });
 
 // ——— Semana ———
@@ -250,7 +258,7 @@ test('semana: eliminar o mover entre listas actualiza los vínculos de los días
   eq(weekTasks(WEEK, 'b').map(x => x.row.t), ['B']);
   eq(scheduledDays(`w.${WEEK}.b.0`), [NEXT]);
   renameWeekTask(WEEK, 'b', 0, 'B2');
-  eq(scheduledDays(`w.${WEEK}.b.0`), [], 'renombrar rompe el vínculo');
+  eq([scheduledDays(`w.${WEEK}.b.0`), Object.values(S.d[NEXT].k).find(r => r.source === `w.${WEEK}.b.0`).t], [[NEXT], 'B2'], 'renombrar mantiene el vínculo y cambia el día');
   eq(v1Accepts(S), true);
 });
 

@@ -80,14 +80,24 @@ export function addTask(date, value, { focus = false, source } = {}) {
 
 export function getTask(date, key) { return S.d[date]?.k?.[key]; }
 
-/** Cambia el texto. Si estaba vinculada a la semana y cambia el nombre, el vínculo se rompe. */
+/**
+ * Cambia el texto. Si viene de la semana, el nombre es uno solo: se cambia también en Plan y en
+ * los demás días donde está (renombrar es corregir o precisar la misma tarea, no crear otra).
+ * Mientras el campo queda vacío no se propaga, para no dejar la semanal sin nombre.
+ */
 export function renameTask(date, key, value) {
   const row = getTask(date, key);
   if (!row) return;
   const t = String(value ?? '');
-  if (row.source && t.trim() !== text(row)) { const old = row.source; delete row.source; refreshWeekly(old); }
   row.t = t;
+  if (row.source && t.trim()) renameLinked(row.source, t);
   save();
+}
+/** Pone el mismo nombre a una tarea semanal y a todas sus copias de los días. */
+function renameLinked(source, t) {
+  const weekly = weeklyOf(source);
+  if (weekly) weekly.t = t;
+  for (const day of Object.values(S.d)) for (const row of Object.values(day.k || {})) if (row?.source === source) row.t = t;
 }
 
 /** Pone o quita una tarea del foco. Devuelve { key } o { error }. */
@@ -282,12 +292,13 @@ export function addWeekTask(week, list, value) {
   return { i: rows.length - 1 };
 }
 
+/** Cambia el nombre de una tarea semanal; sus copias en los días cambian con ella. */
 export function renameWeekTask(week, list, i, value) {
   const row = weekList(week, list)[i];
   if (!row) return;
   const t = String(value ?? '');
-  if (t.trim() !== text(row)) relink(weekPath(week, list, i), null);
   row.t = t;
+  if (t.trim()) renameLinked(weekPath(week, list, i), t);
   save();
 }
 
