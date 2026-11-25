@@ -122,6 +122,8 @@ const ritualField = (editable, path, label, placeholder, cls = '', id = '', hint
 
 /** Pie del ritual: botón para terminarlo o, ya terminado, la opción de volver a editarlo. */
 function ritualFoot(date, which, state) {
+  // Editando uno ya terminado: sigue terminado; «Guardar» solo vuelve a dejarlo para leer.
+  if (state === 'done' && U.editing === `${which}:${date}`) return `<button class="btn ritual-finish" data-a="ritualsave" data-k="${which}">${icon('check')}${tr('Guardar', 'Save')}</button>`;
   if (state === 'open') {
     const label = which === 'e' ? tr('Cerrar el día', 'Close the day') : date < today() ? tr('Listo', 'Done') : tr('Listo, empezar el día', 'Done, start the day');
     return `<button class="btn ritual-finish" data-a="ritualdone" data-k="${which}">${icon('check')}${label}</button>`;
@@ -132,7 +134,7 @@ function ritualFoot(date, which, state) {
 }
 
 function morning(date) {
-  const Z = `d.${date}.`, intent = get(Z + 'i'), grat = get(Z + 'g'), state = ritualState(date, 'm'), editable = state === 'open';
+  const Z = `d.${date}.`, intent = get(Z + 'i'), grat = get(Z + 'g'), state = ritualState(date, 'm'), editable = state === 'open' || U.editing === `m:${date}`;
   const parts = [];
   if (showToday('intention')) parts.push(ritualField(editable, Z + 'i', tr('¿Cómo quieres vivir este día?', 'How do you want to live today?'), tr('Con calma, presente…', 'Calm, present…'), '', 'f-intent'));
   // Mismo formato que «Cierra tu día»: dos preguntas, sin texto de ayuda aparte.
@@ -146,7 +148,7 @@ function morning(date) {
 }
 
 function evening(date) {
-  const Z = `d.${date}.`, mood = S.d[date]?.mood, reflection = get(Z + 'r'), state = ritualState(date, 'e'), editable = state === 'open';
+  const Z = `d.${date}.`, mood = S.d[date]?.mood, reflection = get(Z + 'r'), state = ritualState(date, 'e'), editable = state === 'open' || U.editing === `e:${date}`;
   const parts = [];
   if (showToday('mood')) {
     const levels = editable ? MOOD_LEVELS : MOOD_LEVELS.filter(n => n === mood);

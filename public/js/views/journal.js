@@ -36,7 +36,10 @@ function highlight(text, q) {
   const rest = starts.findIndex(s => s >= from);
   return out + (rest === -1 ? '' : esc(chars.slice(rest).join('')));
 }
-const matches = (d, needle) => ['i', 'g', 'r', 'n'].some(k => [...clean(d[k])].map(fold).join('').includes(needle));
+const hit = (d, k, needle) => [...clean(d[k])].map(fold).join('').includes(needle);
+const matches = (d, needle) => ['i', 'g', 'r', 'n'].some(k => hit(d, k, needle));
+/** Tarjeta del día donde está lo buscado: intención y gratitud → Empieza tu día; reflexión → Cierra tu día. */
+const cardFor = (d, needle) => (hit(d, 'i', needle) || hit(d, 'g', needle) ? 'morning' : hit(d, 'r', needle) ? 'evening' : hit(d, 'n', needle) ? 'notes' : '');
 
 /** Lista de «Escritos»: lo del mes o, con una búsqueda, lo que coincide en todo el Diario. */
 export function journalEntries() {
@@ -153,7 +156,8 @@ function entry(date, d, q = '', withYear = false) {
   const mood = d.mood ? `<span class="mood-tag" style="--c:${moodColor(d.mood)}">${icon('mood' + d.mood, 'icon face')}${moodName(d.mood)}</span>` : '';
   // En los resultados de una búsqueda (de cualquier mes) va la fecha completa.
   const title = withYear ? `${DAYS[weekday(pd)]} ${dayMonth(pd)}${pd.getFullYear() !== new Date().getFullYear() ? ` ${pd.getFullYear()}` : ''}` : `${DAYS[weekday(pd)]} ${pd.getDate()}`;
-  return `<article class="card entry" data-a="openday" data-k="${date}" role="link" tabindex="0" aria-label="${tr('Abrir', 'Open')} ${title}"><div class="entry-head"><strong>${title}</strong>${mood}</div>
+  const target = q ? cardFor(d, [...q].map(fold).join('')) : '';
+  return `<article class="card entry" data-a="openday" data-k="${date}"${target ? ` data-f="${target}"` : ''} role="link" tabindex="0" aria-label="${tr('Abrir', 'Open')} ${title}"><div class="entry-head"><strong>${title}</strong>${mood}</div>
     ${rows.length ? `<dl>${rows.map(([t, v, serif]) => `<div><dt>${t}</dt><dd class="${serif ? 'serif' : ''}">${q ? highlight(v, q) : esc(v)}</dd></div>`).join('')}</dl>` : ''}</article>`;
 }
 

@@ -12,6 +12,12 @@ export const U = {
   notes: false,
   week: iso(monday(new Date())),
   weekMode: 'week',      // week · month
+  // «Editar» un ritual ya terminado es solo un modo de la pantalla: el día (o la semana) sigue
+  // cerrado. Guarda 'm:FECHA', 'e:FECHA', 'intent:LUNES' o 'review:LUNES'; se olvida al cambiar de periodo.
+  editing: null,
+  // Periodo al que corresponden las tarjetas abiertas de cada sección: al pasar a otro día o semana,
+  // se pliegan y la página se ve como siempre (ver render).
+  foldsFor: {},
   review: false,
   weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),
@@ -56,6 +62,7 @@ export function openRitualForNow() {
   if (last === `${T}:${which}`) return;
   try { localStorage.setItem(RITUAL_KEY, `${T}:${which}`); } catch { /* almacenamiento bloqueado */ }
   U[which] = true;
+  U.foldsFor.today = T; // esta apertura es para hoy: que no se pliegue al dibujarlo
 }
 
 /** Preferencias de «Hoy» (todas visibles salvo que se apaguen). */

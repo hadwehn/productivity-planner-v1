@@ -108,6 +108,12 @@ export function render(toTop = false) {
   // otro mes en Diario), se anota dónde quedó el anterior y el nuevo vuelve a su posición si se
   // vio hace poco; si no, se ve desde el inicio (la altura del periodo anterior no le sirve).
   const key = viewKey(U.tab), otherPeriod = U.tab === shownTab && key !== shownKey;
+  // Otro día (u otra semana): sus tarjetas se ven plegadas, como siempre, y sin modo «Editar».
+  if (FOLDS[U.tab]) {
+    const seen = U.foldsFor[U.tab];
+    if (seen !== undefined && seen !== key) { for (const k of FOLDS[U.tab]) U[k] = false; U.editing = null; }
+    U.foldsFor[U.tab] = key;
+  }
   if (otherPeriod) rememberScroll(shownTab, shownKey);
   shownKey = key;
   const top = toTop || otherPeriod, back = otherPeriod && !toTop ? savedScroll(U.tab) : 0;
@@ -145,6 +151,20 @@ export function render(toTop = false) {
 // Solo cuando la persona lo abre: la apertura automática de la mañana o la noche no atenúa nada.
 export const FOCUS_CARDS = ['morning', 'evening', 'weekIntent', 'review']; // Notas se abre en su propia hoja
 let focused = null; // ritual abierto en primer plano
+/** Tarjetas plegables de cada sección (se pliegan al cambiar de día o de semana). */
+const FOLDS = { today: ['morning', 'evening'], week: ['weekIntent', 'review'] };
+/**
+ * Lleva a la vista una tarjeta (sin atenuar el resto): se usa al abrir un día desde el buscador del
+ * Diario, para mostrar justo donde está lo encontrado. `key`: morning, evening o notes.
+ */
+export function revealCard(key) {
+  const head = key === 'notes' ? $('#v [data-a="notesopen"]') : $(`#v .ritual-head[data-k="${key}"]`);
+  const card = head?.closest('.card, section');
+  if (!card) return;
+  const sticky = $('#v .sticky-head')?.getBoundingClientRect().height || 0;
+  scrollTo({ top: Math.max(0, Math.round(card.getBoundingClientRect().top + scrollY - sticky - 14)) });
+  markScrolled();
+}
 const openRitual = view => [...view.querySelectorAll('.ritual.open')].find(s => FOCUS_CARDS.includes(s.querySelector('.ritual-head')?.dataset.k));
 function applyRitualFocus(view) {
   const open = openRitual(view), card = open?.querySelector('.ritual-head').dataset.k === focused ? open : null;

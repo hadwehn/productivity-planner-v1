@@ -16,7 +16,7 @@ import {
   forgotHTML, keypad, lockEnabled, lockMode, pressDelete, pressDigit, relock, sendForgotCode, startFlow, verifyForgotCode,
 } from './lock.js';
 import { journalEntries } from './views/journal.js';
-import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, savedScroll } from './render.js';
+import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, revealCard, savedScroll } from './render.js';
 import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
@@ -113,7 +113,15 @@ const ACTIONS = {
     restoreScroll(savedScroll(d.k));
   },
   date: update(d => { U.date = d.k; }),
-  openday: navigate(d => openDay(d.k)),
+  // Desde el buscador del Diario, el día se abre en la tarjeta donde está lo buscado (data-f).
+  openday: d => {
+    navigate(() => {
+      openDay(d.k);
+      U.foldsFor.today = d.k; U.editing = null;
+      U.morning = d.f === 'morning'; U.evening = d.f === 'evening';
+    })(d);
+    if (d.f) setTimeout(() => revealCard(d.f), 60);
+  },
   shiftweek: d => shiftWeek(+d.n),
   // Al abrir un ritual se pliegan los demás y sube al primer plano (ver focusRitual en render.js).
   fold: d => {
@@ -146,7 +154,7 @@ const ACTIONS = {
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.
-  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
+  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.foldsFor.week = 'w' + d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
   monthbest: navigate(d => { U.tab = 'week'; U.weekMode = 'month'; U.month = d.k; revealLater('#month-best', true); }),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
@@ -154,7 +162,7 @@ const ACTIONS = {
   overdueall: () => overdueAction('all'),
 
   // Ánimo
-  mood: update(d => { if (!canEditRitual(U.date, 'e')) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
+  mood: update(d => { if (!canEditRitual(U.date, 'e') && U.editing !== `e:${U.date}`) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
   reviewdone: () => {
     const week = U.week;
     if (reviewState(week) !== 'ready') { render(); return; }
@@ -175,7 +183,7 @@ const ACTIONS = {
     render();
     toastUndo(tr('Listo. Que tengas una buena semana.', 'Done. Have a good week.'), () => { undo(); U.weekIntent = true; render(); });
   },
-  intentedit: () => { if (reopenIntent(U.week)) U.weekIntent = true; render(); focusRitual('weekIntent'); },
+  intentedit: () => { U.editing = `intent:${U.week}`; U.weekIntent = true; render(); focusRitual('weekIntent'); },
   ritualdone: d => {
     const which = d.k, date = U.date;
     if (!canEditRitual(date, which)) { render(); return; }
@@ -189,8 +197,32 @@ const ACTIONS = {
     if (which === 'e' && carryOverSheet(date, reopen)) return;
     toastUndo(which === 'm' ? (date < today() ? tr('Listo. Quedó guardado.', 'Done. It’s saved.') : tr('Listo. Que tengas un buen día.', 'Done. Have a good day.')) : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
   },
-  ritualedit: d => { const key = d.k === 'm' ? 'morning' : 'evening'; if (reopenRitual(U.date, d.k)) U[key] = true; render(); focusRitual(key); },
-  reviewedit: () => { if (reopenReview(U.week)) U.review = true; render(); focusRitual('review'); },
+  // «Editar» no reabre el día ni la semana: solo permite corregir lo escrito, que sigue cerrado.
+  ritualedit: d => { const key = d.k === 'm' ? 'morning' : 'evening'; U.editing = `${d.k}:${U.date}`; U[key] = true; render(); focusRitual(key); },
+  reviewedit: () => { U.editing = `review:${U.week}`; U.review = true; render(); focusRitual('review'); },
+  ritualsave: d => {
+    const which = d.k, key = which === 'm' ? 'morning' : 'evening';
+    document.activeElement?.blur?.();
+    U.editing = null;
+    // Si se borró todo, deja de estar terminado (no hay nada que leer).
+    if (!hasContent(U.date, which)) reopenRitual(U.date, which); else U[key] = false;
+    render();
+    toast(tr('Guardado', 'Saved'));
+  },
+  reviewsave: () => {
+    document.activeElement?.blur?.();
+    U.editing = null;
+    if (!hasReview(U.week)) reopenReview(U.week); else U.review = false;
+    render();
+    toast(tr('Guardado', 'Saved'));
+  },
+  intentsave: () => {
+    document.activeElement?.blur?.();
+    U.editing = null;
+    if (!hasIntent(U.week)) reopenIntent(U.week); else U.weekIntent = false;
+    render();
+    toast(tr('Guardado', 'Saved'));
+  },
   closeyesterday: () => {
     rememberScroll();
     U.date = shiftDate(today(), -1); U.tab = 'today'; U.morning = false; U.evening = true;
@@ -340,11 +372,12 @@ function onInput(e) {
   if (el.dataset.p) {
     // Lo de «Empieza/Cierra tu día» solo se guarda mientras está abierto (otro dispositivo pudo darlo por terminado).
     const m = /^d\.(\d{4}-\d{2}-\d{2})\.(i|g|r|hl|learn|remember|p)$/.exec(el.dataset.p);
-    if (m && !canEditRitual(m[1], ['i', 'g'].includes(m[2]) ? 'm' : 'e')) { render(); return; }
+    const which = m && (['i', 'g'].includes(m[2]) ? 'm' : 'e');
+    if (m && !canEditRitual(m[1], which) && U.editing !== `${which}:${m[1]}`) { render(); return; }
     const w = /^w\.(\d{4}-\d{2}-\d{2})\.r\.\d+$/.exec(el.dataset.p);
-    if (w && !canEditReview(w[1])) { render(); return; }
+    if (w && !canEditReview(w[1]) && U.editing !== `review:${w[1]}`) { render(); return; }
     const wi = /^w\.(\d{4}-\d{2}-\d{2})\.i$/.exec(el.dataset.p);
-    if (wi && !canEditIntent(wi[1])) { render(); return; }
+    if (wi && !canEditIntent(wi[1]) && U.editing !== `intent:${wi[1]}`) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);

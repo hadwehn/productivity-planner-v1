@@ -69,12 +69,14 @@ function progress(week) {
 /** Pie de la revisión: desde el domingo se puede dar por terminada; terminada, se puede volver a editar. */
 const preview = (value, max = 90) => { const t = String(value || '').replace(/\s+/g, ' ').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
 // Pies de la intención y la revisión: mismo botón y misma nota que «Empieza/Cierra tu día» en Hoy.
-function reviewFoot(state) {
+function reviewFoot(state, week) {
+  if (state === 'done' && U.editing === `review:${week}`) return `<button class="btn ritual-finish" data-a="reviewsave">${icon('check')}${tr('Guardar', 'Save')}</button>`;
   if (state === 'ready') return `<button class="btn ritual-finish" data-a="reviewdone">${icon('check')}${tr('Cerrar la semana', 'Close the week')}</button>`;
   if (state === 'done') return `<p class="ritual-note">${icon('check')}${tr('Cerraste esta semana.', 'You closed this week.')}<button class="link" data-a="reviewedit">${tr('Editar', 'Edit')}</button></p>`;
   return `<p class="ritual-note">${icon('calendar')}${tr('Podrás escribirla cuando llegue esa semana.', 'You can write it when that week comes.')}</p>`;
 }
 function intentFoot(week, state, thisWeek) {
+  if (state === 'done' && U.editing === `intent:${week}`) return `<button class="btn ritual-finish" data-a="intentsave">${icon('check')}${tr('Guardar', 'Save')}</button>`;
   if (state === 'done') return `<p class="ritual-note">${icon('check')}${week < thisWeek ? tr('Definiste la intención de esa semana.', 'You set the intention for that week.') : tr('Empezaste esta semana.', 'You started this week.')}<button class="link" data-a="intentedit">${tr('Editar', 'Edit')}</button></p>`;
   const label = week < thisWeek ? tr('Listo', 'Done') : week > thisWeek ? tr('Listo, dejarla definida', 'Done, set it') : tr('Listo, empezar la semana', 'Done, start the week');
   return `<button class="btn ritual-finish" data-a="intentdone">${icon('check')}${label}</button>`;
@@ -104,7 +106,7 @@ function weekLook(week) {
 /** «Intención de la semana», con el mismo formato que «Empieza tu día». */
 function weekIntent(week, thisWeek) {
   const W = `w.${week}.`, text = String(get(W + 'i')).trim(), state = intentState(week), done = state === 'done';
-  const body = done
+  const body = done && U.editing !== `intent:${week}`
     ? `<div class="prompt"><span class="prompt-label">${tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?')}</span><p class="ritual-read serif">${esc(text)}</p></div>`
     : `<div class="prompt"><label for="f-wintent">${tr('¿Qué quieres que defina esta semana?', 'What do you want this week to be about?')}</label>${field(W + 'i', tr('Una palabra o una frase que te guíe…', 'A word or a phrase to guide you…'), '', ' id="f-wintent"')}</div>`;
   const summary = done ? tr('Lista', 'Set') + (text ? ` · “${esc(preview(text, 70))}”` : '')
@@ -117,7 +119,7 @@ function weekView() {
   const monthFocus = Object.values(S.m[week.slice(0, 7)]?.p || {}).filter(x => typeof x === 'string' && x.trim());
   const answered = questions.filter((_, i) => String(get(`${W}r.${i}`)).trim()).length;
   const reviewDay = weekday(new Date()) >= 4 && week === thisWeek;
-  const state = reviewState(week), editable = state === 'ready';
+  const state = reviewState(week), editable = state === 'ready' || U.editing === `review:${week}`;
   const firstAnswer = questions.map((_, i) => String(get(`${W}r.${i}`)).trim()).find(Boolean);
   const summary = state === 'done' ? tr('Lista', 'Done') + (firstAnswer ? ` · “${esc(preview(firstAnswer, 70))}”` : '')
     : answered ? tr(`${answered} de ${questions.length} respuestas`, `${answered} of ${questions.length} answered`)
@@ -135,7 +137,7 @@ function weekView() {
         if (editable) return `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`;
         const text = String(get(`${W}r.${i}`)).trim();
         return text ? `<div class="prompt"><span class="prompt-label">${q}</span><p class="ritual-read">${esc(text)}</p></div>` : '';
-      }).join('') + reviewFoot(state),
+      }).join('') + reviewFoot(state, week),
     })}</div></div></div>`;
 }
 

@@ -115,7 +115,12 @@ dispositivo, en `localStorage`.
   franja a todo el ancho; izquierda el recorrido del día, derecha hábitos, agenda y notas.
 - Empieza tu día y Cierra tu día se ven iguales (mismo ícono y formato), también ya terminados.
   Se pueden escribir el mismo día o cualquier día pasado, sin límite de hora; terminados quedan
-  para leer y «Editar» los reabre. Los días futuros, no.
+  para leer. Los días futuros, no. «Editar» (también en la intención y la revisión de la semana) es
+  solo un modo de la pantalla (`U.editing`): lo terminado **sigue terminado**, se corrige y
+  «Guardar» lo vuelve a dejar para leer. Antes «Editar» reabría de verdad y, si uno salía sin
+  volver a cerrar, el día quedaba abierto y pedía «Cerrar el día» otra vez.
+- Al pasar a otro día (u otra semana en Plan), las tarjetas que estaban abiertas se pliegan y se
+  sale del modo «Editar»: el periodo nuevo se ve como siempre (`U.foldsFor` en `render`).
 - Plan › Semana: «Intención de la semana» y «Revisión semanal» funcionan como «Empieza/Cierra tu
   día»: plegables con el mismo ícono y formato, botón «Listo, empezar la semana» / «Cerrar la
   semana», quedan para leer y «Editar» las reabre (`w.started` y `w.closed`). La revisión se puede
@@ -220,6 +225,8 @@ dispositivo, en `localStorage`.
 - Diario › Escritos: buscador arriba («Buscar en tu diario»). Desde 2 letras busca en todo lo escrito
   (intención, gratitud, reflexión y notas), en cualquier mes, sin importar tildes ni mayúsculas;
   resalta lo encontrado y muestra la fecha completa. La búsqueda no se guarda (`journalEntries`).
+  Tocar un resultado abre el día en la tarjeta donde está lo buscado (intención o gratitud →
+  Empieza tu día; reflexión → Cierra tu día; notas → la tarjeta de Notas), a la vista y para leer.
 - Ideas de hábitos: en «Nuevo hábito», bajo el nombre, «¿Sin ideas? Ver hábitos para empezar»
   despliega unas 22 ideas en cuatro grupos (Cuerpo, Mente, Descanso y pantallas, Orden y personas;
   `habitIdeas.js`). Elegir una rellena nombre, frecuencia y área, que se pueden ajustar antes de
