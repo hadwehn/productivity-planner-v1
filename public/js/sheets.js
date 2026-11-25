@@ -77,7 +77,11 @@ export function habitOrderList() {
 export function habitOrderSheet() {
   openSheet(tr('Ordenar hábitos', 'Reorder habits'), `<p class="muted small" style="margin:-2px 2px 12px">${tr('Arrastra desde ⠿ o usa las flechas.', 'Drag from ⠿ or use the arrows.')}</p>
     <div class="order-list" id="habitOrder">${habitOrderList()}</div>
-    <button type="button" class="btn" data-a="dismiss" style="margin-top:16px">${tr('Listo', 'Done')}</button>`);
+    <button type="button" class="btn" data-a="dismiss" style="margin-top:16px">${tr('Listo', 'Done')}</button>`, dlg => {
+    // Ventana al centro de la pantalla, con bordes redondeados (como Notas), en vez de hoja desde abajo.
+    dlg.classList.add('center-sheet');
+    dlg.addEventListener('close', () => dlg.classList.remove('center-sheet'), { once: true });
+  });
 }
 /** Vuelve a dibujar la lista abierta y la pantalla de atrás. */
 export function refreshHabitOrder() {
