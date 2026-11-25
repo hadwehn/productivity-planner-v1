@@ -61,21 +61,21 @@ function keepCaretVisible() {
   if (rect.bottom > limit) editor.scrollTop += rect.bottom - limit;
 }
 // ——— Ordenar hábitos ———
-// Lista compacta (una fila por hábito, con su color): se arrastra desde ⠿ o se usan ↑ ↓. Las
+// Lista compacta (una fila por hábito, con su color): se arrastra la fila entera o se usan ↑ ↓. Las
 // tarjetas de la pantalla eran muy grandes para arrastrarlas; el orden se cambia solo aquí.
 export function habitOrderList() {
   const last = S.h.length - 1;
   return S.h.map((h, i) => {
     const name = esc(h.name), c = categoryColor(h.color ?? 0);
     return `<div class="order-row" data-order="${esc(h.id)}" style="--c:${c}">
-      <span class="order-grip" aria-hidden="true">${icon('grip')}</span><i class="order-dot"></i><span class="order-name">${name}</span>
+      <i class="order-dot"></i><span class="order-name">${name}</span>
       <button type="button" class="task-btn" data-a="habitup" data-id="${esc(h.id)}" aria-label="${tr('Subir', 'Move up')} ${name}"${i === 0 ? ' disabled' : ''}>${icon('up')}</button>
       <button type="button" class="task-btn" data-a="habitdown" data-id="${esc(h.id)}" aria-label="${tr('Bajar', 'Move down')} ${name}"${i === last ? ' disabled' : ''}>${icon('down')}</button>
     </div>`;
   }).join('');
 }
 export function habitOrderSheet() {
-  openSheet(tr('Ordenar hábitos', 'Reorder habits'), `<p class="muted small" style="margin:-2px 2px 12px">${tr('Arrastra desde ⠿ o usa las flechas.', 'Drag from ⠿ or use the arrows.')}</p>
+  openSheet(tr('Ordenar hábitos', 'Reorder habits'), `<p class="muted small" style="margin:-2px 2px 12px">${tr('Arrastra un hábito o usa las flechas.', 'Drag a habit or use the arrows.')}</p>
     <div class="order-list" id="habitOrder">${habitOrderList()}</div>
     <button type="button" class="btn" data-a="dismiss" style="margin-top:16px">${tr('Listo', 'Done')}</button>`, dlg => {
     // Ventana al centro de la pantalla, con bordes redondeados (como Notas), en vez de hoja desde abajo.

@@ -673,7 +673,7 @@ export function initInteractions(isReady) {
   swipeZones();
   swipeRows();
   sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
-  // Hábitos: solo desde la hoja «Ordenar», arrastrando desde ⠿ (sin espera: la manija es solo para eso).
-  sortable({ handle: '.order-grip', item: '.order-row', key: el => el.dataset.order, delay: 0, onDrop: (a, b) => { if (moveHabit(a, b)) refreshHabitOrder(); } });
+  // Hábitos: solo desde la ventana «Ordenar», arrastrando la fila entera (las flechas no la mueven).
+  sortable({ handle: '.order-row', item: '.order-row', key: el => el.dataset.order, delay: 120, onDrop: (a, b) => { if (moveHabit(a, b)) refreshHabitOrder(); } });
 }
 export { openSettings };
