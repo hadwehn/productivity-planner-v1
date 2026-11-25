@@ -735,8 +735,26 @@ function sheetDrag() {
   document.addEventListener('pointercancel', end);
 }
 
+// Teclado sin fila de sugerencias ni autocorrector (como el de Spotify): decisión de los fundadores.
+// Se marca cada campo de texto apenas aparece, porque el iPhone lee estos atributos al enfocarlo.
+// Quedan fuera el correo y los códigos de acceso, que usan el autocompletado del sistema.
+const TEXT_FIELDS = 'textarea, [contenteditable="true"], input:not([type]), input[type="text"], input[type="search"]';
+function quietKeyboard(root) {
+  const fields = root.matches?.(TEXT_FIELDS) ? [root] : [...(root.querySelectorAll?.(TEXT_FIELDS) || [])];
+  for (const el of fields) {
+    if (el.autocomplete === 'one-time-code' || el.dataset.quiet) continue;
+    el.dataset.quiet = '1';
+    el.setAttribute('autocorrect', 'off');
+    el.setAttribute('spellcheck', 'false');
+    if (el.matches('input')) el.setAttribute('autocomplete', 'off');
+  }
+}
+
 export function initInteractions(isReady) {
   canEdit = isReady;
+  quietKeyboard(document.body);
+  new MutationObserver(list => { for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) quietKeyboard(n); })
+    .observe(document.body, { childList: true, subtree: true });
   watchSheetClose();
   sheetDrag();
   document.addEventListener('click', onClick);
