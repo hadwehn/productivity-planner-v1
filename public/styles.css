@@ -148,10 +148,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px #0000001a; }
 
 /* Frase del día: tarjeta propia, con más presencia. */
-.quote { position: relative; margin: 20px 0 0; padding: 40px 24px 18px; text-align: center; border-radius: var(--r-lg); background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent); overflow: hidden; }
-.quote-mark { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font: 400 110px/1 var(--serif); color: var(--gold); opacity: .18; pointer-events: none; }
+.quote { position: relative; margin: 20px 0 0; padding: 22px 22px 18px 24px; border-radius: var(--r-lg); background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent); overflow: hidden; }
+.quote-mark { position: absolute; top: -18px; right: 14px; font: 400 110px/1 var(--serif); color: var(--gold); opacity: .18; pointer-events: none; }
 .quote blockquote { position: relative; margin: 0; font: italic 400 20px/1.45 var(--serif); color: var(--ink); text-wrap: pretty; }
 .quote figcaption { position: relative; margin-top: 12px; font: 650 calc(11px * var(--ts))/1.5 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.quote figcaption::before { content: "— "; }
 
 /* ===== Tira de días ===== */
 .week-strip { display: flex; align-items: center; gap: 2px; margin: 0 -6px 4px; }
@@ -808,9 +809,9 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .today-cols > .col > :first-child { margin-top: 20px; }
   .today-cols .notices + .section { margin-top: 20px; }
   /* Frase del día a todo el ancho, en una franja baja. */
-  .quote-wide { padding: 16px 24px 14px; }
-  .quote-wide blockquote { font-size: 18px; }
-  .quote-wide figcaption { margin-top: 6px; }
+  .quote-wide { display: flex; align-items: baseline; gap: 18px; padding: 15px 24px; }
+  .quote-wide blockquote { flex: 1; font-size: 18px; }
+  .quote-wide figcaption { margin-top: 0; flex: none; }
   .quote-wide .quote-mark { display: none; }
 
   /* «Tu semana día a día» como lista: cada día muestra sus eventos y tareas. */
