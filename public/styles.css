@@ -933,7 +933,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 /* «Texto más grande» en Ajustes: sube el texto de lectura (los títulos grandes quedan igual). */
 :root[data-text="large"] { --ts: 1.14; }
 
-/* «Elegir cuándo»: debajo de los días, la opción de la semana (sin día). */
+/* «Pasar a otro día»: debajo de los días, esta semana y la próxima (sin día). */
 .when-more { display: grid; gap: 8px; margin-top: 12px; }
 .when-more .icon { width: 18px; height: 18px; }
 .overdue-row { display: grid; gap: 8px; padding: 10px 0; }
