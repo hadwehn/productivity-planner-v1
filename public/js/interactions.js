@@ -297,7 +297,12 @@ function quickAdd(form) {
     if (focusFirst) toast(tr('Tu primera tarea quedó en foco ★', 'Your first task is in focus ★'));
   } else {
     const r = addWeekTask(U.week, form.dataset.list, value);
-    if (r.error) { toast(r.error); return false; }
+    // Foco de la semana lleno: la tarea no se pierde, va a «También esta semana».
+    if (r.full === 'a') {
+      const r2 = addWeekTask(U.week, 'b', value);
+      if (r2.error) { toast(r2.error); return false; }
+      toast(tr('El foco ya tiene cinco: quedó en «También esta semana».', 'Focus already has five: it went to “Also this week”.'));
+    } else if (r.error) { toast(r.error); return false; }
   }
   input.value = '';
   form.dataset.added = String(Date.now());

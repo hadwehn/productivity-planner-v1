@@ -155,10 +155,21 @@ test('renombrar una tarea traída de la semana rompe el vínculo', () => {
 });
 
 // ——— Semana ———
-test('semana: máximo cinco por lista, programar en días y marcar hecho sincroniza', () => {
+test('semana: foco hasta cinco, «También» sin límite práctico; programar y marcar sincroniza', () => {
   load(fixture());
   for (const t of ['B', 'C', 'D', 'E']) addWeekTask(WEEK, 'a', t);
-  ok(addWeekTask(WEEK, 'a', 'F').error, 'sexta');
+  eq(addWeekTask(WEEK, 'a', 'F').full, 'a', 'el foco no acepta una sexta');
+  const before = weekTasks(WEEK, 'b').length;
+  for (let n = 0; n < 12; n++) ok(!addWeekTask(WEEK, 'b', 'Otra ' + n).error, '«También» acepta más de cinco');
+  eq(weekTasks(WEEK, 'b').length, before + 12);
+  const last = weekTasks(WEEK, 'b').at(-1);
+  toggleWeekDay(WEEK, 'b', last.i, NEXT);
+  eq(scheduledDays(`w.${WEEK}.b.${last.i}`), [NEXT], 'una tarea en la posición 12 o más se programa y se valida');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  eq(toggleWeekFocus(WEEK, 'b', last.i).error !== undefined, true, 'no entra al foco lleno');
+  toggleWeekDay(WEEK, 'b', last.i, NEXT);
+  removeWeekTask(WEEK, 'b', last.i);
+  for (let n = 0; n < 11; n++) removeWeekTask(WEEK, 'b', weekTasks(WEEK, 'b').at(-1).i);
   toggleWeekDay(WEEK, 'a', 1, NEXT);
   eq(scheduledDays(`w.${WEEK}.a.1`), [NEXT]);
   eq(texts(NEXT).focus, ['B'], 'el foco semanal entra al foco del día');
@@ -423,13 +434,11 @@ test('un día → la semana (sin día)', () => {
   eq(weekTasks(thisWeek, 'a').map(x => x.row.t), ['Foco']);
   restore(r1.undo);
   eq(dayTasks(T).rest.map(x => x.row.t), ['Resto'], 'deshacer');
-  // Lista llena: usa la otra; ambas llenas: avisa.
-  S.w = {};
-  for (let n = 0; n < 5; n++) addWeekTask(thisWeek, 'b', 'b' + n);
-  eq(taskToWeek(T, keyOfText(T, 'Resto'), T).list, 'a', 'si «También» está llena, va al foco');
-  for (let n = 1; n < 5; n++) addWeekTask(thisWeek, 'a', 'a' + n);
-  addTask(T, 'Otra');
-  ok(taskToWeek(T, keyOfText(T, 'Otra'), T).error, 'ambas llenas: error');
+  // Foco de la semana lleno: una tarea del foco del día va a «También esta semana».
+  S.w = {}; S.d = {};
+  for (let n = 0; n < 5; n++) addWeekTask(thisWeek, 'a', 'a' + n);
+  addTask(T, 'Del foco', { focus: true });
+  eq(taskToWeek(T, keyOfText(T, 'Del foco'), T).list, 'b', 'foco lleno: va a «También»');
   // Copia de una tarea de esa misma semana: solo se quita del día y la semanal queda pendiente.
   S.w = {}; S.d = {};
   addWeekTask(thisWeek, 'b', 'Gimnasio');

@@ -60,7 +60,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 ### Datos (`state.js`)
 
 Un solo objeto JSON por usuario: `h` hábitos · `hl` registros de hábitos · `m` meses · `ev` eventos ·
-`w` semanas (`a` foco de la semana, `b` otras; máx. 5 cada una) · `d` días (`k` tareas: claves 0, 501,
+`w` semanas (`a` foco de la semana, máx. 5; `b` «También esta semana», sin límite práctico: 100) · `d` días (`k` tareas: claves 0, 501,
 502 = foco; 1…500 = resto; `i` intención, `g` gratitud, `r` reflexión, `mood`, `n`/`nRich` notas,
 `closed`) · `w.started`/`w.closed` intención y revisión de la semana terminadas · `nd` antigua lista «Algún día», retirada (se acepta y se pasa a hoy al abrir) · `cfg` preferencias. Cualquier campo nuevo debe validarse en
 `checkedState` y tener prueba. Las preferencias de la cuenta van en `cfg`; lo que es solo del
@@ -178,6 +178,11 @@ dispositivo, en `localStorage`.
   se volvía un cajón de olvido. Lo que no es de esta semana, se suelta o se anota cuando toque.
 
 **Tareas semanales**
+- Límites: la semana es espejo del día. El foco prioriza y tiene tope (día 3, semana 5); el resto no
+  (día y «También esta semana» sin límite práctico). Se discutió quitar el tope del foco semanal
+  («3 por día × 7 = 21») y se descartó: el foco de la semana es un nivel más arriba que el del día
+  y sin tope deja de ser foco. Con el foco lleno, su campo se cambia por «Foco completo. Lo demás
+  va en «También esta semana»», y lo que llegue igual va a «También» con un aviso (`WEEK_MAX`).
 - Una tarea semanal programada en varios días crea una copia independiente por día: marcar un día
   no marca los demás; la semanal queda hecha cuando todas lo están (o al marcarla en Plan, que
   marca todas). Un día nunca tiene dos copias de la misma tarea semanal: al pasarla a un día que ya

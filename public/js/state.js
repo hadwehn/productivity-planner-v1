@@ -122,7 +122,7 @@ export function checkedState(raw) {
       if (t.goal !== undefined && t.goal !== true) fail('Objetivo semanal incorrecto.');
       if (t.carriedFrom !== undefined && (typeof t.carriedFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}:(?:0|[1-9]\d{0,2})$/.test(t.carriedFrom))) fail('Origen del traslado incorrecto.');
       if (t.source !== undefined) {
-        if (typeof t.source !== 'string' || !/^w\.\d{4}-\d{2}-\d{2}\.[ab]\.[0-4]$/.test(t.source)) fail('Origen de tarea incorrecto.');
+        if (typeof t.source !== 'string' || !/^w\.\d{4}-\d{2}-\d{2}\.(?:a\.[0-4]|b\.(?:0|[1-9]\d?))$/.test(t.source)) fail('Origen de tarea incorrecto.');
         date(t.source.split('.')[1]);
       }
     }
@@ -157,7 +157,7 @@ export function checkedState(raw) {
     }
   }
   for (const [k, v] of Object.entries(o.m)) { if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) fail('Mes incorrecto.'); texts(v.p, 'prioridades'); texts(v.h, 'highlights'); }
-  for (const [k, v] of Object.entries(o.w)) { date(k); text(v.i, 'intención semanal'); texts(v.r, 'revisión'); tasks(v.a, k, 4); tasks(v.b, k, 4); if (v.closed !== undefined && v.closed !== true) fail('Cierre de la revisión incorrecto.'); if (v.started !== undefined && v.started !== true) fail('Intención de la semana incorrecta.'); }
+  for (const [k, v] of Object.entries(o.w)) { date(k); text(v.i, 'intención semanal'); texts(v.r, 'revisión'); tasks(v.a, k, 4); tasks(v.b, k, 99); if (v.closed !== undefined && v.closed !== true) fail('Cierre de la revisión incorrecto.'); if (v.started !== undefined && v.started !== true) fail('Intención de la semana incorrecta.'); }
   for (const [k, v] of Object.entries(o.d)) {
     date(k);
     for (const f of ['n', 'nRich', 'g', 'g2', 'g3', 'i', 'p', 'r', 'hl', 'learn', 'remember']) text(v[f], f);

@@ -1,7 +1,7 @@
 // «Semana»: dirección (intención y foco), reparto en los días y revisión. Incluye la vista «Mes».
 import { S, get } from '../state.js';
 import { U } from '../ui.js';
-import { dayTasks, weekTasks } from '../tasks.js';
+import { WEEK_MAX, dayTasks, weekTasks } from '../tasks.js';
 import { categoryColor } from '../categories.js';
 import { weekHabitRate } from '../habits.js';
 import { weekQuestions } from '../prefs.js';
@@ -51,12 +51,12 @@ function weekList(week, list, title, hint) {
       ${swipe}
     </div>${row.goal ? goal : `<div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div>`}</div>`;
   }).join('');
-  const full = items.length >= 5;
+  const full = items.length >= WEEK_MAX[list];
   const placeholder = list === 'a' ? tr('Añadir al foco de la semana', 'Add to this week’s focus') : tr('Añadir otra tarea', 'Add another task');
   const empty = hint;
-  return `<section class="section">${sectionHead(title, `<span class="muted small">${items.length}/5</span>`, list === 'a' ? 'gold' : '')}
+  return `<section class="section">${sectionHead(title, list === 'a' ? `<span class="muted small">${items.length}/5</span>` : items.length ? `<span class="muted small">${items.length}</span>` : '', list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${empty}</p>`}
-      ${full ? '' : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
+      ${full ? (list === 'a' ? `<p class="empty-note" style="padding:8px 8px 4px">${tr('Foco completo. Lo demás va en «También esta semana».', 'Focus is full. Everything else goes in “Also this week”.')}</p>` : '') : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div></section>`;
 }
 

@@ -2,7 +2,8 @@
 //
 // Formato guardado (compatible con la versión anterior):
 //   d[fecha].k: claves 0, 501, 502 = tareas en foco (máx. 3); 1…500 = el resto, en orden.
-//   w[lunes].a / .b: índices 0…4 = foco de la semana / otras tareas de la semana.
+//   w[lunes].a: foco de la semana, índices 0…4 (máx. 5). w[lunes].b: «También esta semana», sin límite
+//   práctico (índices 0…99), igual que el resto de las tareas del día.
 //   Una tarea del día traída de la semana guarda source = 'w.LUNES.a|b.i'. Cada día es una copia
 //   independiente: marcarla hecha no marca las de otros días. La tarea semanal queda hecha cuando
 //   todas sus copias lo están (o al marcarla en Plan, que marca todas). Un día no tiene dos copias
@@ -21,7 +22,10 @@ import { tr } from './i18n.js';
 export const FOCUS_KEYS = [0, 501, 502];
 export const MAX_FOCUS = 3;
 export const MAX_OTHER = 500;
-export const WEEK_SLOTS = 5;
+export const WEEK_SLOTS = 5; // foco de la semana
+/** Máximo por lista: el foco de la semana prioriza (5); «También esta semana» no tiene límite práctico. */
+export const WEEK_MAX = { a: WEEK_SLOTS, b: 100 };
+const slots = list => WEEK_MAX[list] ?? WEEK_SLOTS;
 
 export const isFocusKey = key => FOCUS_KEYS.includes(+key);
 const text = row => String(row?.t ?? '').trim();
@@ -233,7 +237,7 @@ const weekList = (week, list) => S.w[week]?.[list] || {};
 /** Tareas de la semana con sus días programados. */
 export function weekTasks(week, list) {
   const rows = weekList(week, list);
-  return [...Array(WEEK_SLOTS).keys()].filter(i => text(rows[i])).map(i => { const path = weekPath(week, list, i); return { i, row: rows[i], path, days: scheduledDays(path), done: doneDays(path) }; });
+  return [...Array(slots(list)).keys()].filter(i => text(rows[i])).map(i => { const path = weekPath(week, list, i); return { i, row: rows[i], path, days: scheduledDays(path), done: doneDays(path) }; });
 }
 
 /** Días (fechas) en los que hay una copia vinculada de la tarea semanal. */
@@ -246,7 +250,7 @@ export function scheduledDays(path) {
 function writeWeek(week, list, rows) {
   const w = S.w[week] = S.w[week] || {};
   const out = {};
-  rows.slice(0, WEEK_SLOTS).forEach((row, i) => { out[i] = row; });
+  rows.slice(0, slots(list)).forEach((row, i) => { out[i] = row; });
   w[list] = out;
 }
 /** Renombra los vínculos de los días cuando una tarea semanal cambia de lugar. */
@@ -258,7 +262,7 @@ function relink(from, to) {
 /** Reordena una lista semanal quitando huecos y actualizando vínculos. */
 function rewriteWeek(week, list, rows) {
   const before = new Map();
-  [...Array(WEEK_SLOTS).keys()].forEach(i => { const r = weekList(week, list)[i]; if (r) before.set(r, weekPath(week, list, i)); });
+  [...Array(slots(list)).keys()].forEach(i => { const r = weekList(week, list)[i]; if (r) before.set(r, weekPath(week, list, i)); });
   // Primero se marcan con una ruta temporal para evitar choques al intercambiar posiciones.
   const temp = new Map();
   rows.forEach((row, i) => { const old = before.get(row); if (old) { const t = `tmp.${week}.${list}.${i}`; relink(old, t); temp.set(t, weekPath(week, list, i)); } });
@@ -271,7 +275,7 @@ export function addWeekTask(week, list, value) {
   const t = String(value || '').trim();
   if (!t) return { error: tr('Escribe una tarea.', 'Write a task.') };
   const rows = weekTasks(week, list).map(x => x.row);
-  if (rows.length >= WEEK_SLOTS) return { error: list === 'a' ? tr('El foco de la semana tiene cinco tareas. Menos es más.', 'Your weekly focus already has five tasks. Less is more.') : tr('Ya tienes cinco tareas más esta semana.', 'You already have five more tasks this week.') };
+  if (rows.length >= slots(list)) return { error: list === 'a' ? tr('El foco de la semana tiene cinco tareas. Menos es más.', 'Your weekly focus already has five tasks. Less is more.') : tr('Ya tienes demasiadas tareas esta semana.', 'You have too many tasks this week.'), full: list };
   rows.push({ t, c: false });
   rewriteWeek(week, list, rows);
   save();
@@ -328,7 +332,7 @@ export function toggleWeekFocus(week, list, i) {
   const row = weekList(week, list)[i], other = list === 'a' ? 'b' : 'a';
   if (!row) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
   const dest = weekTasks(week, other).map(x => x.row);
-  if (dest.length >= WEEK_SLOTS) return { error: tr('Esa lista ya tiene cinco tareas.', 'That list already has five tasks.') };
+  if (dest.length >= slots(other)) return { error: other === 'a' ? tr('El foco de la semana ya tiene cinco tareas. Quita una primero.', 'Your weekly focus already has five tasks. Remove one first.') : tr('Esa lista está llena.', 'That list is full.') };
   // Los días vinculados se marcan con una ruta temporal y luego reciben la ruta nueva.
   const moving = `tmp.${week}.move`;
   relink(weekPath(week, list, i), moving);
@@ -397,7 +401,7 @@ export function moveWeekTaskToNext(week, list, i, next = shiftDate(week, 7)) {
   const row = weekList(week, list)[i];
   if (!row || !text(row)) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
   if (next === week) return { error: tr('La tarea ya está en esa semana.', 'The task is already in that week.') };
-  if (weekTasks(next, list).length >= WEEK_SLOTS) return { error: next !== shiftDate(week, 7) ? tr('Esa semana ya tiene cinco tareas en esa lista.', 'That week already has five tasks in that list.') : list === 'a' ? tr('El foco de la próxima semana ya tiene cinco tareas.', 'Next week’s focus already has five tasks.') : tr('La próxima semana ya tiene cinco tareas en esa lista.', 'Next week already has five tasks in that list.') };
+  if (weekTasks(next, list).length >= slots(list)) return { error: next !== shiftDate(week, 7) ? tr('Esa semana ya tiene cinco tareas en esa lista.', 'That week already has five tasks in that list.') : list === 'a' ? tr('El foco de la próxima semana ya tiene cinco tareas.', 'Next week’s focus already has five tasks.') : tr('La próxima semana ya tiene cinco tareas en esa lista.', 'Next week already has five tasks in that list.') };
   removePendingCopies(weekPath(week, list, i));
   removeWeekTask(week, list, i);
   const added = addWeekTask(next, list, row.t);
@@ -429,8 +433,8 @@ export function setWeekGoal(week, list, i, on) {
 /** Semana a la que «sube» una tarea de `date`: la suya, salvo que ya pasó (entonces, la actual). */
 export const weekForDay = (date, T) => { const own = weekKey(date), now = weekKey(T); return own < now ? now : own; };
 /** Lista semanal con espacio, empezando por la preferida (a = foco de la semana, b = también esta semana). */
-const roomIn = (week, first) => [first, first === 'a' ? 'b' : 'a'].find(l => weekTasks(week, l).length < WEEK_SLOTS);
-const fullWeek = () => tr('Esa semana ya tiene cinco tareas en cada lista. Quita alguna primero.', 'That week already has five tasks in each list. Remove one first.');
+const roomIn = (week, first) => [first, first === 'a' ? 'b' : 'a'].find(l => weekTasks(week, l).length < slots(l));
+const fullWeek = () => tr('Esa semana ya no tiene espacio. Quita alguna tarea primero.', 'That week has no room left. Remove a task first.');
 
 /**
  * Pasa una tarea del día a la semana, sin día. Las del foco del día van al foco de la semana (si
