@@ -180,9 +180,11 @@ function monthView() {
       return `<div class="month-empty"><span class="muted">${hint}</span><button class="btn small" data-a="monthfill" data-k="${key}">${icon('edit')}${tr('Completar', 'Fill in')}</button></div>`;
     }
     const fields = [0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('');
-    const foot = done && editing ? `<button class="btn small" data-a="monthsave" data-k="${key}">${icon('check')}${tr('Guardar', 'Save')}</button>`
-      : `<button class="btn small" data-a="monthdone" data-k="${key}">${icon('check')}${tr('Listo', 'Done')}</button>`;
-    return `<div class="numbered">${fields}</div><div class="month-foot">${foot}</div>`;
+    const foot = done && editing ? `<button class="btn ritual-finish" data-a="monthsave" data-k="${key}">${icon('check')}${tr('Guardar', 'Save')}</button>`
+      : `<button class="btn ritual-finish" data-a="monthdone" data-k="${key}">${icon('check')}${tr('Listo', 'Done')}</button>`;
+    // Abierto con «Completar» o «Editar»: la ✕ sale sin guardar (vuelve a como estaba).
+    const cancel = editing ? `<button type="button" class="icon-btn month-cancel" data-a="monthcancel" data-k="${key}" aria-label="${tr('Salir sin guardar', 'Leave without saving')}" title="${tr('Salir sin guardar', 'Leave without saving')}">${icon('close')}</button>` : '';
+    return `<div class="numbered">${fields}</div><div class="month-foot">${cancel}${foot}</div>`;
   };
   return `<div class="cols"><div class="col">
     <div class="card cal-card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>

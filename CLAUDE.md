@@ -230,8 +230,11 @@ dispositivo, en `localStorage`.
   «Foco del mes» y «Lo mejor del mes» muestran sus tres campos de una vez, con el mismo estilo que
   los campos de la intención y la revisión de la semana (fondo hundido, bordes redondeados, letra normal).
   Vacíos, muestran solo una línea y «Completar», que abre los tres campos. Como ellas, se cierran
-  con «Listo» (botón chico a la derecha; pide algo escrito) y quedan para leer con «✓ Definiste el foco
-  del mes · Editar»; «Editar» los abre con «Guardar» (`m[mes].closed = { p, h }`, `finishMonth`).
+  con «Listo» (pide algo escrito) y quedan para leer con «✓ Definiste el foco del mes · Editar»;
+  «Editar» los abre con «Guardar» (`m[mes].closed = { p, h }`, `finishMonth`). «Listo»/«Guardar» es el
+  mismo botón ancho de Empieza/Cierra tu día y de la semana (se probó uno chico y no era uniforme).
+  Abiertos con «Completar» o «Editar», una ✕ a la izquierda sale sin guardar y deja todo como estaba
+  (`U.monthSnap`, `monthcancel`): sin ella, quien abría solo para mirar no podía salir.
 - Calendario del mes: arriba, dentro de la tarjeta, el mes en mayúsculas grande y centrado («NOVIEMBRE
   2026»); se desliza con el mes. Los días con eventos llevan puntos de 6 px (uno por evento, hasta 3, del color
   de su área); el número va normal (se probó en negrita y se descartó: bastan los puntos). Se probó teñir el día, franjas para eventos de varios días y

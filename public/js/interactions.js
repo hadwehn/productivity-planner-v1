@@ -67,6 +67,13 @@ const revealLater = (sel, focus = false) => setTimeout(() => {
   if (focus) el.querySelector('textarea, input')?.focus({ preventScroll: true });
 }, 60);
 
+/** Abre Foco (p) o Lo mejor (h) del mes para escribir, guardando cómo estaba por si se sale sin guardar. */
+function openMonth(key) {
+  const ym = U.month, value = S.m[ym]?.[key];
+  U.editing = `month-${key}:${ym}`;
+  U.monthSnap = { id: `${key}:${ym}`, value: value === undefined ? null : structuredClone(value) };
+}
+
 const ACTIONS = {
   dismiss: (d, b) => b.closest('dialog')?.close(),
   undo: () => runUndo(),
@@ -223,15 +230,28 @@ const ACTIONS = {
     if (!hasMonthText(ym, key)) { toast(key === 'p' ? tr('Escribe al menos una prioridad del mes.', 'Write at least one priority for the month.') : tr('Escribe al menos una cosa que valió la pena.', 'Write at least one thing that was worth it.')); return; }
     document.activeElement?.blur?.();
     const undo = finishMonth(ym, key);
-    U.editing = null;
+    U.editing = null; U.monthSnap = null;
     render();
     toastUndo(key === 'p' ? tr('Foco del mes listo.', 'Month focus set.') : tr('Lo mejor del mes, guardado.', 'Best of the month saved.'), () => { undo(); render(); });
   },
-  monthedit: d => { U.editing = `month-${d.k}:${U.month}`; render(); },
-  monthfill: d => { U.editing = `month-${d.k}:${U.month}`; render(); $(`[data-p="m.${U.month}.${d.k}.0"]`)?.focus(); },
+  // «Completar» y «Editar» guardan cómo estaba, para que la ✕ salga sin guardar (ver monthcancel).
+  monthedit: d => { openMonth(d.k); render(); },
+  monthfill: d => { openMonth(d.k); render(); $(`[data-p="m.${U.month}.${d.k}.0"]`)?.focus(); },
+  monthcancel: d => {
+    const ym = U.month, key = d.k;
+    document.activeElement?.blur?.(); // primero se suelta el campo (guarda), después se vuelve atrás
+    const snap = U.monthSnap?.id === `${key}:${ym}` ? U.monthSnap.value : undefined;
+    if (snap !== undefined) {
+      const m = S.m[ym] = S.m[ym] || {};
+      if (snap === null) delete m[key]; else m[key] = snap;
+      save();
+    }
+    U.editing = null; U.monthSnap = null;
+    render();
+  },
   monthsave: d => {
     document.activeElement?.blur?.();
-    U.editing = null;
+    U.editing = null; U.monthSnap = null;
     if (!hasMonthText(U.month, d.k)) reopenMonth(U.month, d.k); // si se borró todo, deja de estar listo
     render();
     toast(tr('Guardado', 'Saved'));

@@ -15,6 +15,7 @@ export const U = {
   // «Editar» un ritual ya terminado es solo un modo de la pantalla: el día (o la semana) sigue
   // cerrado. Guarda 'm:FECHA', 'e:FECHA', 'intent:LUNES' o 'review:LUNES'; se olvida al cambiar de periodo.
   editing: null,
+  monthSnap: null,       // cómo estaba el foco/lo mejor del mes al abrirlo (para salir sin guardar)
   // Periodo al que corresponden las tarjetas abiertas de cada sección: al pasar a otro día o semana,
   // se pliegan y la página se ve como siempre (ver render).
   foldsFor: {},

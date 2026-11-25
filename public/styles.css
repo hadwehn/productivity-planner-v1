@@ -438,9 +438,13 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .numbered .line:has(.ritual-read) span { padding-top: 4px; }
 /* Foco y Lo mejor del mes: vacíos, una línea con «Completar»; botones chicos a la derecha. */
 .month-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: calc(14px * var(--ts)); }
-.month-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
-.month-empty .btn.small, .month-foot .btn.small { flex: none; gap: 6px; border-radius: 999px; padding-inline: 16px; }
-.month-empty .icon, .month-foot .icon { width: 16px; height: 16px; }
+.month-foot { display: flex; align-items: stretch; gap: 8px; margin-top: 12px; }
+/* «Listo»/«Guardar» igual que en Empieza/Cierra tu día y la semana (botón ancho); la ✕ al lado sale sin guardar. */
+.month-foot .ritual-finish { flex: 1; margin-top: 0; }
+.month-cancel { width: 48px; height: auto; min-height: 48px; flex: none; border-radius: 14px; background: var(--sunken); color: var(--ink); }
+.month-cancel .icon { width: 18px; height: 18px; }
+.month-empty .btn.small { flex: none; gap: 6px; border-radius: 999px; padding-inline: 16px; }
+.month-empty .icon { width: 16px; height: 16px; }
 
 /* ===== Diario ===== */
 .mood-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px 6px; justify-items: center; }
