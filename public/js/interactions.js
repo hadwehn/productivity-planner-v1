@@ -8,7 +8,7 @@ import {
 import { toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, clearNotesNow, habitOrderSheet, saveHabitOrder, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
-  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek,
+  habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek, doRepeatTask,
   weekAction, weekMenu,
 } from './sheets.js';
 import { appearancePicker, carryOverSheet, doCarryOver, openSheet, undoDayClose } from './sheets.js';
@@ -150,7 +150,8 @@ const ACTIONS = {
   taskmenu: d => taskMenu(U.date, +d.k),
   taskpick: d => taskPick(U.date, +d.k),
   taskmove: d => doMoveTask(U.date, +d.k, d.fromInput ? $('#pickDate')?.value : d.date),
-  taskweek: d => doTaskToWeek(U.date, +d.k),
+  taskweek: d => doTaskToWeek(U.date, +d.k, d.w),
+  taskrepeat: d => doRepeatTask(U.date, +d.k, d.date),
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.

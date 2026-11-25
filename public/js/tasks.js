@@ -160,6 +160,22 @@ export function restore(snap) {
   save();
 }
 
+/**
+ * «Repetir mañana»: copia una tarea (normalmente ya hecha) a otro día, pendiente. Si era del foco,
+ * entra al foco de ese día si hay espacio; si el foco está lleno, va al resto (no se pierde).
+ * La copia queda suelta: no se vincula a la semana. Devuelve { undo, key, focus } o { error }.
+ */
+export function repeatTask(date, key, target) {
+  const row = getTask(date, key);
+  if (!row || !text(row)) return { error: tr('La tarea ya no existe.', 'This task no longer exists.') };
+  const undo = snapshot([target]), dest = rowsOf(target), copy = { t: text(row), c: false };
+  const focus = isFocusKey(key) && dest.focus.length < MAX_FOCUS;
+  if (focus) dest.focus.push(copy); else dest.rest.push(copy);
+  writeDay(target, dest.focus, dest.rest);
+  save();
+  return { undo, key: keyOf(target, copy), focus, wasFocus: isFocusKey(key) };
+}
+
 /** Mueve una tarea pendiente a otro día (conserva foco si hay espacio). Devuelve { undo } o { error }. */
 export function moveTask(date, key, target) {
   const row = getTask(date, key);
@@ -452,10 +468,10 @@ const fullWeek = () => tr('Esa semana ya no tiene espacio. Quita alguna tarea pr
  * hay espacio). Si era la copia de una tarea de esa misma semana, solo se quita del día: ya está
  * en la semana. Devuelve { undo, week, list, unscheduled? } o { error }.
  */
-export function taskToWeek(date, key, T) {
+export function taskToWeek(date, key, T, week = weekForDay(date, T)) {
   const row = getTask(date, key);
   if (!row || !text(row)) return { error: tr('Escribe una tarea antes de moverla.', 'Write a task before moving it.') };
-  const week = weekForDay(date, T), undo = snapshot([date]);
+  const undo = snapshot([date]);
   if (row.source && row.source.split('.')[1] === week && weeklyOf(row.source)) {
     // Ese trabajo sigue pendiente en la semana, sin día: la semanal no se da por hecha sola
     // (se vuelve a completar sola al programarla otra vez en un día).

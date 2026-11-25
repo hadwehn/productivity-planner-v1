@@ -161,11 +161,17 @@ dispositivo, en `localStorage`.
   «Hoy». Los datos antiguos (`cfg.today.tomorrow`, `cfg.planHour`) se siguen aceptando.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
-  siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días y «Esta semana ·
-  sin día». Sin «Poner en foco»: para eso está la estrella.
+  siguiente» con la fecha debajo. «Elegir cuándo» abre la hoja «¿Cuándo?»: días, «Esta semana (sin día)» y
+  «Próxima semana (sin día)» (siempre relativas a hoy). Sin «Poner en foco»: para eso está la
+  estrella. Pendiente de decidir: renombrar «Elegir cuándo» a «Pasar a otro día» (más claro).
+- Foco vacío: «Marca con ★ hasta tres tareas prioritarias: las que más importa sacar adelante hoy»
+  (antes «…que harían de este un buen día»: el foco es prioridad, no bienestar).
 - Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca) ni cambia de
-  foco: si era del foco conserva la estrella, quieta; si no, no tiene estrella. El menú ⋯ ofrece solo «Eliminar»
-  (se probó «Repetir mañana» y se descartó por inútil). En Plan, igual: una tarea semanal hecha no
+  foco: si era del foco conserva la estrella, quieta; si no, no tiene estrella. El menú ⋯ ofrece
+  «Repetir mañana» (u «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar».
+  Repetir crea una copia pendiente y suelta (sin vínculo a la semana); si era del foco entra al foco
+  de ese día, y si ya tiene tres, al resto con aviso (`repeatTask`). Se había descartado y los
+  fundadores lo pidieron de vuelta. En Plan, igual: una tarea semanal hecha no
   se renombra ni se lleva a días (las letras quedan solo para ver cuándo se hizo) y su menú ofrece
   solo «Eliminar».
 - Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de

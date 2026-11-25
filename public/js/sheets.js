@@ -4,7 +4,7 @@ import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
-  deleteWeekTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
+  deleteWeekTask, repeatTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -247,9 +247,13 @@ export function taskMenu(date, key) {
       ? `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}${tr('Pasar a mañana', 'Move to tomorrow')}</button>`
       // En un día futuro, «mañana» no es el día siguiente: se dice así y se muestra la fecha.
       : `<button data-a="taskmove" data-k="${key}" data-date="${tomorrow}">${icon('tomorrow')}<span class="menu-text">${tr('Pasar al día siguiente', 'Move to the next day')}<small>${shortDay(tomorrow)}</small></span></button>`;
-  // Hecha: solo eliminarla (queda como registro: ni nombre ni foco cambian).
+  // Hecha: queda como registro (ni nombre ni foco cambian). Se puede repetir otro día o eliminar.
   if (row.c) {
+    const again = date < T ? T : tomorrow;
+    const repeat = again === shiftDate(T, 1) ? tr('Repetir mañana', 'Repeat tomorrow') : again === T ? tr('Repetir hoy', 'Repeat today')
+      : `<span class="menu-text">${tr('Repetir el día siguiente', 'Repeat the next day')}<small>${shortDay(again)}</small></span>`;
     openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="taskrepeat" data-k="${key}" data-date="${again}">${icon('tomorrow')}${repeat}</button>
       <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
     </div>`);
     return;
@@ -260,26 +264,39 @@ export function taskMenu(date, key) {
     <button class="danger" data-a="taskdelete" data-k="${key}">${icon('trash')}${tr('Eliminar', 'Delete')}</button>
   </div>${row.source ? `<p class="muted small" style="margin:14px 2px 0">${tr('Viene de tu semana: al marcarla como hecha también se marca allí, y si le cambias el nombre, cambia en tu semana y en los demás días.', 'This comes from your week: marking it done also marks it there, and renaming it renames it in your week and on the other days.')}</p>` : ''}`);
 }
-/** «Elegir cuándo»: un día o la semana, sin día. */
+/** «Elegir cuándo»: un día, esta semana o la próxima (sin día). */
 export function taskPick(date, key) {
   const row = getTask(date, key);
   if (!row) return;
-  const T = today(), week = weekForDay(date, T);
-  const weekLabel = week === weekKey(T) ? tr('Esta semana · sin día', 'This week · no day')
-    : tr(`Semana del ${dayMonth(parseDate(week))} · sin día`, `Week of ${dayMonth(parseDate(week))} · no day`);
+  const thisWeek = weekKey(today()), nextWeek = shiftDate(thisWeek, 7);
   openSheet(tr('¿Cuándo?', 'When?'), datePicker('taskmove', `data-k="${key}"`, date)
     + `<div class="when-more">
-      <button class="btn quiet" data-a="taskweek" data-k="${key}">${icon('week')}${weekLabel}</button>
+      <button class="btn quiet" data-a="taskweek" data-k="${key}" data-w="${thisWeek}">${icon('week')}${tr('Esta semana (sin día)', 'This week (no day)')}</button>
+      <button class="btn quiet" data-a="taskweek" data-k="${key}" data-w="${nextWeek}">${icon('week')}${tr('Próxima semana (sin día)', 'Next week (no day)')}</button>
     </div>`);
 }
-export function doTaskToWeek(date, key) {
-  const result = taskToWeek(date, key, today());
+/** «Repetir mañana» de una tarea hecha: una copia pendiente en ese día. */
+export function doRepeatTask(date, key, target) {
+  const result = repeatTask(date, key, target);
   closeSheet();
   if (result.error) { toast(result.error); return; }
   render();
+  const pd = parseDate(target), when = target === today() ? tr('hoy', 'today') : target === shiftDate(today(), 1) ? tr('mañana', 'tomorrow')
+    : tr(`el ${DAYS[weekday(pd)].toLowerCase()} ${pd.getDate()}`, `${DAYS[weekday(pd)]} ${pd.getDate()}`);
+  const msg = result.wasFocus && !result.focus ? tr(`Se repite ${when}, fuera del foco (ya tenía tres)`, `Repeats ${when}, outside focus (it already had three)`)
+    : tr(`Se repite ${when}`, `Repeats ${when}`);
+  toastUndo(msg, () => { restore(result.undo); render(); });
+}
+export function doTaskToWeek(date, key, week) {
+  const result = taskToWeek(date, key, today(), week || undefined);
+  closeSheet();
+  if (result.error) { toast(result.error); return; }
+  render();
+  const next = result.week > weekKey(today());
   const msg = result.unscheduled ? tr('Se quitó de este día · sigue en tu semana', 'Removed from this day · still in your week')
-    : result.list === 'a' ? tr('Pasó al foco de la semana · está en Plan', 'Moved to this week’s focus · it’s in Plan')
-      : tr('Pasó a la semana · está en Plan', 'Moved to the week · it’s in Plan');
+    : next ? (result.list === 'a' ? tr('Pasó al foco de la próxima semana · está en Plan', 'Moved to next week’s focus · it’s in Plan') : tr('Pasó a la próxima semana · está en Plan', 'Moved to next week · it’s in Plan'))
+      : result.list === 'a' ? tr('Pasó al foco de la semana · está en Plan', 'Moved to this week’s focus · it’s in Plan')
+        : tr('Pasó a la semana · está en Plan', 'Moved to the week · it’s in Plan');
   toastUndo(msg, () => { restore(result.undo); render(); });
 }
 export function doMoveTask(date, key, target) {

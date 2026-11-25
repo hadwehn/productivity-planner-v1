@@ -4,7 +4,7 @@ import { migrate } from '../public/js/migrate.js';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, deleteWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay,
+  movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay, repeatTask,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate } from '../public/js/habits.js';
 import { monthReminder, reviewReminder } from '../public/js/rituals.js';
@@ -482,6 +482,33 @@ test('días pasados: se pueden añadir, renombrar y borrar tareas', () => {
   eq(dayTasks(past).rest.map(x => [x.row.t, x.row.c]), [['La anoté después', true]]);
   removeTask(past, k);
   eq(dayTasks(past).rest.length, 0);
+});
+
+test('repetir mañana: copia pendiente, al foco si cabe; con el foco lleno, al resto', () => {
+  load(fixture());
+  S.d = {}; S.w = {};
+  const T = today(), M = shiftDate(T, 1);
+  addTask(T, 'Leer 20 páginas', { focus: true });
+  addTask(T, 'Regar plantas');
+  setDone(T, 0, true);
+  const r = repeatTask(T, 0, M);
+  eq([r.focus, dayTasks(M).focus.map(x => [x.row.t, x.row.c])], [true, [['Leer 20 páginas', false]]], 'del foco al foco, pendiente');
+  eq(dayTasks(T).focus[0].row.c, true, 'la original sigue hecha');
+  restore(r.undo);
+  eq(S.d[M], undefined, 'deshacer');
+  for (const t of ['A', 'B', 'C']) addTask(M, t, { focus: true });
+  const r2 = repeatTask(T, 0, M);
+  eq([r2.focus, r2.wasFocus, dayTasks(M).rest.map(x => x.row.t)], [false, true, ['Leer 20 páginas']], 'foco lleno: va al resto');
+  repeatTask(T, keyOfText(T, 'Regar plantas'), M);
+  eq(dayTasks(M).rest.map(x => x.row.t), ['Leer 20 páginas', 'Regar plantas'], 'una sin foco va al resto');
+});
+test('«¿Cuándo?»: esta semana o la próxima, sin día', () => {
+  load(fixture());
+  S.d = {}; S.w = {};
+  const T = today(), thisWeek = weekForDay(T, T), next = shiftDate(thisWeek, 7);
+  addTask(T, 'Ordenar bodega');
+  eq(taskToWeek(T, 1, T, next).week, next);
+  eq([weekTasks(next, 'b').map(x => x.row.t), weekTasks(thisWeek, 'b').length, dayTasks(T).rest.length], [['Ordenar bodega'], 0, 0]);
 });
 
 // ——— Hábitos ———
