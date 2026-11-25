@@ -9,7 +9,7 @@ import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { intentState, isPastWeek, reviewState } from '../rituals.js';
+import { hasMonthText, intentState, isPastWeek, monthDone, reviewState } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
@@ -165,7 +165,20 @@ function monthView() {
   const panels = [-1, 0, 1].map(o => calGrid(shiftMonth(m, o), T, o !== 0)).join('');
   const sel = U.calDay, sd = parseDate(sel);
   const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
-  const three = key => `<div class="numbered">${[0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('')}</div>`;
+  // Foco y Lo mejor del mes: se escriben y «Listo» los deja para leer (como la intención de la
+  // semana); «Editar» los reabre con «Guardar».
+  const three = key => {
+    const done = monthDone(m, key), editing = U.editing === `month-${key}:${m}`;
+    if (done && !editing) {
+      const lines = [0, 1, 2].map(i => String(get(`m.${m}.${key}.${i}`)).trim()).map((t, i) => t ? `<div class="line"><span>${i + 1}</span><p class="ritual-read">${esc(t)}</p></div>` : '').join('');
+      const note = key === 'p' ? tr('Definiste el foco del mes.', 'You set the month’s focus.') : tr('Guardaste lo mejor del mes.', 'You saved the best of the month.');
+      return `<div class="numbered">${lines}</div><p class="ritual-note">${icon('check')}${note}<button class="link" data-a="monthedit" data-k="${key}">${tr('Editar', 'Edit')}</button></p>`;
+    }
+    const fields = [0, 1, 2].map(i => `<div class="line"><span>${i + 1}</span>${field(`m.${m}.${key}.${i}`, i === 0 ? (key === 'p' ? tr('Lo más importante este mes', 'The most important thing this month') : tr('Algo que valió la pena', 'Something that was worth it')) : '')}</div>`).join('');
+    const foot = editing ? `<button class="btn ritual-finish" data-a="monthsave" data-k="${key}">${icon('check')}${tr('Guardar', 'Save')}</button>`
+      : `<button class="btn ritual-finish" data-a="monthdone" data-k="${key}">${icon('check')}${tr('Listo', 'Done')}</button>`;
+    return `<div class="numbered">${fields}</div>${foot}`;
+  };
   return `<div class="cols"><div class="col">
     <div class="card cal-card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>
     <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}

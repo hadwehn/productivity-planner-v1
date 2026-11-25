@@ -104,6 +104,26 @@ export function reviewReminder(now = new Date()) {
 }
 /** ¿Tiene algo escrito «Lo mejor del mes»? */
 export const hasMonthBest = ym => Object.values(S.m[ym]?.h || {}).some(v => clean(v));
+
+// ——— Foco del mes y Lo mejor del mes ———
+// Como la intención de la semana: se escriben y «Listo» los deja para leer; «Editar» los vuelve a
+// abrir con «Guardar». Se guarda en m[AAAA-MM].closed = { p: true, h: true } (p = foco, h = lo mejor).
+export const hasMonthText = (ym, key) => Object.values(S.m[ym]?.[key] || {}).some(v => clean(v));
+export const monthDone = (ym, key) => S.m[ym]?.closed?.[key] === true;
+export function finishMonth(ym, key) {
+  const m = S.m[ym] = S.m[ym] || {};
+  m.closed = { ...(m.closed || {}), [key]: true };
+  save();
+  return () => { reopenMonth(ym, key); };
+}
+export function reopenMonth(ym, key) {
+  const closed = S.m[ym]?.closed;
+  if (!closed?.[key]) return false;
+  delete closed[key];
+  if (!Object.keys(closed).length) delete S.m[ym].closed;
+  save();
+  return true;
+}
 /** Mes cuyo «Lo mejor del mes» conviene recordar: el último día desde las 18:00, o el anterior los días 1 y 2. */
 export function monthReminder(now = new Date()) {
   const T = iso(now), ym = T.slice(0, 7);

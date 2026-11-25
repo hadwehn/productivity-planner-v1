@@ -156,7 +156,7 @@ export function checkedState(raw) {
       if (e.to !== undefined) { date(e.to); if (e.to <= k || e.to > iso(new Date(parseDate(k).getTime() + 366 * 864e5))) fail('Fin de evento incorrecto.'); }
     }
   }
-  for (const [k, v] of Object.entries(o.m)) { if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) fail('Mes incorrecto.'); texts(v.p, 'prioridades'); texts(v.h, 'highlights'); }
+  for (const [k, v] of Object.entries(o.m)) { if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) fail('Mes incorrecto.'); texts(v.p, 'prioridades'); texts(v.h, 'highlights'); if (v.closed !== undefined && (!plain(v.closed) || Object.entries(v.closed).some(([x, y]) => !['p', 'h'].includes(x) || y !== true))) fail('Cierre del mes incorrecto.'); }
   for (const [k, v] of Object.entries(o.w)) { date(k); text(v.i, 'intención semanal'); texts(v.r, 'revisión'); tasks(v.a, k, 4); tasks(v.b, k, 99); if (v.closed !== undefined && v.closed !== true) fail('Cierre de la revisión incorrecto.'); if (v.started !== undefined && v.started !== true) fail('Intención de la semana incorrecta.'); }
   for (const [k, v] of Object.entries(o.d)) {
     date(k);

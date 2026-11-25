@@ -7,7 +7,7 @@ import {
   movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay, repeatTask,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate } from '../public/js/habits.js';
-import { monthReminder, reviewReminder } from '../public/js/rituals.js';
+import { monthReminder, reviewReminder, finishMonth, hasMonthText, monthDone, reopenMonth } from '../public/js/rituals.js';
 import { weekQuestions } from '../public/js/prefs.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
 import { U } from '../public/js/ui.js';
@@ -342,6 +342,26 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   finishRitual(R, 'e');
   eq([ritualState(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'm', at('2026-11-11T22:00'))], ['done', false, true], 'terminado queda para leer');
   eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-13T09:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
+});
+
+test('foco del mes y lo mejor del mes: «Listo» los deja para leer, «Editar» los reabre y se validan', () => {
+  load(fixture());
+  const M = '2026-11';
+  eq([monthDone(M, 'p'), hasMonthText(M, 'p')], [false, false]);
+  S.m[M] = { ...(S.m[M] || {}), p: { 0: 'Lanzar la beta' } };
+  const undo = finishMonth(M, 'p');
+  eq([monthDone(M, 'p'), monthDone(M, 'h'), S.m[M].closed], [true, false, { p: true }], 'foco listo, lo mejor no');
+  checkedState(JSON.parse(JSON.stringify(S)));
+  eq(v1Accepts(S), true);
+  undo();
+  eq([monthDone(M, 'p'), S.m[M].closed], [false, undefined], 'deshacer');
+  finishMonth(M, 'h');
+  eq([reopenMonth(M, 'h'), monthDone(M, 'h'), reopenMonth(M, 'h')], [true, false, false], '«Editar» lo reabre');
+  for (const bad of [{ p: 1 }, { x: true }, 'sí']) {
+    const copy = JSON.parse(JSON.stringify(S)); copy.m[M].closed = bad;
+    let failed = false; try { checkedState(copy); } catch { failed = true; }
+    eq(failed, true, `cierre del mes inválido: ${JSON.stringify(bad)}`);
+  }
 });
 
 test('la antigua lista «Algún día» pasa a un día como tareas normales y se sigue validando', () => {

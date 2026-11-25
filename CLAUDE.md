@@ -229,6 +229,8 @@ dispositivo, en `localStorage`.
 - Plan › Mes: el calendario queda a 20 px de la cabecera fija (igual que la frase del día en Hoy).
   «Foco del mes» y «Lo mejor del mes» muestran sus tres campos de una vez, con el mismo estilo que
   los campos de la intención y la revisión de la semana (fondo hundido, bordes redondeados, letra normal).
+  Como ellas, se cierran con «Listo» (pide algo escrito) y quedan para leer con «✓ Definiste el foco
+  del mes · Editar»; «Editar» los abre con «Guardar» (`m[mes].closed = { p, h }`, `finishMonth`).
 - Calendario del mes: arriba, dentro de la tarjeta, el mes en mayúsculas grande y centrado («NOVIEMBRE
   2026»); se desliza con el mes. Los días con eventos llevan puntos de 6 px (uno por evento, hasta 3, del color
   de su área); el número va normal (se probó en negrita y se descartó: bastan los puntos). Se probó teñir el día, franjas para eventos de varios días y

@@ -17,7 +17,7 @@ import {
 } from './lock.js';
 import { journalEntries } from './views/journal.js';
 import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, revealCard, savedScroll } from './render.js';
-import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishReview, finishRitual, hasContent, hasIntent, hasReview, reopenIntent, reopenReview, reopenRitual, reviewState } from './rituals.js';
+import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishMonth, finishReview, finishRitual, hasContent, hasIntent, hasMonthText, hasReview, monthDone, reopenIntent, reopenMonth, reopenReview, reopenRitual, reviewState } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
@@ -217,6 +217,23 @@ const ACTIONS = {
     render();
     toast(tr('Guardado', 'Saved'));
   },
+  // Foco del mes (p) y Lo mejor del mes (h).
+  monthdone: d => {
+    const ym = U.month, key = d.k;
+    if (!hasMonthText(ym, key)) { toast(key === 'p' ? tr('Escribe al menos una prioridad del mes.', 'Write at least one priority for the month.') : tr('Escribe al menos una cosa que valió la pena.', 'Write at least one thing that was worth it.')); return; }
+    document.activeElement?.blur?.();
+    const undo = finishMonth(ym, key);
+    render();
+    toastUndo(key === 'p' ? tr('Foco del mes listo.', 'Month focus set.') : tr('Lo mejor del mes, guardado.', 'Best of the month saved.'), () => { undo(); render(); });
+  },
+  monthedit: d => { U.editing = `month-${d.k}:${U.month}`; render(); },
+  monthsave: d => {
+    document.activeElement?.blur?.();
+    U.editing = null;
+    if (!hasMonthText(U.month, d.k)) reopenMonth(U.month, d.k); // si se borró todo, deja de estar listo
+    render();
+    toast(tr('Guardado', 'Saved'));
+  },
   intentsave: () => {
     document.activeElement?.blur?.();
     U.editing = null;
@@ -379,6 +396,8 @@ function onInput(e) {
     if (w && !canEditReview(w[1]) && U.editing !== `review:${w[1]}`) { render(); return; }
     const wi = /^w\.(\d{4}-\d{2}-\d{2})\.i$/.exec(el.dataset.p);
     if (wi && !canEditIntent(wi[1]) && U.editing !== `intent:${wi[1]}`) { render(); return; }
+    const mm = /^m\.(\d{4}-\d{2})\.(p|h)\.\d$/.exec(el.dataset.p);
+    if (mm && monthDone(mm[1], mm[2]) && U.editing !== `month-${mm[2]}:${mm[1]}`) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
   else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
