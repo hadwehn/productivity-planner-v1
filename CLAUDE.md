@@ -75,7 +75,8 @@ dispositivo, en `localStorage`.
   se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
 - Punto de aviso en la barra de secciones (como WhatsApp): un punto verde/amarillo en Hoy desde las
   19:00 si el día sigue sin cerrar, y en Plan cuando toca cerrar la semana (`reviewReminder`). No se
-  muestra en la sección en que estás; se actualiza cada minuto (`navDots` en `render.js`).
+  quita hasta que se completa, aunque estés en esa sección (6 px, separado del ícono); se actualiza
+  cada minuto (`navDots` en `render.js`).
 - Deslizar una tarea a la izquierda (solo con el dedo) muestra sus acciones rápidas: «Mañana» (u
   «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar»; en Plan, «Próxima» (o
   «Esta semana») y «Eliminar». Una tarea hecha solo muestra «Eliminar». Pasada la mitad queda
@@ -136,15 +137,16 @@ dispositivo, en `localStorage`.
   apertura automática de la mañana o la noche no atenúa nada (`focusRitual`).
 - Notas en modo enfoque: la tarjeta de Hoy muestra el comienzo de lo escrito y abre una ventana
   flotante con bordes redondeados que no ocupa toda la pantalla (en el celular, arriba y con margen
-  a los lados; en computador, centrada), con la barra de formato arriba, el espacio para escribir y
-  «Guardar» abajo a la derecha (no «Listo»: sonaba a terminado; sin texto de instrucciones). Con el teclado del celular abierto, la
+  a los lados; en computador, centrada), con la barra de formato arriba y el espacio para escribir.
+  Arriba a la derecha, el basurero y «Guardar» (✓, en verde), que reemplazó a la ✕ (confundía:
+  ¿descarta?) y al «Guardar» de abajo; no «Listo»: sonaba a terminado. Sin texto de instrucciones. Con el teclado del celular abierto, la
   ventana **no se mueve**: el teclado queda encima de su parte de abajo y la línea en que se escribe
   se mantiene a la vista. La ventana sigue a la pantalla visible (`--vv-top`): aunque el iPhone
   desplace la vista al escribir, el título y la barra de formato quedan siempre arriba. Se probó
   una ventana más baja, del alto justo para quedar sobre el teclado (quieta), y los fundadores
   prefirieron esta, más alta. Se probó una hoja a pantalla completa y achicarla sobre el teclado, y no
   gustaron (`notesSheet` en `sheets.js`). Vacía, se abre lista para escribir; con texto, para leer.
-  Basurero junto a la ✕ (solo con algo escrito) para empezarla de cero: borra al instante con
+  Basurero junto a «Guardar» (solo con algo escrito) para empezarla de cero: borra al instante con
   «Nota borrada · Deshacer», sin confirmación (las confirmaciones se aceptan por reflejo).
 - Tarjeta «¿Qué día quieres organizar?»: opcional en Ajustes («Ofrecer organizar mañana», con hora
   a elegir; 18:00 por defecto). Es la única diferencia que se está probando entre los dos fundadores.
@@ -219,8 +221,7 @@ dispositivo, en `localStorage`.
   escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
-  La hoja de notas tiene «Listo» abajo a la derecha (verde, con ✓) para dejar la nota lista: la X
-  daba sensación de descartar. Enter solo salta de línea. Las notas se guardan al escribir.
+  Enter solo salta de línea. Las notas se guardan al escribir.
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
 - Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 

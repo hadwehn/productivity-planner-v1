@@ -88,7 +88,13 @@ export function notesSheet(date) {
     trash.setAttribute('aria-label', tr('Borrar la nota', 'Delete the note'));
     trash.title = tr('Borrar la nota', 'Delete the note');
     trash.innerHTML = icon('trash');
-    $('.sheet-head [data-a="dismiss"]', dlg)?.before(trash);
+    // Arriba a la derecha, «Guardar» reemplaza a la ✕ (que se prestaba a confusión: ¿descarta lo
+    // escrito?). Las notas se guardan solas al escribir; el botón deja claro que queda guardado y cierra.
+    const close = $('.sheet-head [data-a="dismiss"]', dlg);
+    if (close) {
+      close.outerHTML = `<button type="button" class="btn small notes-done" data-a="notesdone">${icon('check')}${tr('Guardar', 'Save')}</button>`;
+    }
+    $('.sheet-head .notes-done', dlg)?.before(trash);
     const showTrash = () => { trash.hidden = !notesWritten(); };
     showTrash();
     const onType = () => requestAnimationFrame(() => { trackKeyboard(); showTrash(); });

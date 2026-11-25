@@ -34,7 +34,8 @@ wideScreen?.addEventListener?.('change', () => { if (shownTab) render(); });
 // ——— Punto de aviso en la barra de secciones ———
 // Un punto discreto en una sección que tiene algo para ti, aunque estés en otra: en Hoy, desde las
 // 19:00 si el día sigue sin cerrar; en Plan, cuando toca cerrar la semana (domingo desde las 18:00
-// hasta el lunes a mediodía, ver reviewReminder). No se muestra en la sección en la que ya estás.
+// hasta el lunes a mediodía, ver reviewReminder). Se mantiene, aunque estés en esa sección, hasta
+// que se complete (cerrar el día o la semana).
 const NIGHT_HOUR = 19;
 export function navDots(now = new Date()) {
   const T = today(), pending = {
@@ -43,7 +44,7 @@ export function navDots(now = new Date()) {
   };
   const labels = { today: tr('cierra tu día', 'close your day'), week: tr('cierra tu semana', 'close your week') };
   $$('#nav button[data-k]').forEach(b => {
-    const k = b.dataset.k, dot = !!pending[k] && k !== U.tab;
+    const k = b.dataset.k, dot = !!pending[k];
     b.classList.toggle('has-dot', dot);
     const span = b.querySelector('span');
     b.setAttribute('aria-label', dot ? `${span?.textContent || ''} · ${labels[k]}` : (span?.textContent || ''));

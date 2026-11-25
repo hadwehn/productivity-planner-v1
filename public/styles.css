@@ -500,9 +500,6 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .notes-editable li::marker { color: var(--mute); }
 .notes-editable p, .notes-editable div { margin: 0; min-height: 1.7em; }
 /* Pie de las notas: la ayuda a la izquierda y «Listo» abajo a la derecha (Enter solo salta de línea). */
-.notes-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 6px; }
-.notes-foot .notes-done { flex: none; margin-left: auto; gap: 6px; padding-inline: 16px; }
-.notes-foot .notes-done .icon { width: 17px; height: 17px; stroke-width: 2.2; }
 .notes-editable:focus-visible { outline: none; }
 
 /* ===== Navegación ===== */
@@ -515,7 +512,7 @@ nav.tabbar button { flex: 1; display: flex; flex-direction: column; align-items:
 nav.tabbar button .icon { width: 23px; height: 23px; }
 /* Punto de aviso (ver navDots en render.js): sobre el ícono, en el color de acción. */
 nav.tabbar button { position: relative; }
-nav.tabbar button.has-dot::after { content: ""; position: absolute; top: 6px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 2px var(--surface); }
+nav.tabbar button.has-dot::after { content: ""; position: absolute; top: 4px; left: calc(50% + 17px); width: 6px; height: 6px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 2px var(--surface); }
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
 /* La barra queda siempre igual, con íconos y nombres (se probó achicarla al bajar y se descartó). */
 nav.tabbar button span { display: block; }
@@ -561,12 +558,13 @@ dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidd
 .notes-sheet .sheet-head { padding-top: 16px; }
 .notes-sheet .sheet-head h2 { flex: 1; min-width: 0; }
 .notes-sheet .notes-clear { color: var(--mute); }
+.notes-sheet .notes-done { flex: none; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: calc(14px * var(--ts)); }
+.notes-sheet .notes-done .icon { width: 16px; height: 16px; stroke-width: 2.4; }
 .notes-sheet .notes-clear:hover { color: var(--danger); }
 .notes-sheet .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 16px; }
 .notes-sheet .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .notes-sheet .notes-toolbar { flex: none; }
 .notes-sheet .notes-editable { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(40px + var(--kb, 0px)); }
-.notes-sheet .notes-foot { flex: none; }
 .notes-card .chev { transform: none; }
 @media (min-width: 1000px) {
   dialog.sheet.notes-sheet { width: 100%; max-width: 760px; height: min(80dvh, 760px); margin: auto; }
