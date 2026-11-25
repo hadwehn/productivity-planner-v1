@@ -36,6 +36,25 @@ function highlight(text, q) {
   const rest = starts.findIndex(s => s >= from);
   return out + (rest === -1 ? '' : esc(chars.slice(rest).join('')));
 }
+/**
+ * Fragmento de `text` alrededor de lo buscado (como en un buscador): unas palabras antes y después,
+ * con «…» donde se corta. Así la palabra siempre se ve, aunque esté al final de una nota larga.
+ */
+export function snippet(text, q, before = 60, after = 110) {
+  const needle = [...q].map(fold).join(''), chars = [...text];
+  if (!needle || chars.length <= before + after) return text;
+  const folded = chars.map(fold), starts = [];
+  let pos = 0;
+  for (const f of folded) { starts.push(pos); pos += f.length; }
+  const at = folded.join('').indexOf(needle);
+  if (at === -1) return text;
+  const a = Math.max(0, starts.findIndex(s => s >= at));
+  let from = Math.max(0, a - before), to = Math.min(chars.length, a + needle.length + after);
+  // Se corta en un espacio, para no partir palabras.
+  if (from > 0) { const sp = chars.indexOf(' ', from); if (sp !== -1 && sp < a) from = sp + 1; }
+  if (to < chars.length) { const sp = chars.lastIndexOf(' ', to); if (sp > a + needle.length) to = sp; }
+  return (from > 0 ? '…' : '') + chars.slice(from, to).join('').replace(/\s+/g, ' ').trim() + (to < chars.length ? '…' : '');
+}
 const hit = (d, k, needle) => [...clean(d[k])].map(fold).join('').includes(needle);
 const matches = (d, needle) => ['i', 'g', 'r', 'n'].some(k => hit(d, k, needle));
 /** Tarjeta del día donde está lo buscado: intención y gratitud → Empieza tu día; reflexión → Cierra tu día. */
@@ -49,7 +68,8 @@ export function journalEntries() {
     const found = Object.entries(S.d).filter(([date, d]) => date <= T && hasEntry(d) && matches(d, needle)).sort(([a], [b]) => b.localeCompare(a));
     const shown = found.slice(0, MAX_RESULTS);
     const head = sectionHead(tr('En todo tu diario', 'Across your journal'), `<span class="muted small">${found.length} ${plural(found.length, 'resultado', 'resultados', 'result', 'results')}</span>`);
-    return `<section class="section">${head}${shown.length ? `<div class="entry-grid">${shown.map(([date, d]) => entry(date, d, q, true)).join('')}</div>`
+    const more = found.length > shown.length ? `<p class="muted small" style="margin:0 4px 10px">${tr(`Mostrando los ${shown.length} más recientes de ${found.length}. Escribe algo más preciso para afinar.`, `Showing the ${shown.length} most recent of ${found.length}. Type something more specific to narrow it down.`)}</p>` : '';
+    return `<section class="section">${head}${more}${shown.length ? `<div class="entry-grid">${shown.map(([date, d]) => entry(date, d, q, true)).join('')}</div>`
       : `<div class="card"><p class="empty-note">${tr(`No encontramos «${esc(q)}» en lo que has escrito.`, `We couldn’t find “${esc(q)}” in what you’ve written.`)}</p></div>`}</section>`;
   }
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
@@ -149,10 +169,16 @@ function moodMonth(m) {
 
 function entry(date, d, q = '', withYear = false) {
   const pd = parseDate(date), rows = [];
-  if (clean(d.i)) rows.push([tr('Intención', 'Intention'), clean(d.i), true]);
-  if (clean(d.g)) rows.push([tr('Gratitud', 'Gratitude'), clean(d.g)]);
-  if (clean(d.r)) rows.push([tr('Reflexión', 'Reflection'), clean(d.r)]);
-  if (clean(d.n)) rows.push([tr('Notas', 'Notes'), clean(d.n)]);
+  const needle = q ? [...q].map(fold).join('') : '';
+  // En una búsqueda se muestran solo los campos donde está lo buscado, con el fragmento que lo contiene.
+  const add = (k, label, serif = false) => {
+    if (!clean(d[k]) || (needle && !hit(d, k, needle))) return;
+    rows.push([label, needle ? snippet(clean(d[k]), q) : clean(d[k]), serif]);
+  };
+  add('i', tr('Intención', 'Intention'), true);
+  add('g', tr('Gratitud', 'Gratitude'));
+  add('r', tr('Reflexión', 'Reflection'));
+  add('n', tr('Notas', 'Notes'));
   const mood = d.mood ? `<span class="mood-tag" style="--c:${moodColor(d.mood)}">${icon('mood' + d.mood, 'icon face')}${moodName(d.mood)}</span>` : '';
   // En los resultados de una búsqueda (de cualquier mes) va la fecha completa.
   const title = withYear ? `${DAYS[weekday(pd)]} ${dayMonth(pd)}${pd.getFullYear() !== new Date().getFullYear() ? ` ${pd.getFullYear()}` : ''}` : `${DAYS[weekday(pd)]} ${pd.getDate()}`;

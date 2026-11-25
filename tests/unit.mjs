@@ -14,7 +14,7 @@ import { U } from '../public/js/ui.js';
 import { todayView } from '../public/js/views/today.js';
 import { planView } from '../public/js/views/week.js';
 import { habitsView } from '../public/js/views/habits.js';
-import { journalView } from '../public/js/views/journal.js';
+import { journalView, snippet } from '../public/js/views/journal.js';
 import { shiftDate, today, weekdayOf } from '../public/js/util.js';
 import { eventsOn, putEvent, shiftEnd } from '../public/js/events.js';
 import { canEditIntent, canEditRitual, finishIntent, finishRitual, hasIntent, intentState, reopenIntent, reopenReview, reopenRitual, reviewState, ritualState } from '../public/js/rituals.js';
@@ -589,6 +589,14 @@ test('eventos: cambiar el día al crear o editar, conservando la duración', () 
   eq([shiftEnd('2026-12-12', '2026-12-10', '2026-12-17'), shiftEnd('2026-12-02', '2026-11-30', '2026-11-28'), shiftEnd('', '2026-11-30', '2026-12-01')],
     ['2026-12-19', '2026-11-30', ''], 'el «Hasta» se corre igual (también entre meses)');
   checkedState(JSON.parse(JSON.stringify(S)));
+});
+
+test('buscador del Diario: el fragmento siempre muestra la palabra, aunque esté al final', () => {
+  const long = 'Hoy fue un día largo. '.repeat(20) + 'Al final decidí soltar el control del proyecto y pedir ayuda a mi equipo. ' + 'Mañana sigo. '.repeat(10);
+  const s = snippet(long, 'soltar');
+  ok(s.includes('soltar') && s.startsWith('…') && s.endsWith('…') && s.length < 200, s);
+  eq(snippet('Texto corto con Sóltar adentro', 'soltar'), 'Texto corto con Sóltar adentro', 'texto corto: entero');
+  ok(snippet('a'.repeat(300) + ' ÁRBOL ' + 'b'.repeat(300), 'arbol').includes('ÁRBOL'), 'sin importar tildes ni mayúsculas');
 });
 
 // ——— Frases ———

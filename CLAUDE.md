@@ -225,6 +225,10 @@ dispositivo, en `localStorage`.
 - Diario › Escritos: buscador arriba («Buscar en tu diario»). Desde 2 letras busca en todo lo escrito
   (intención, gratitud, reflexión y notas), en cualquier mes, sin importar tildes ni mayúsculas;
   resalta lo encontrado y muestra la fecha completa. La búsqueda no se guarda (`journalEntries`).
+  Cada resultado muestra solo los campos donde está lo buscado, con el fragmento que lo contiene
+  («…decidí **soltar** el control…», `snippet`), para que la palabra siempre se vea aunque esté al
+  final de una nota larga. Hasta 60 resultados, con «Mostrando los 60 más recientes de N». No busca
+  en lo escrito en Plan (intención/revisión de la semana, foco y lo mejor del mes): quedó pendiente.
   Tocar un resultado abre el día en la tarjeta donde está lo buscado (intención o gratitud →
   Empieza tu día; reflexión → Cierra tu día; notas → la tarjeta de Notas), a la vista y para leer.
 - Ideas de hábitos: en «Nuevo hábito», bajo el nombre, «¿Sin ideas? Ver hábitos para empezar»
