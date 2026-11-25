@@ -221,7 +221,17 @@ function datePicker(action, attrs, from = today()) {
     const d = shiftDate(T, i), pd = parseDate(d);
     return `<button data-a="${action}" ${attrs} data-date="${d}" class="${d === T ? 'today' : ''}"${d === from ? ' disabled' : ''}>${DAY_SHORT[weekday(pd)]}<b>${pd.getDate()}</b></button>`;
   }).join('');
-  return `<div class="date-grid">${buttons}</div><div class="field" style="margin-top:10px"><label for="pickDate">${tr('Otra fecha', 'Another date')}</label><input id="pickDate" class="input" type="date" min="${T}"></div><button class="btn secondary" data-a="${action}" ${attrs} data-date="" data-from-input="1">${tr('Mover a esa fecha', 'Move to that date')}</button>`;
+  return `<div class="date-grid">${buttons}</div>`;
+}
+/**
+ * «Otra fecha…»: plegada al final, como un enlace discreto. Posponer algo más allá de dos semanas
+ * es raro, así que no ocupa espacio hasta que se pide.
+ */
+function otherDate(action, attrs) {
+  const T = today();
+  return `<details class="other-date"><summary>${tr('Otra fecha…', 'Another date…')}</summary>
+    <div class="other-date-row"><input id="pickDate" class="input" type="date" min="${T}" aria-label="${tr('Otra fecha', 'Another date')}">
+    <button class="btn secondary" data-a="${action}" ${attrs} data-date="" data-from-input="1">${tr('Mover', 'Move')}</button></div></details>`;
 }
 
 // ——— Tarea del día ———
@@ -273,7 +283,7 @@ export function taskPick(date, key) {
     + `<div class="when-more">
       <button class="btn quiet" data-a="taskweek" data-k="${key}" data-w="${thisWeek}">${icon('week')}${tr('Esta semana (sin día)', 'This week (no day)')}</button>
       <button class="btn quiet" data-a="taskweek" data-k="${key}" data-w="${nextWeek}">${icon('week')}${tr('Próxima semana (sin día)', 'Next week (no day)')}</button>
-    </div>`);
+    </div>${otherDate('taskmove', `data-k="${key}"`)}`);
 }
 /** «Repetir mañana» de una tarea hecha: una copia pendiente en ese día. */
 export function doRepeatTask(date, key, target) {

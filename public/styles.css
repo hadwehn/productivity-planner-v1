@@ -934,6 +934,13 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 :root[data-text="large"] { --ts: 1.14; }
 
 /* «Pasar a otro día»: debajo de los días, esta semana y la próxima (sin día). */
+.other-date { margin-top: 14px; text-align: center; }
+.other-date summary { display: inline-block; padding: 8px 12px; cursor: pointer; list-style: none; color: var(--mute); font-size: calc(14px * var(--ts)); text-decoration: underline; text-underline-offset: 3px; }
+.other-date summary::-webkit-details-marker { display: none; }
+.other-date[open] summary { color: var(--ink-2); }
+.other-date-row { display: flex; gap: 8px; margin-top: 6px; text-align: left; }
+.other-date-row .input { flex: 1; min-width: 0; }
+.other-date-row .btn { width: auto; flex: none; }
 .when-more { display: grid; gap: 8px; margin-top: 12px; }
 .when-more .icon { width: 18px; height: 18px; }
 .overdue-row { display: grid; gap: 8px; padding: 10px 0; }

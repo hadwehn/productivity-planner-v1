@@ -162,7 +162,8 @@ dispositivo, en `localStorage`.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó).
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Pasar a otro día» (antes «Elegir cuándo», muy abstracto) abre la hoja «¿Cuándo?»: días, «Esta semana (sin día)» y
-  «Próxima semana (sin día)» (siempre relativas a hoy). Sin «Poner en foco»: para eso está la
+  «Próxima semana (sin día)» (siempre relativas a hoy). Al final, plegado, el enlace «Otra fecha…» (campo
+  de fecha + «Mover»): se usa poco (posponer más de dos semanas es raro) y antes ocupaba mucho. Sin «Poner en foco»: para eso está la
   estrella.
 - Foco vacío: «Marca con ★ hasta tres tareas prioritarias: las que más importa sacar adelante hoy»
   (antes «…que harían de este un buen día»: el foco es prioridad, no bienestar).
