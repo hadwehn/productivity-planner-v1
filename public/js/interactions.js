@@ -1,12 +1,13 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
+import { celebrate, celebrates } from './celebrate.js';
 import { clearBack, initBackSwipe, pushBack } from './back.js';
 import { U, applyTextSize, setAppearance, storedAppearance, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
   removeTask,
 } from './tasks.js';
-import { toggle as toggleHabit } from './habits.js';
+import { isDone, isDue, toggle as toggleHabit } from './habits.js';
 import {
   closeSheet, clearNotesNow, habitOrderSheet, saveHabitOrder, notesSheet, confirmDeleteHabit, doDeleteTask, doMoveTask, doToggleFocus, eventEditor, habitDayToggle, habitDetail, habitMenu,
   habitEditor, overdueAction, overdueSheet, shortcutsSheet, taskMenu, taskPick, doTaskToWeek, doRepeatTask,
@@ -148,7 +149,10 @@ const ACTIONS = {
     if (!row) return;
     setDone(U.date, +d.k, !row.c); // queda en su lugar hasta volver a la sección (ver tasksSection)
     const { focus } = dayTasks(U.date);
-    if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
+    if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) {
+      toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
+      setTimeout(() => celebrate(`[data-a="taskdone"][data-k="${d.k}"]`, 'gold'), 30); // tras dibujar
+    }
   }),
   taskfocus: d => { doToggleFocus(U.date, +d.k); if (d.close) closeSheet(); },
   taskmenu: d => taskMenu(U.date, +d.k),
@@ -176,6 +180,7 @@ const ACTIONS = {
     const undo = finishReview(week);
     U.review = false;
     render();
+    celebrate('.ritual-head[data-k="review"] .ritual-icon');
     toastUndo(tr('Semana cerrada. Bien hecho.', 'Week closed. Well done.'), () => { undo(); U.review = true; render(); });
   },
   intentdone: () => {
@@ -198,10 +203,18 @@ const ACTIONS = {
     U[which === 'm' ? 'morning' : 'evening'] = false;
     render();
     const reopen = () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); };
+    if (which === 'e') celebrate('.ritual-head[data-k="evening"] .ritual-icon');
     // Al cerrar hoy o ayer, si quedaron tareas, se ofrece pasarlas a mañana (o a hoy); la hoja trae su
     // propio «deshacer». Un día más antiguo solo se cierra: lo pendiente ya lo resuelve el aviso de
-    // Pendientes en Hoy, y preguntarlo de nuevo al corregir un día viejo molestaba.
-    if (which === 'e' && date >= shiftDate(today(), -1) && carryOverSheet(date, reopen)) return;
+    // Pendientes en Hoy, y preguntarlo de nuevo al corregir un día viejo molestaba. La hoja espera a
+    // que termine la celebración.
+    if (which === 'e' && date >= shiftDate(today(), -1)) {
+      const { focus, rest } = dayTasks(date);
+      if ([...focus, ...rest].some(t => !t.row.c)) {
+        setTimeout(() => { if (U.date === date && U.tab === 'today') carryOverSheet(date, reopen); }, celebrates() ? 900 : 0);
+        return;
+      }
+    }
     toastUndo(which === 'm' ? (date < today() ? tr('Listo. Quedó guardado.', 'Done. It’s saved.') : tr('Listo. Que tengas un buen día.', 'Done. Have a good day.')) : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
   },
   // «Editar» no reabre el día ni la semana: solo permite corregir lo escrito, que sigue cerrado.
@@ -277,7 +290,16 @@ const ACTIONS = {
   eventedit: d => eventEditor(d.k || (U.tab === 'week' ? U.calDay : U.date), +d.i),
 
   // Hábitos
-  habittoggle: update(d => { const h = S.h.find(x => x.id === d.id); if (h) toggleHabit(h, d.date); }),
+  habittoggle: update(d => {
+    const h = S.h.find(x => x.id === d.id);
+    if (!h) return;
+    toggleHabit(h, d.date);
+    // Al marcar el último hábito que tocaba ese día, una celebración sobre el que se tocó.
+    const due = S.h.filter(x => isDue(x, d.date));
+    if (isDone(h, d.date) && due.length && due.every(x => isDone(x, d.date))) {
+      setTimeout(() => celebrate(document.querySelector(`[data-a="habittoggle"][data-id="${CSS.escape(d.id)}"][data-date="${d.date}"]`)?.querySelector('.dot, .ring, svg') || `[data-a="habittoggle"][data-id="${CSS.escape(d.id)}"][data-date="${d.date}"]`), 30);
+    }
+  }),
   habitnew: () => habitEditor(),
   habitopen: d => habitDetail(d.id),
   habitmenu: d => habitMenu(d.id),

@@ -1024,7 +1024,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 /* ===== Cabecera translúcida ===== */
 /* El contenido se ve desenfocado al pasar por debajo, como en la barra de secciones. */
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .sticky-head { background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5); }
+  .sticky-head { background: color-mix(in srgb, var(--bg) 68%, transparent); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8); }
 }
 
 /* ===== Vacíos del primer uso (ver emptyState en views/common.js) ===== */
@@ -1036,3 +1036,14 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .empty-state h3 { font: 400 calc(19px * var(--ts))/1.25 var(--display); margin: 0 0 6px; }
 .empty-state p { color: var(--mute); font-size: calc(14.5px * var(--ts)); line-height: 1.45; margin: 0 auto; max-width: 300px; }
 .empty-state .btn { width: auto; margin-top: 16px; padding-inline: 20px; }
+
+/* ===== Celebraciones sutiles (ver celebrate.js) ===== */
+/* Un anillo que se cierra alrededor del ✓ de lo que se tocó y ocho destellos breves. */
+.celebrate { position: absolute; z-index: 30; width: 64px; height: 64px; margin: -32px 0 0 -32px; pointer-events: none; color: var(--acc); animation: c-out 1.35s var(--ease) forwards; }
+.celebrate.gold { color: var(--gold); }
+.celebrate svg { width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.celebrate .c-ring { stroke-width: 3; stroke-dasharray: 100; stroke-dashoffset: 100; transform: rotate(-90deg); transform-origin: center; animation: c-ring .55s var(--ease) forwards; }
+.celebrate i { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: currentColor; opacity: 0; transform: rotate(var(--a)) translateY(0); animation: c-spark .6s .5s var(--ease) forwards; }
+@keyframes c-ring { to { stroke-dashoffset: 0; } }
+@keyframes c-spark { 0% { opacity: 0; transform: rotate(var(--a)) translateY(-26px) scale(.6); } 30% { opacity: .9; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-44px) scale(1); } }
+@keyframes c-out { 0%, 70% { opacity: 1; transform: scale(1); } 45% { transform: scale(1.06); } 100% { opacity: 0; transform: scale(1.12); } }

@@ -122,12 +122,17 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   desde arriba, la cabecera queda quieta y se estira el espacio entre ella y el contenido, como en
   Instagram, WhatsApp y Spotify (antes rebotaba toda la página y el vacío quedaba sobre la cabecera).
   En computador sigue «pegada» (`sticky`). Es translúcida: el contenido se ve desenfocado al pasar
-  por debajo, como en la barra de secciones (`backdrop-filter`).
+  por debajo, como en la barra de secciones (`backdrop-filter`, fondo al 68 %: con 86 % no se notaba).
 - Volver deslizando desde el borde izquierdo (como en el iPhone, `back.js`): al entrar a algo desde
   otra pantalla (un día desde Plan, Hábitos o el Diario; «Ver todo»; los avisos que llevan a Plan;
   «Cerrarlo» de ayer) se anota dónde estabas, y arrastrar desde el borde te devuelve ahí, en el mismo
   punto de la página. La pantalla sigue al dedo; pasado el 40 % (o con un movimiento rápido) vuelve.
   Tocar la barra de secciones borra el camino de vuelta. Solo con el dedo.
+- Celebraciones sutiles (`celebrate.js`): al completar el foco del día (en bronce, sobre la tarea
+  que lo completó), marcar el último hábito que tocaba ese día, cerrar el día y cerrar la semana:
+  un anillo que se cierra alrededor del ✓ de lo que se tocó y unos destellos breves (≈1 s). Sin sonido
+  ni confeti; el aviso de texto de siempre se mantiene. La hoja de pendientes al cerrar el día
+  espera a que termine. Se omite con «reducir movimiento» del sistema.
 - Respuesta al tocar: filas y tarjetas que se tocan (cabeceras de rituales, días, resultados del
   Diario, menús, avisos, hábitos de Hoy) se oscurecen apenas al presionarlas.
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
