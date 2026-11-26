@@ -119,6 +119,9 @@ dispositivo, en `localStorage`.
   solo un modo de la pantalla (`U.editing`): lo terminado **sigue terminado**, se corrige y
   «Guardar» lo vuelve a dejar para leer. Lo escrito, para leer, va como texto sin el recuadro de fondo de los
   campos (`.ritual-read`): con recuadro parecía editable. El recuadro aparece solo con «Editar».
+  «Editar» es un botón chico y discreto (borde fino, gris, sin subrayado) en la esquina derecha de la
+  línea «✓ Cerraste el día…», que se alinea a la izquierda: se usa poco y no debe invitar a corregir.
+  Igual en Hoy, la semana y el mes.
   Ese texto va justificado (bordes parejos), con guiones automáticos para que en el celular no
   queden espacios muy grandes entre palabras. Antes «Editar» reabría de verdad y, si uno salía sin
   volver a cerrar, el día quedaba abierto y pedía «Cerrar el día» otra vez.

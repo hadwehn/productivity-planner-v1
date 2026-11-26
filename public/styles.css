@@ -755,7 +755,10 @@ dialog.sheet.center-sheet[open] { animation: center-in .26s var(--ease); }
 .strip-wrap { display: block; }
 .page-head + .strip-wrap { margin-top: -4px; }
 .ritual { scroll-margin-top: 200px; }
-.ritual-note .link { min-height: 28px; margin-left: 4px; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
+/* «Editar» junto a lo terminado: botón chico y discreto en la esquina derecha (se usa poco y no
+   debería invitar a corregir). La nota se alinea a la izquierda para dejarle la esquina. */
+.ritual-note:has(.link) { justify-content: flex-start; text-align: left; }
+.ritual-note .link { margin-left: auto; flex: none; min-height: 28px; padding: 3px 12px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: calc(12px * var(--ts)); font-weight: 500; color: var(--mute); text-decoration: none; }
 /* Hoy: selector de noche → frase → avisos → «Empieza tu día», con el mismo espacio entre cada bloque. */
 .quote + .notices, .quote + .section, .notices + .section { margin-top: 20px; }
 .notices { margin-top: 14px; padding: 2px 14px; border-radius: var(--r-md); background: var(--gold-soft); }
