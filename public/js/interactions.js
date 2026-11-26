@@ -201,8 +201,10 @@ const ACTIONS = {
     U[which === 'm' ? 'morning' : 'evening'] = false;
     render();
     const reopen = () => { undo(); U[which === 'm' ? 'morning' : 'evening'] = true; render(); };
-    // Al cerrar el día, si quedaron tareas, se ofrece pasarlas a mañana (la hoja trae su propio «deshacer»).
-    if (which === 'e' && carryOverSheet(date, reopen)) return;
+    // Al cerrar hoy o ayer, si quedaron tareas, se ofrece pasarlas a mañana (o a hoy); la hoja trae su
+    // propio «deshacer». Un día más antiguo solo se cierra: lo pendiente ya lo resuelve el aviso de
+    // Pendientes en Hoy, y preguntarlo de nuevo al corregir un día viejo molestaba.
+    if (which === 'e' && date >= shiftDate(today(), -1) && carryOverSheet(date, reopen)) return;
     toastUndo(which === 'm' ? (date < today() ? tr('Listo. Quedó guardado.', 'Done. It’s saved.') : tr('Listo. Que tengas un buen día.', 'Done. Have a good day.')) : tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), reopen);
   },
   // «Editar» no reabre el día ni la semana: solo permite corregir lo escrito, que sigue cerrado.

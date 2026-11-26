@@ -10,17 +10,10 @@ import { iso, monday, parseDate, shiftDate, shiftMonth, weekday } from './util.j
 /** La semana (que empieza el lunes `week`) ya terminó. */
 export const isPastWeek = (week, now = new Date()) => shiftDate(week, 6) < iso(now);
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
-/**
- * 'open' | 'done' | 'future' (todavía no llega el día) | 'written': un día ya pasado con algo
- * escrito que nunca se terminó con el botón. Se muestra para leer, como uno terminado, y «Editar»
- * solo corrige lo escrito: no lo cierra (ni ofrece mover las pendientes). Pasaba al llegar desde el
- * buscador del Diario a un día antiguo: el único botón era «Cerrar el día».
- */
+/** 'open' | 'done' | 'future' (todavía no llega el día) */
 export function ritualState(date, which, now = new Date()) {
   if (isFinished(date, which)) return 'done';
-  const T = iso(now);
-  if (date > T) return 'future';
-  return date < T && hasContent(date, which) ? 'written' : 'open';
+  return date > iso(now) ? 'future' : 'open';
 }
 export const canEditRitual = (date, which, now) => ritualState(date, which, now) === 'open';
 /** Vuelve a abrir un ritual terminado para corregirlo o completarlo. */

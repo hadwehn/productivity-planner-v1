@@ -341,9 +341,7 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   S.d[R] = { r: 'Buen día' };
   finishRitual(R, 'e');
   eq([ritualState(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'm', at('2026-11-11T22:00'))], ['done', false, true], 'terminado queda para leer');
-  eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-11T23:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
-  // Un día pasado con algo escrito y sin cerrar queda para leer (sin «Cerrar el día»); vacío, se puede cerrar.
-  eq([ritualState(R, 'e', at('2026-11-13T09:00')), canEditRitual(R, 'e', at('2026-11-13T09:00')), ritualState(R, 'm', at('2026-11-13T09:00'))], ['written', false, 'open'], 'día pasado escrito, sin cerrar');
+  eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-13T09:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
 });
 
 test('foco del mes y lo mejor del mes: «Listo» los deja para leer, «Editar» los reabre y se validan', () => {
