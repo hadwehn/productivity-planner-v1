@@ -295,8 +295,8 @@ function wire() {
   window.addEventListener('online', poll);
   window.addEventListener('focus', poll);
   document.addEventListener('visibilitychange', () => {
-    // Al salir de la app el Diario se vuelve a proteger, y los hábitos de Hoy se reordenan al volver.
-    if (document.hidden) { relock(); U.habitSort = null; if (U.tab === 'journal' && ready) render(); }
+    // Al salir de la app el Diario se vuelve a proteger, y las tareas y hábitos de Hoy se reordenan al volver.
+    if (document.hidden) { relock(); U.habitSort = U.taskSort = null; if (U.tab === 'journal' && ready) render(); }
     else { const rolled = ready && rollDay(); if (ready && (rolled || U.tab === 'today')) render(); if (ready) navDots(); poll(); }
   });
   setAuth({

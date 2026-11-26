@@ -7,7 +7,6 @@ import { reviewReminder } from './rituals.js';
 export const U = {
   tab: 'today',          // today · week · habits · journal
   date: today(),         // día abierto en «Hoy»
-  settling: null,        // tarea recién marcada como hecha que espera un momento antes de bajar
   morning: false,        // rituales plegados por defecto
   evening: false,
   notes: false,
@@ -21,6 +20,7 @@ export const U = {
   // se pliegan y la página se ve como siempre (ver render).
   foldsFor: {},
   habitSort: null,       // orden de los hábitos de Hoy, fijo mientras se mira la sección (ver habitsSection)
+  taskSort: null,        // qué tareas de Hoy van al final como hechas, fijo mientras se mira (ver tasksSection)
   review: false,
   weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),

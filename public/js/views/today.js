@@ -74,14 +74,22 @@ function taskItem(date, { key, row }, focus) {
   </div>`;
 }
 
-// Las tareas hechas se muestran al final de su grupo (sin cambiar el orden guardado: al desmarcar
-// una tarea vuelve a su lugar). La recién marcada espera un momento antes de bajar (U.settling).
-const pendingFirst = list => [...list].sort((a, b) => done(a) - done(b));
-const done = t => (t.row.c && t.key !== U.settling ? 1 : 0);
+// Las tareas hechas se muestran al final de su grupo sin cambiar el orden guardado: al desmarcar
+// una tarea vuelve a su lugar (ver tasksSection).
+const done = t => !!t.row.c;
 
+// Las tareas hechas bajan al final de su grupo, pero no al instante (igual que los hábitos): al
+// marcar una, queda donde estaba mientras se mira la sección, para que no se corra bajo el dedo.
+// Se reordena al volver a Hoy desde otra sección, al cambiar de día o al volver a la app
+// (U.taskSort = null), y también si cambia qué tareas hay (añadir, borrar, mover, estrella), porque
+// sus claves se reacomodan.
 function tasksSection(date) {
-  const { focus: focusRaw, rest: restRaw } = dayTasks(date);
-  const focus = pendingFirst(focusRaw), rest = pendingFirst(restRaw);
+  const { focus: focusRaw, rest: restRaw } = dayTasks(date), all = [...focusRaw, ...restRaw];
+  const sig = all.map(t => t.key).join(',');
+  let sort = U.taskSort;
+  if (sort?.date !== date || sort.sig !== sig) sort = U.taskSort = { date, sig, done: new Set(all.filter(done).map(t => t.key)) };
+  const settled = list => [...list.filter(t => !sort.done.has(t.key)), ...list.filter(t => sort.done.has(t.key))];
+  const focus = settled(focusRaw), rest = settled(restRaw);
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
   const items = (list, focus) => list.map(t => taskItem(date, t, focus)).join('');
   const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`

@@ -22,7 +22,6 @@ import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
 let canEdit = () => false;
-let settleTimer = 0;
 
 // ——— Ajustes ———
 const TODAY_PREFS = () => [['intention', tr('Intención del día', 'Daily intention')], ['gratitude', tr('Gratitud', 'Gratitude')], ['habits', tr('Hábitos', 'Habits')], ['mood', tr('Ánimo del día', 'Daily mood')], ['reflection', tr('Reflexión', 'Reflection')], ['futureQuotes', tr('Frase en días futuros', 'Quote on future days')]];
@@ -143,13 +142,7 @@ const ACTIONS = {
   taskdone: update(d => {
     const row = getTask(U.date, +d.k);
     if (!row) return;
-    setDone(U.date, +d.k, !row.c);
-    // Recién marcada, se queda un momento en su lugar (para ver el ✓) y luego baja al final.
-    if (row.c) {
-      U.settling = +d.k;
-      clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => { U.settling = null; if (U.tab === 'today') render(); }, 650);
-    }
+    setDone(U.date, +d.k, !row.c); // queda en su lugar hasta volver a la sección (ver tasksSection)
     const { focus } = dayTasks(U.date);
     if (row.c && focus.some(t => t.key === +d.k) && focus.every(t => t.row.c)) toast(tr('Foco del día completo. Bien hecho.', 'Today’s focus is done. Well done.'));
   }),
