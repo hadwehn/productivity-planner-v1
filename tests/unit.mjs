@@ -653,6 +653,11 @@ test('cada frase tiene autor y la del día es estable', () => {
   eq(quoteFor(DAY), quoteFor(DAY));
 });
 
+test('el 13 de diciembre de 2026 la frase es el saludo de cumpleaños (solo ese año)', () => {
+  eq(quoteFor('2026-12-13')[0], '¡Feliz cumpleaños, Nader!');
+  ok(QUOTES.includes(quoteFor('2027-12-13')), 'otro año vuelve la frase normal');
+});
+
 // ——— Vistas ———
 test('las cuatro vistas se dibujan con datos y vacías', () => {
   for (const data of [fixture(), { h: [], hl: {}, m: {}, ev: {}, w: {}, d: {}, cfg: { acc: 0, hide: {}, days: {} } }]) {
