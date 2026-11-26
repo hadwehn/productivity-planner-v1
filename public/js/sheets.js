@@ -13,7 +13,7 @@ import { render } from './render.js';
 import { HABIT_IDEAS } from './habitIdeas.js';
 import { clearNotes, notesEditor, notesWritten } from './views/notes.js';
 import { MAX_EVENT_DAYS, putEvent, shiftEnd } from './events.js';
-import { isPastWeek } from './rituals.js';
+import { isPastWeek, isLockedDay, isLockedWeek } from './rituals.js';
 import { dayMonth, monthYear, plural, tr } from './i18n.js';
 import { $, $$, DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from './util.js';
 
@@ -249,6 +249,17 @@ function dayName(target, es, en) {
 export function taskMenu(date, key) {
   const row = getTask(date, key);
   if (!row) return;
+  // Día cerrado (más de 7 días): solo sacar lo pendiente de ahí, sin cambiar el registro.
+  if (isLockedDay(date)) {
+    if (row.c) return;
+    const T = today();
+    openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="taskmove" data-k="${key}" data-date="${T}">${icon('tomorrow')}${tr('Pasar a hoy', 'Move to today')}</button>
+      <button data-a="taskweek" data-k="${key}" data-w="${weekKey(T)}">${icon('week')}${tr('Pasar a esta semana', 'Move to this week')}</button>
+      ${row.drop ? '' : `<button data-a="taskleave" data-k="${key}">${icon('check')}${tr('Dejar en su día', 'Leave on its day')}</button>`}
+    </div><p class="muted small" style="margin:14px 2px 0">${tr('Este día ya es parte de tu registro: lo pendiente se puede pasar a hoy o a esta semana.', 'This day is part of your record: what’s pending can move to today or this week.')}</p>`);
+    return;
+  }
   const focus = isFocusKey(key), tomorrow = shiftDate(date, 1), T = today();
   // En un día pasado lo natural es traerla a hoy; en los demás, pasarla al día siguiente.
   const moveFirst = date < T
@@ -373,6 +384,13 @@ export function overdueAction(kind, date, key) {
 export function weekMenu(list, i) {
   const row = S.w[U.week]?.[list]?.[i];
   if (!row) return;
+  // Semana cerrada (terminó hace más de 7 días): solo traer lo pendiente a esta semana.
+  if (isLockedWeek(U.week)) {
+    if (row.c) return;
+    openSheet(`<span class="caps">${esc(row.t)}</span>`, `<div class="menu">
+      <button data-a="weekthis" data-list="${list}" data-i="${i}">${icon('arrowRight')}${tr('Pasar a esta semana', 'Move to this week')}</button></div>`);
+    return;
+  }
   const focusMove = `<button data-a="weekmove" data-list="${list}" data-i="${i}">${icon(list === 'a' ? 'starOff' : 'star')}${list === 'a' ? tr('Pasar a «También esta semana»', 'Move to “Also this week”') : tr('Pasar al foco de la semana', 'Move to weekly focus')}</button>`;
   // Hecha (misma regla que en los días): solo eliminarla.
   if (row.c) {
@@ -512,9 +530,9 @@ export function habitDetail(id, month = today().slice(0, 7)) {
   for (let i = 0; i < offset; i++) cells += '<span></span>';
   let monthDone = 0;
   for (let d = 1; d <= n; d++) {
-    const k = `${month}-${p2(d)}`, on = isDone(h, k), future = k > T, before = h.createdOn && k < h.createdOn;
+    const k = `${month}-${p2(d)}`, on = isDone(h, k), future = k > T, before = h.createdOn && k < h.createdOn, locked = isLockedDay(k);
     if (on) monthDone++;
-    cells += `<button class="${on ? 'on' : ''}${k === T ? ' today' : ''}${future ? ' off' : ''}" data-a="habitday" data-id="${esc(id)}" data-date="${k}" data-month="${month}"${future ? ' disabled' : ''} aria-pressed="${on}" aria-label="${d}"${before && !on ? ' style="opacity:.5"' : ''}>${d}</button>`;
+    cells += `<button class="${on ? 'on' : ''}${k === T ? ' today' : ''}${future ? ' off' : ''}" data-a="habitday" data-id="${esc(id)}" data-date="${k}" data-month="${month}"${future || locked ? ' disabled' : ''} aria-pressed="${on}" aria-label="${d}"${before && !on ? ' style="opacity:.5"' : ''}>${d}</button>`;
   }
   const s = streak(h, T), pct = consistency(h, T);
   openSheet(`<span class="caps">${esc(h.name)}</span>`, `<p class="muted small" style="margin:-4px 0 14px">${frequencyLabel(h)} · ${categoryName(h.color ?? 0)}</p>
@@ -588,6 +606,7 @@ export function eventEditor(date, index = null) {
       if (to && to <= day) { toast(tr('La fecha final tiene que ser después del primer día.', 'The end date has to be after the first day.')); return; }
       if (to && to > shiftDate(day, MAX_EVENT_DAYS - 1)) { toast(tr('Un evento puede durar hasta un año.', 'An event can last up to a year.')); return; }
       const event = to ? { t, h, c, to } : { t, h, c };
+      if (isLockedDay(day)) { toast(tr('Ese día ya es parte de tu registro: elige un día de la última semana o posterior.', 'That day is part of your record: pick a day from the last week or later.')); return; }
       putEvent(date, index, day, event);
       if (U.tab === 'week') U.calDay = day; // en Mes queda elegido el día donde quedó el evento
       save();

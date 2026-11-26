@@ -47,9 +47,10 @@ export function rangeLabel(start, end) {
 }
 
 /** Fila de evento para la agenda de un día (Hoy y Mes). */
-export function eventRow({ e, i, start }, date) {
+export function eventRow({ e, i, start }, date, locked = false) {
   const multi = e.to && e.to > start;
   const time = multi ? (date === start && e.h ? e.h : tr('Todo', 'All day')) : (e.h || tr('Todo', 'All day'));
   const range = multi ? `<small class="event-range">${rangeLabel(start, e.to)}</small>` : '';
+  if (locked) return `<div class="event still" style="--c:${categoryColor(e.c ?? -1)}"><time>${esc(time)}</time><i class="bar"></i><span>${esc(e.t)}${range}</span></div>`; // día cerrado: solo se lee
   return `<button class="event" data-a="eventedit" data-i="${i}" data-k="${start}" style="--c:${categoryColor(e.c ?? -1)}"><time>${esc(time)}</time><i class="bar"></i><span>${esc(e.t)}${range}</span></button>`;
 }

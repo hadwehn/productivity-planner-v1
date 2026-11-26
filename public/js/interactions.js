@@ -5,7 +5,7 @@ import { clearBack, goBack, initBackSwipe, pushBack } from './back.js';
 import { U, applyTextSize, setAppearance, storedAppearance, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
-  removeTask,
+  removeTask, dropTask, snapshot, restore,
 } from './tasks.js';
 import { isDone, isDue, toggle as toggleHabit } from './habits.js';
 import {
@@ -19,7 +19,7 @@ import {
 } from './lock.js';
 import { journalEntries } from './views/journal.js';
 import { FOCUS_CARDS, autosize, focusEnd, focusRitual, rememberScroll, render, renderNav, restoreScroll, revealCard, savedScroll } from './render.js';
-import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishMonth, finishReview, finishRitual, hasContent, hasIntent, hasMonthText, hasReview, monthDone, reopenIntent, reopenMonth, reopenReview, reopenRitual, reviewState } from './rituals.js';
+import { canEditIntent, canEditReview, canEditRitual, finishIntent, finishMonth, finishReview, finishRitual, hasContent, hasIntent, hasMonthText, hasReview, monthDone, reopenIntent, reopenMonth, reopenReview, reopenRitual, reviewState, isLockedDay, isLockedWeek } from './rituals.js';
 import { getLang, setLang, tr } from './i18n.js';
 import { $, $$, shiftDate, shiftMonth, today, iso, monday, parseDate, weekLanding } from './util.js';
 
@@ -125,6 +125,14 @@ const ACTIONS = {
     restoreScroll(savedScroll(d.k));
   },
   goback: () => goBack(),
+  // Día cerrado: la tarea pendiente deja de aparecer como pendiente y queda en su día.
+  taskleave: d => {
+    const undo = snapshot([U.date]);
+    dropTask(U.date, +d.k);
+    closeSheet();
+    render();
+    toastUndo(tr('Quedó en su día.', 'It stays on its day.'), () => { restore(undo); render(); });
+  },
   date: update(d => { U.date = d.k; }),
   // Desde el buscador del Diario, el día se abre en la tarjeta donde está lo buscado (data-f).
   openday: d => {
@@ -355,12 +363,27 @@ const ACTIONS = {
   },
 };
 
+// Registro cerrado (ver isLockedDay en rituals.js): estas acciones no cambian un día de hace más de
+// 7 días ni una semana que terminó hace más de 7 días. La pantalla ya no las muestra ahí; esto evita
+// que algo se cuele por otro camino. Sacar lo pendiente («Pasar a hoy/esta semana», «Dejar en su
+// día») sí se permite.
+const DAY_LOCKED = new Set(['taskdone', 'taskfocus', 'taskdelete']);
+const WEEK_LOCKED = new Set(['weekdone', 'weekday', 'weekdelete', 'weekmove', 'weekgoal']);
+function lockedAction(a, d) {
+  if (DAY_LOCKED.has(a)) return isLockedDay(U.date);
+  if (a === 'habittoggle' || a === 'habitday') return isLockedDay(d.date);
+  if (a === 'eventnew' || a === 'eventedit') return isLockedDay(d.k || (U.tab === 'week' ? U.calDay : U.date));
+  if (WEEK_LOCKED.has(a)) return isLockedWeek(U.week);
+  return false;
+}
+
 function onClick(e) {
   const b = e.target.closest('[data-a]');
   if (!b) return;
   const action = ACTIONS[b.dataset.a];
   if (!action) return;
   if (!canEdit() && !['dismiss', 'undo'].includes(b.dataset.a)) return;
+  if (lockedAction(b.dataset.a, b.dataset)) { e.preventDefault(); render(); return; }
   if (b.tagName !== 'INPUT') e.preventDefault();
   action(b.dataset, b, e);
 }
@@ -395,6 +418,7 @@ function onSubmit(e) {
 function quickAdd(form) {
   const input = form.querySelector('input'), value = input.value.trim();
   if (!value) return false;
+  if ((form.dataset.form === 'addtask' && isLockedDay(U.date)) || (form.dataset.form === 'addweek' && isLockedWeek(U.week))) return false; // registro cerrado
   if (form.dataset.form === 'addtask') {
     const focusFirst = dayTasks(U.date).focus.length === 0;
     addTask(U.date, value, { focus: focusFirst });
@@ -452,8 +476,8 @@ function onInput(e) {
     if (mm && monthDone(mm[1], mm[2]) && U.editing !== `month-${mm[2]}:${mm[1]}`) { render(); return; }
     setPath(el.dataset.p, el.value);
   }
-  else if (el.dataset.taskText) renameTask(U.date, +el.dataset.taskText, el.value);
-  else if (el.dataset.weekText) { const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
+  else if (el.dataset.taskText) { if (isLockedDay(U.date)) { render(); return; } renameTask(U.date, +el.dataset.taskText, el.value); }
+  else if (el.dataset.weekText) { if (isLockedWeek(U.week)) { render(); return; } const [list, i] = el.dataset.weekText.split('.'); renameWeekTask(U.week, list, +i, el.value); }
 }
 /** Una tarea que se queda sin texto al salir del campo se elimina. */
 function onFocusOut(e) {
@@ -832,7 +856,7 @@ export function initInteractions(isReady) {
   document.addEventListener('keydown', onKeydown);
   swipeZones();
   swipeRows();
-  sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (reorderTask(U.date, a, b)) render(); } });
+  sortable({ handle: '.task[data-sort]', item: '.task[data-task]', key: el => +el.dataset.task, onDrop: (a, b) => { if (!isLockedDay(U.date) && reorderTask(U.date, a, b)) render(); } });
   // Hábitos: se reordenan solo en la ventana «Reordenar» (arrastre propio, ver orderDrag en sheets.js).
 }
 export { openSettings };

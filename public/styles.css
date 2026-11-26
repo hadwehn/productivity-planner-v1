@@ -1085,3 +1085,10 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 :root[data-tasks="pills"] .card.tasks .swipe-actions { border-radius: 22px; }
 :root[data-tasks="pills"] .card.tasks .add-row { margin: 0; padding: 2px 12px; border: 1px dashed var(--line-strong); border-radius: 26px; }
 :root[data-tasks="pills"] .card.tasks > .empty-note { padding: 4px 8px !important; }
+
+/* ===== Registro cerrado (días de hace más de 7 días; ver isLockedDay) ===== */
+.locked-note { display: flex; align-items: center; gap: 8px; margin: 14px 2px 0; font-size: calc(13px * var(--ts)); color: var(--mute); }
+.locked-note .icon { width: 16px; height: 16px; flex: none; }
+.check.still { cursor: default; }
+.habit-chip.still, .event.still { cursor: default; }
+.habit-chip.still:not(.on) { opacity: .7; }

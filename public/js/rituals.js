@@ -9,6 +9,17 @@ import { iso, monday, parseDate, shiftDate, shiftMonth, weekday } from './util.j
 // bloqueo por hora. Solo cambia qué se ofrece primero al mover (p. ej., «Pasar a hoy»).
 /** La semana (que empieza el lunes `week`) ya terminó. */
 export const isPastWeek = (week, now = new Date()) => shiftDate(week, 6) < iso(now);
+
+// ——— Registro cerrado ———
+// Un día de hace más de 7 días ya es parte del registro: se lee, y lo escrito (Empieza/Cierra tu
+// día, notas) se puede corregir, pero sus tareas, eventos y hábitos ya no se cambian. Así las rachas,
+// la constancia y la revisión muestran lo que de verdad pasó. 7 días cubren los olvidos reales y el
+// ciclo de la revisión semanal. Lo pendiente sí se puede sacar de ahí («Pasar a hoy», «Pasar a esta
+// semana», «Dejar en su día»): no reescribe lo que pasó. Una semana queda igual cuando terminó hace
+// más de 7 días (su intención y su revisión siguen editables).
+export const LOCK_DAYS = 7;
+export const isLockedDay = (date, now = new Date()) => date < shiftDate(iso(now), -LOCK_DAYS);
+export const isLockedWeek = (week, now = new Date()) => isLockedDay(shiftDate(week, 6), now);
 export const isFinished = (date, which) => S.d[date]?.closed?.[which] === true;
 /** 'open' | 'done' | 'future' (todavía no llega el día) */
 export function ritualState(date, which, now = new Date()) {

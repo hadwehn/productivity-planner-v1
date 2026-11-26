@@ -7,7 +7,7 @@ import {
   movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay, repeatTask,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate } from '../public/js/habits.js';
-import { monthReminder, reviewReminder, finishMonth, hasMonthText, monthDone, reopenMonth } from '../public/js/rituals.js';
+import { monthReminder, reviewReminder, finishMonth, hasMonthText, monthDone, reopenMonth, isLockedDay, isLockedWeek } from '../public/js/rituals.js';
 import { weekQuestions } from '../public/js/prefs.js';
 import { QUOTES, quoteFor } from '../public/js/quotes.js';
 import { U } from '../public/js/ui.js';
@@ -343,6 +343,13 @@ test('eventos de varios días y rituales terminados: se ven en cada día, se val
   finishRitual(R, 'e');
   eq([ritualState(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'e', at('2026-11-11T22:00')), canEditRitual(R, 'm', at('2026-11-11T22:00'))], ['done', false, true], 'terminado queda para leer');
   eq([reopenRitual(R, 'e'), canEditRitual(R, 'e', at('2026-11-13T09:00')), S.d[R].closed], [true, true, undefined], '«Editar» lo vuelve a abrir');
+});
+
+test('registro cerrado: los días de hace más de 7 días y las semanas que terminaron hace más de 7', () => {
+  const now = new Date('2026-11-26T10:00:00');
+  eq(['2026-11-19', '2026-11-18', '2026-11-26', '2026-10-01'].map(d => isLockedDay(d, now)), [false, true, false, true], 'días');
+  // La semana del 9 al 15 terminó hace 11 días; la del 16 al 22, hace 4.
+  eq([isLockedWeek('2026-11-09', now), isLockedWeek('2026-11-16', now), isLockedWeek('2026-11-23', now)], [true, false, false], 'semanas');
 });
 
 test('foco del mes y lo mejor del mes: «Listo» los deja para leer, «Editar» los reabre y se validan', () => {

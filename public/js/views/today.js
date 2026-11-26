@@ -11,7 +11,7 @@ import { dayMonth, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, MONTHS, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
 import { checkButton, emptyState, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { eventRow, eventsOn } from '../events.js';
-import { hasContent, isFinished, monthReminder, reviewReminder, ritualState } from '../rituals.js';
+import { hasContent, isFinished, isLockedDay, monthReminder, reviewReminder, ritualState } from '../rituals.js';
 
 const wide = () => typeof matchMedia === 'function' && matchMedia('(min-width: 1200px)').matches;
 // Saludo según la hora: «Buenos días» hasta el mediodía (12:00), «Buenas tardes» hasta las 20:00.
@@ -58,28 +58,31 @@ function weekStrip(date) {
 // Deslizar una tarea a la izquierda (celular) deja a mano lo más usado del menú ⋯: pasarla al día
 // siguiente (o a hoy, si es de un día pasado) y eliminarla. Una tarea hecha solo se elimina.
 // El gesto está en interactions.js (swipeRows); se usan las mismas acciones del menú.
-function swipeActions(date, key, row) {
+function swipeActions(date, key, row, locked = false) {
+  if (locked && row.c) return ''; // un día cerrado: lo hecho queda como registro
   const T = today(), next = shiftDate(date, 1), d = parseDate(next);
   const target = date < T ? T : next;
   const label = date < T ? tr('Hoy', 'Today') : next === shiftDate(T, 1) ? tr('Mañana', 'Tomorrow') : `${DAYS[(d.getDay() + 6) % 7].slice(0, 3)} ${d.getDate()}`;
   const move = row.c ? '' : `<button type="button" class="swipe-move" data-a="taskmove" data-k="${key}" data-date="${target}" tabindex="-1">${icon('tomorrow')}<span>${label}</span></button>`;
-  return `<div class="swipe-actions" aria-hidden="true">${move}<button type="button" class="swipe-delete" data-a="taskdelete" data-k="${key}" tabindex="-1">${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button></div>`;
+  const del = locked ? '' : `<button type="button" class="swipe-delete" data-a="taskdelete" data-k="${key}" tabindex="-1">${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button>`;
+  return `<div class="swipe-actions" aria-hidden="true">${move}${del}</div>`;
 }
 
-function taskItem(date, { key, row }, focus) {
+function taskItem(date, { key, row }, focus, locked = false) {
   const linked = row.source ? `<span class="task-meta">${tr('De tu semana', 'From your week')}</span>` : '';
   const star = focus ? tr('Quitar del foco', 'Remove from focus') : tr('Poner en foco', 'Add to focus');
   // Una tarea hecha queda como registro: no se renombra (se desmarca con el círculo) ni cambia de foco.
   // Si era del foco conserva su estrella, quieta, para que se vea que era de lo más importante.
-  const text = row.c ? `<span>${esc(row.t)}</span>`
+  // En un día cerrado (más de 7 días) la tarea solo se lee; si quedó pendiente, el ⋯ ofrece sacarla de ahí.
+  const text = row.c || locked ? `<span>${esc(row.t)}</span>`
     : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
-  const starBtn = row.c ? (focus ? `<span class="task-btn star on still" title="${tr('Era del foco', 'Was in focus')}">${icon('star')}</span>` : '') : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
+  const starBtn = row.c || locked ? (focus ? `<span class="task-btn star on still" title="${tr('Era del foco', 'Was in focus')}">${icon('star')}</span>` : '') : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort data-swipe-row>
-    ${checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
+    ${locked ? `<span class="check still${row.c ? ' on' : ''}" aria-label="${row.c ? tr('Hecha', 'Done') : tr('Pendiente', 'Pending')}">${icon('check')}</span>` : checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>
     ${starBtn}
-    <button class="task-btn" data-a="taskmenu" data-k="${key}" aria-label="${tr('Más opciones', 'More options')}" title="${tr('Más opciones', 'More options')}">${icon('more')}</button>
-    ${swipeActions(date, key, row)}
+    ${locked && row.c ? '' : `<button class="task-btn" data-a="taskmenu" data-k="${key}" aria-label="${tr('Más opciones', 'More options')}" title="${tr('Más opciones', 'More options')}">${icon('more')}</button>`}
+    ${swipeActions(date, key, row, locked)}
   </div>`;
 }
 
@@ -100,22 +103,23 @@ function tasksSection(date) {
   const settled = list => [...list.filter(t => !sort.done.has(t.key)), ...list.filter(t => sort.done.has(t.key))];
   const focus = settled(focusRaw), rest = settled(restRaw);
   const doneCount = [...focus, ...rest].filter(x => x.row.c).length, total = focus.length + rest.length;
-  const items = (list, focus) => list.map(t => taskItem(date, t, focus)).join('');
+  const locked = isLockedDay(date);
+  const items = (list, focus) => list.map(t => taskItem(date, t, focus, locked)).join('');
   const focusBlock = `<div class="group-label"><span class="label gold">${icon('star')}${tr('En foco', 'In focus')}</span><span class="muted small">${focus.length && focus.every(t => t.row.c) ? tr('✓ hecho', '✓ done') : `${focus.length}/3`}</span></div>`
     + (focus.length ? items(focus, true)
-      : `<p class="empty-note" style="padding:0 8px 6px">${tr('Tus prioridades del día: marca con ★ hasta tres tareas, las que más importa sacar adelante hoy.', 'Your priorities for the day: star up to three tasks, the ones that matter most to get done today.')}</p>`);
+      : `<p class="empty-note" style="padding:0 8px 6px">${locked ? tr('Sin tareas en foco ese día.', 'No focus tasks that day.') : tr('Tus prioridades del día: marca con ★ hasta tres tareas, las que más importa sacar adelante hoy.', 'Your priorities for the day: star up to three tasks, the ones that matter most to get done today.')}</p>`);
   const restBlock = rest.length ? `<div class="divider"></div>${items(rest, false)}` : '';
-  const add = `<form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>`;
+  const add = locked ? '' : `<form class="add-row" data-form="addtask"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${tr('Añadir tarea', 'Add a task')}" aria-label="${tr('Añadir tarea', 'Add a task')}"></form>`;
   const card = `<div class="card tasks">${focusBlock}${restBlock}${add}</div>`;
   return `<section class="section">${sectionHead(tr('Tareas', 'Tasks'), total ? `<span class="muted small">${doneCount} ${tr('de', 'of')} ${total}</span>` : '')}
     ${card}</section>`;
 }
 
 function agendaSection(date) {
-  const events = eventsOn(date);
-  const add = `<button class="link" data-a="eventnew">${icon('plus')}${tr('Evento', 'Event')}</button>`;
+  const events = eventsOn(date), locked = isLockedDay(date);
+  const add = locked ? '' : `<button class="link" data-a="eventnew">${icon('plus')}${tr('Evento', 'Event')}</button>`;
   if (!events.length) return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p></section>`;
-  return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(x => eventRow(x, date)).join('')}</div></section>`;
+  return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(x => eventRow(x, date, locked)).join('')}</div></section>`;
 }
 
 // Los hábitos marcados se juntan al final (como las tareas hechas), pero no al instante: el orden
@@ -139,6 +143,8 @@ function habitsSection(date) {
   if (!list.length) return `<section class="section">${sectionHead(title, manage)}<p class="empty-note" style="margin-left:4px">${tr('Hoy es un día libre de hábitos.', 'No habits planned for today.')}</p></section>`;
   const chips = list.map(h => {
     const on = isDone(h, date), extra = isWeekly(h) ? `<small>${weekCount(h, date)}/${h.perWeek}</small>` : '';
+    // Día cerrado: los hábitos quedan como registro (no se marcan ni desmarcan).
+    if (isLockedDay(date)) return `<span class="habit-chip still${on ? ' on' : ''}" style="--c:${categoryColor(h.color ?? 0)}"><span class="dot">${icon('check')}</span><span>${esc(h.name)}</span>${extra}</span>`;
     return `<button class="habit-chip${on ? ' on' : ''}" data-a="habittoggle" data-id="${esc(h.id)}" data-date="${date}" aria-pressed="${on}" style="--c:${categoryColor(h.color ?? 0)}"><span class="dot">${icon('check')}</span><span>${esc(h.name)}</span>${extra}</button>`;
   }).join('');
   return `<section class="section">${sectionHead(title, manage)}<div class="habit-chips">${chips}</div></section>`;
@@ -257,7 +263,7 @@ export function todayView() {
   const quote = `<figure class="quote"><span class="quote-mark" aria-hidden="true">“</span><blockquote>${q}</blockquote><figcaption>${author}</figcaption></figure>`;
   const section = html => (html ? `<div class="section">${html}</div>` : '');
   const start = section(morning(date)), close = evening(date), pad = notes(date);
-  const nudge = isToday ? notices(T) : '', habits = showToday('habits') ? habitsSection(date) : '';
+  const nudge = isToday ? notices(T) : isLockedDay(date) ? `<p class="locked-note">${icon('journal')}${tr('Este día ya es parte de tu registro: puedes leerlo y editar lo que escribiste.', 'This day is now part of your record: you can read it and edit what you wrote.')}</p>` : '', habits = showToday('habits') ? habitsSection(date) : '';
   // Pantalla amplia: la franja de días y la frase ocupan todo el ancho. Debajo, a la izquierda el
   // recorrido del día (avisos → empezar → tareas → cerrar) y a la derecha, más angosto, lo que
   // acompaña (hábitos, agenda y notas). En el resto, una sola columna.

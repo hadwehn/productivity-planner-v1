@@ -9,7 +9,7 @@ import { icon } from '../icons.js';
 import { monthYear, tr, weekRange } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, monday, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
 import { eventRow, eventsOn } from '../events.js';
-import { hasMonthText, intentState, isPastWeek, monthDone, reviewState } from '../rituals.js';
+import { hasMonthText, intentState, isPastWeek, monthDone, reviewState, isLockedDay, isLockedWeek } from '../rituals.js';
 import { checkButton, field, foldable, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 
 function overview(week, side = false) {
@@ -36,7 +36,7 @@ function settledWeek(week, list, items) {
 }
 
 function weekList(week, list, title, hint, lettersHint = false) {
-  const T = today(), items = settledWeek(week, list, weekTasks(week, list));
+  const T = today(), items = settledWeek(week, list, weekTasks(week, list)), locked = isLockedWeek(week);
   const rows = items.map(({ i, row, days, done }) => {
     // Un objetivo no se reparte en días: en vez de las letras, una marca que lo distingue.
     const goal = `<div class="day-toggles"><span class="goal-tag">${icon('flag')}${tr('Objetivo', 'Goal')}</span></div>`;
@@ -45,20 +45,20 @@ function weekList(week, list, title, hint, lettersHint = false) {
       const d = shiftDate(week, w), on = days.includes(d), ok = done.includes(d), what = on ? tr('Quitar de', 'Remove from') : tr('Llevar a', 'Move to');
       const cls = `day-toggle${on ? ' on' : ''}${ok ? ' ok' : ''}`, face = ok ? icon('check') : label.slice(0, 1);
       // Hecha: las letras quedan solo para ver en qué días se hizo (ya no se lleva a otros días).
-      if (row.c) return `<span class="${cls}${d < T ? ' past' : ''} still" aria-label="${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}">${face}</span>`;
+      if (row.c || locked) return `<span class="${cls}${d < T ? ' past' : ''} still" aria-label="${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}">${face}</span>`;
       return `<button class="${cls}${d < T ? ' past' : ''}" data-a="weekday" data-list="${list}" data-i="${i}" data-k="${d}" aria-pressed="${on}" aria-label="${what} ${DAYS[w]}${ok ? ` (${tr('hecha', 'done')})` : ''}" title="${what} ${DAYS[w]}">${face}</button>`;
     }).join('') + (days.length > 1 ? `<span class="day-count">${done.filter(d => days.includes(d)).length}/${days.length}</span>` : '');
     // Hecha: el nombre queda como registro (se desmarca con el círculo para corregirlo).
-    const text = row.c ? `<span>${esc(row.t)}</span>`
+    const text = row.c || locked ? `<span>${esc(row.t)}</span>`
       : `<textarea data-week-text="${list}.${i}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea de la semana', 'Weekly task')}">${esc(row.t)}</textarea>`;
     // Al deslizar (celular): pasarla a la próxima semana (o a esta, si es de una pasada) y eliminarla.
     const ids = `data-list="${list}" data-i="${i}" tabindex="-1"`, past = isPastWeek(week);
-    const move = row.c ? '' : `<button type="button" class="swipe-move" data-a="${past ? 'weekthis' : 'weeknext'}" ${ids}>${icon('arrowRight')}<span>${past ? tr('Esta semana', 'This week') : tr('Próxima', 'Next week')}</span></button>`;
-    const swipe = `<div class="swipe-actions" aria-hidden="true">${move}<button type="button" class="swipe-delete" data-a="weekdelete" ${ids}>${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button></div>`;
+    const move = row.c ? '' : locked ? `<button type="button" class="swipe-move" data-a="weekthis" ${ids}>${icon('arrowRight')}<span>${tr('Esta semana', 'This week')}</span></button>` : `<button type="button" class="swipe-move" data-a="${past ? 'weekthis' : 'weeknext'}" ${ids}>${icon('arrowRight')}<span>${past ? tr('Esta semana', 'This week') : tr('Próxima', 'Next week')}</span></button>`;
+    const swipe = locked && row.c ? '' : `<div class="swipe-actions" aria-hidden="true">${move}${locked ? '' : `<button type="button" class="swipe-delete" data-a="weekdelete" ${ids}>${icon('trash')}<span>${tr('Eliminar', 'Delete')}</span></button>`}</div>`;
     return `<div class="wtask"><div class="task${list === 'a' ? ' focus' : ''}${row.c ? ' done' : ''}" data-swipe-row>
-      ${checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
+      ${locked ? `<span class="check still${row.c ? ' on' : ''}">${icon('check')}</span>` : checkButton(row.c, `data-a="weekdone" data-list="${list}" data-i="${i}"`, tr('Marcar como hecha', 'Mark as done'))}
       <div class="task-main">${text}</div>
-      <button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="${tr('Más opciones', 'More options')}">${icon('more')}</button>
+      ${locked && row.c ? '' : `<button class="task-btn" data-a="weekmenu" data-list="${list}" data-i="${i}" aria-label="${tr('Más opciones', 'More options')}">${icon('more')}</button>`}
       ${swipe}
     </div>${row.goal ? goal : `<div class="day-toggles" aria-label="${tr('Días', 'Days')}">${toggles}</div>`}</div>`;
   }).join('');
@@ -67,7 +67,7 @@ function weekList(week, list, title, hint, lettersHint = false) {
   const empty = hint;
   return `<section class="section">${sectionHead(title, list === 'a' ? `<span class="muted small">${items.length}/5</span>` : items.length ? `<span class="muted small">${items.length}</span>` : '', list === 'a' ? 'gold' : '')}
     <div class="card tasks">${rows || `<p class="empty-note" style="padding:6px 8px">${empty}</p>`}
-      ${full ? (list === 'a' ? `<p class="empty-note" style="padding:8px 8px 4px">${tr('Foco completo. Lo demás va en «También esta semana».', 'Focus is full. Everything else goes in “Also this week”.')}</p>` : '') : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
+      ${locked ? '' : full ? (list === 'a' ? `<p class="empty-note" style="padding:8px 8px 4px">${tr('Foco completo. Lo demás va en «También esta semana».', 'Focus is full. Everything else goes in “Also this week”.')}</p>` : '') : `<form class="add-row" data-form="addweek" data-list="${list}"><button type="submit" class="add-btn" aria-label="${tr('Añadir', 'Add')}" title="${tr('Añadir', 'Add')}">${icon('plus')}</button><input name="task" autocomplete="off" autocapitalize="none" enterkeyhint="done" placeholder="${placeholder}" aria-label="${placeholder}"></form>`}
     </div>${lettersHint ? `<p class="muted small" style="margin:8px 4px 0">${tr('Toca las letras bajo cada tarea para llevarla a un día.', 'Tap the letters under each task to move it to a day.')}</p>` : ''}</section>`;
 }
 
@@ -175,7 +175,7 @@ function monthView() {
   const m = U.month, T = today();
   const panels = [-1, 0, 1].map(o => calGrid(shiftMonth(m, o), T, o !== 0)).join('');
   const sel = U.calDay, sd = parseDate(sel);
-  const list = eventsOn(sel).map(x => eventRow(x, sel)).join('');
+  const selLocked = isLockedDay(sel), list = eventsOn(sel).map(x => eventRow(x, sel, selLocked)).join('');
   // Foco y Lo mejor del mes: se escriben y «Listo» los deja para leer (como la intención de la
   // semana); «Editar» los reabre con «Guardar».
   const three = key => {
@@ -199,7 +199,7 @@ function monthView() {
   };
   return `<div class="cols"><div class="col">
     <div class="card cal-card"><div class="cal-swipe" data-swipe="month" aria-label="${tr('Calendario del mes. Desliza para cambiar de mes.', 'Month calendar. Swipe to change month.')}"><div class="strip-track">${panels}</div></div></div>
-    <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button><button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button></span>`)}
+    <section class="section">${sectionHead(`${DAYS[weekday(sd)]} ${sd.getDate()}`, `<span class="pill-actions"><button class="pill" data-a="openday" data-k="${sel}">${tr('Abrir día', 'Open day')}${icon('right')}</button>${selLocked ? '' : `<button class="pill" data-a="eventnew" data-k="${sel}">${icon('plus')}${tr('Evento', 'Event')}</button>`}</span>`)}
       ${list ? `<div class="card" style="padding:6px 8px">${list}</div>` : `<p class="empty-note" style="margin-left:4px">${tr('Sin eventos.', 'No events.')}</p>`}</section>
     </div><div class="col">
     <section class="section">${sectionHead(tr('Foco del mes', 'Month focus'))}<div class="card">${three('p')}</div></section>

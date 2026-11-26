@@ -240,9 +240,17 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
 - Frase del día alineada a la izquierda, con «— Autor» debajo y las comillas decorativas arriba a la
   derecha (en computador, frase y autor en una línea, también con las comillas). Se probó centrada y sin guion, y se descartó.
 - Opción «Frase en días futuros» (encendida por defecto).
-- **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
-  renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
-  tarea ofrece primero «Pasar a hoy»; en una semana pasada, «Pasar a esta semana».
+- **Registro cerrado a los 7 días** (`isLockedDay`/`isLockedWeek` en `rituals.js`): un día de hace más
+  de 7 días ya es parte del registro. Se lee, y lo escrito (Empieza/Cierra tu día, ánimo y Notas) se
+  puede corregir, pero sus tareas (añadir, marcar, renombrar, estrella, eliminar, reordenar), eventos
+  y hábitos ya no cambian: así las rachas, la constancia y la revisión muestran lo que de verdad pasó.
+  Lo pendiente sí se puede sacar de ahí (⋯ o deslizar: «Pasar a hoy», «Pasar a esta semana», «Dejar
+  en su día»). Arriba aparece «Este día ya es parte de tu registro…», sin candados ni errores. Una
+  semana queda igual cuando terminó hace más de 7 días (sus tareas solo se pasan a esta semana; la
+  intención y la revisión siguen editables). 7 días cubren los olvidos reales y el ciclo de la
+  revisión semanal. Antes no había ningún bloqueo («sin limitantes»); los fundadores lo pidieron al
+  crecer el uso. Dentro de esos 7 días, los días y semanas pasados se editan igual que los actuales;
+  en un día pasado el menú ofrece primero «Pasar a hoy»; en una semana pasada, «Pasar a esta semana».
 - Pendientes: Hoy avisa de los últimos 21 días; una ventana centrada (como «Reordenar hábitos»)
   ofrece por tarea «Pasar a hoy» · «Pasar a esta semana» · «Dejar en su día», y «Pasar todo a hoy».
   Antes decía «Traer · A la semana · Soltar»: «soltar» no decía qué pasaba (nada se suelta, la tarea
