@@ -296,7 +296,8 @@ dispositivo, en `localStorage`.
   fundadores tras probar versalitas, mayúsculas más grandes y minúsculas). Se guardan tal como se
   escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
-  en oscuro. Títulos, nombres de tarjetas, títulos de hojas y cifras en **Outfit** (la fuente de
+  en oscuro. Títulos, el periodo bajo el título y la franja de días de Hoy, nombres de tarjetas, títulos
+  de hojas y cifras en **Outfit** (la fuente de
   «FOCUS», `--display`); la serif cursiva queda para lo que se lee con calma (frase del día, lo
   escrito en rituales y Diario, «a la vez.» del acceso). Se probó a pedido de los fundadores y
   **puede que se vuelva a la serif en títulos** (la versión anterior, `--serif`): para volver, cambiar

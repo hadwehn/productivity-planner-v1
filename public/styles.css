@@ -110,7 +110,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .subtitle { color: var(--ink-2); font-size: calc(14px * var(--ts)); margin: 6px 0 0; }
 .subtitle .period { display: inline-flex; align-items: center; min-height: 30px; white-space: nowrap; } /* misma altura que la fila ‹ fechas › de Plan y Diario */
 /* El periodo que muestra cada pantalla (el día en Hoy, el mes en Diario, la semana o el mes en Plan) va en negrita, con la misma letra. */
-.subtitle .period, .subtitle .range > span, .plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); }
+.subtitle .period, .subtitle .range > span, .plan-range b { font-family: var(--display); font-weight: 500; font-size: calc(15px * var(--ts)); color: var(--ink); }
 .icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); flex: none; position: relative; transition: background .2s; }
 .icon-btn:hover { background: var(--sunken); }
 .icon-btn .icon { width: 22px; height: 22px; }
@@ -213,11 +213,11 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .swipe-hint { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0 -8px; font-size: calc(12px * var(--ts)); color: var(--mute); }
 .swipe-hint .icon { width: 13px; height: 13px; opacity: .7; }
 .day-pill { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 9px; border-radius: 14px; color: var(--ink-2); transition: background .2s; }
-.day-pill span { font-size: calc(11px * var(--ts)); font-weight: 600; letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
-.day-pill b { font: 500 calc(18px * var(--ts))/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+.day-pill span { font-family: var(--display); font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
+.day-pill b { font: 400 calc(18px * var(--ts))/1.2 var(--display); font-variant-numeric: tabular-nums; }
 .day-pill i { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--line-strong); }
 .day-pill i.full { background: var(--acc); }
-.day-pill.today b { color: var(--acc); font-weight: 700; }
+.day-pill.today b { color: var(--acc); font-weight: 600; }
 .day-pill.on { background: var(--ink); color: var(--bg); }
 .day-pill.on span, .day-pill.on b { color: var(--bg); }
 .day-pill.on i { background: var(--bg); opacity: .7; }
