@@ -125,6 +125,11 @@ dispositivo, en `localStorage`.
   Ese texto va justificado (bordes parejos), con guiones automáticos para que en el celular no
   queden espacios muy grandes entre palabras. Antes «Editar» reabría de verdad y, si uno salía sin
   volver a cerrar, el día quedaba abierto y pedía «Cerrar el día» otra vez.
+- Un día **pasado** con algo escrito que nunca se cerró con el botón (estado `written` en
+  `ritualState`) también se muestra para leer, con «Quedó escrito · Editar», y «Guardar» solo guarda:
+  no cierra el día ni ofrece mover las pendientes. Antes su único botón era «Cerrar el día», y al
+  corregir algo desde el buscador del Diario el día se cerraba con todo lo que eso trae. Sigue con la
+  luna (no el ✓), porque no se cerró. Hoy y los días pasados sin nada escrito, igual que antes.
 - Al pasar a otro día (u otra semana en Plan), las tarjetas que estaban abiertas se pliegan y se
   sale del modo «Editar»: el periodo nuevo se ve como siempre (`U.foldsFor` en `render`).
 - Plan › Semana: «Intención de la semana» y «Revisión semanal» funcionan como «Empieza/Cierra tu

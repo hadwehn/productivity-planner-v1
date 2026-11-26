@@ -123,13 +123,13 @@ const ritualField = (editable, path, label, placeholder, cls = '', id = '', hint
 /** Pie del ritual: botón para terminarlo o, ya terminado, la opción de volver a editarlo. */
 function ritualFoot(date, which, state) {
   // Editando uno ya terminado: sigue terminado; «Guardar» solo vuelve a dejarlo para leer.
-  if (state === 'done' && U.editing === `${which}:${date}`) return `<button class="btn ritual-finish" data-a="ritualsave" data-k="${which}">${icon('check')}${tr('Guardar', 'Save')}</button>`;
+  if ((state === 'done' || state === 'written') && U.editing === `${which}:${date}`) return `<button class="btn ritual-finish" data-a="ritualsave" data-k="${which}">${icon('check')}${tr('Guardar', 'Save')}</button>`;
   if (state === 'open') {
     const label = which === 'e' ? tr('Cerrar el día', 'Close the day') : date < today() ? tr('Listo', 'Done') : tr('Listo, empezar el día', 'Done, start the day');
     return `<button class="btn ritual-finish" data-a="ritualdone" data-k="${which}">${icon('check')}${label}</button>`;
   }
   if (state === 'future') return `<p class="ritual-note">${icon('calendar')}${tr('Podrás escribirlo cuando llegue ese día.', 'You can write it when that day comes.')}</p>`;
-  const note = which === 'm' ? tr('Empezaste este día.', 'You started this day.') : tr('Cerraste este día.', 'You closed this day.');
+  const note = state === 'written' ? tr('Quedó escrito.', 'It’s written.') : which === 'm' ? tr('Empezaste este día.', 'You started this day.') : tr('Cerraste este día.', 'You closed this day.');
   return `<p class="ritual-note">${icon('check')}${note}<button class="link" data-a="ritualedit" data-k="${which}">${tr('Editar', 'Edit')}</button></p>`;
 }
 
