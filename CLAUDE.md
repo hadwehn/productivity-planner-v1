@@ -296,7 +296,11 @@ dispositivo, en `localStorage`.
   fundadores tras probar versalitas, mayúsculas más grandes y minúsculas). Se guardan tal como se
   escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
-  en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
+  en oscuro. Títulos, nombres de tarjetas, títulos de hojas y cifras en **Outfit** (la fuente de
+  «FOCUS», `--display`); la serif cursiva queda para lo que se lee con calma (frase del día, lo
+  escrito en rituales y Diario, «a la vez.» del acceso). Se probó a pedido de los fundadores y
+  **puede que se vuelva a la serif en títulos** (la versión anterior, `--serif`): para volver, cambiar
+  `--display` a `var(--serif)` y revisar pesos y tamaños en `styles.css`. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   Enter solo salta de línea. Las notas se guardan al escribir.
 - Teclado sin fila de palabras sugeridas (como Spotify) en todos los campos de texto. En el iPhone
   esa fila va unida al autocorrector, que reemplaza solo la palabra: no se pueden separar desde una
@@ -308,8 +312,8 @@ dispositivo, en `localStorage`.
 - Marca en la barra lateral del computador y en la pantalla de acceso: «FOCUS» grande (el nombre de la
   app) y debajo, más chico, «by estoico.» con el logo (antes el logo grande con «FOCUS» chico). «FOCUS»
   va en **Outfit liviana** (300), elegida por los fundadores entre unas 20 fuentes: sin serifa, contrasta
-  con el logo serif. Va incluida en la app (`public/fonts/`, licencia OFL) porque la política de
-  seguridad de `vercel.json` solo permite fuentes propias; se usa solo en «FOCUS» (`--brand`).
+  con el logo serif. Va incluida en la app (`public/fonts/outfit-latin.woff2`, variable 300–600,
+  licencia OFL) porque la política de seguridad de `vercel.json` solo permite fuentes propias.
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
 - Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 
