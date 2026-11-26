@@ -56,7 +56,8 @@ export function navDots(now = new Date()) {
 export function renderNav() {
   if (resizer && $('#v')) resizer.observe($('#v'));
   // La marca y los atajos solo se ven en la barra lateral del computador (ver «Escritorio» en styles.css).
-  $('#nav').innerHTML = `<div class="nav-brand" aria-hidden="true"><img class="wordmark-light" src="icons/estoico-icon.png?v=3" width="240" height="80" alt=""><img class="wordmark-dark" src="icons/estoico-icon-dark.png?v=1" width="240" height="80" alt=""><span>FOCUS</span></div>`
+  // «FOCUS» es el nombre de la app, grande; debajo, más chico, «by estoico.» con el logo de la marca.
+  $('#nav').innerHTML = `<div class="nav-brand" aria-hidden="true"><strong>FOCUS</strong><span class="nav-by">by<span class="nav-logo"><img class="wordmark-light" src="icons/estoico-icon.png?v=3" width="240" height="80" alt=""><img class="wordmark-dark" src="icons/estoico-icon-dark.png?v=1" width="240" height="80" alt=""></span></span></div>`
     + TABS().map(([k, label]) => `<button data-a="go" data-k="${k}">${icon(k)}<span>${label}</span></button>`).join('')
     + `<button class="nav-help" data-a="shortcuts">${icon('keyboard')}<span>${tr('Atajos de teclado', 'Keyboard shortcuts')}</span><kbd>?</kbd></button>`;
 }

@@ -812,12 +812,16 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   nav.tabbar button[data-k="week"] { order: 2; }
   nav.tabbar button[data-k="habits"] { order: 3; }
   nav.tabbar button[data-k="journal"] { order: 4; }
-  .nav-brand { display: flex; align-items: center; gap: 2px; order: 0; padding: 0 4px 22px; }
-  .nav-brand img { width: 118px; height: auto; margin-left: -8px; }
+  /* «FOCUS» grande (nombre de la app) y debajo «by estoico.», más chico, con el logo. La imagen del
+     logo trae márgenes transparentes: los márgenes negativos la recortan a lo que se ve. */
+  .nav-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; order: 0; padding: 0 6px 24px; }
+  .nav-brand strong { font: 500 30px/1 var(--serif); letter-spacing: .1em; color: var(--ink); }
+  .nav-by { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--mute); padding-left: 2px; }
+  .nav-logo { display: flex; }
+  .nav-brand img { width: 84px; height: auto; margin: -6.7px -10.3px -7.8px -9.7px; }
   .nav-brand .wordmark-dark { display: none; }
   :root[data-appearance="dark"] .nav-brand .wordmark-light { display: none; }
   :root[data-appearance="dark"] .nav-brand .wordmark-dark { display: block; }
-  .nav-brand span { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: var(--mute); padding-top: 3px; }
   nav.tabbar .nav-help { display: flex; order: 9; margin-top: auto; font-size: calc(13px * var(--ts)); font-weight: 500; }
   .nav-help span { white-space: nowrap; }
   nav.tabbar .nav-help .icon { width: 18px; height: 18px; }
