@@ -1,4 +1,5 @@
 // Dibuja la pestaña activa conservando scroll y foco.
+import { drawBackButton } from './back.js';
 import { U, dueRituals } from './ui.js';
 import { $, $$, iso, monday, today } from './util.js';
 import { icon } from './icons.js';
@@ -148,6 +149,7 @@ export function render(toTop = false) {
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
   navDots();
+  drawBackButton(view);
   fitHead(view);
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));

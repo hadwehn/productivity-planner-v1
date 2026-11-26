@@ -82,6 +82,8 @@ svg { display: block; }
 #planner, #planner button, #planner label { -webkit-user-select: none; user-select: none; }
 #planner input, #planner textarea, #planner [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
 
+/* Los estilos al pasar el puntero (:hover) van solo en equipos con mouse: en el iPhone quedan
+   «pegados» después de tocar (p. ej., la B de negrita seguía marcada). */
 /* ===== Estructura ===== */
 main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter) calc(100px + env(safe-area-inset-bottom)); }
 /* Cabecera fija de cada pantalla: el contenido pasa por debajo al desplazarse. */
@@ -122,7 +124,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* El periodo que muestra cada pantalla (el día en Hoy, el mes en Diario, la semana o el mes en Plan) va en negrita, con la misma letra. */
 .subtitle .period, .subtitle .range > span, .plan-range b { font-family: var(--display); font-weight: 500; font-size: calc(15px * var(--ts)); color: var(--ink); }
 .icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); flex: none; position: relative; transition: background .2s; }
-.icon-btn:hover { background: var(--sunken); }
+@media (hover: hover) { .icon-btn:hover { background: var(--sunken); } }
 .icon-btn .icon { width: 22px; height: 22px; }
 /* La tuerca de ajustes con esquinas nítidas en sus dientes. */
 .icon-btn[data-a=settings] .icon { stroke-linejoin: miter; stroke-miterlimit: 4; }
@@ -191,7 +193,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
    pantalla y cada panel lleva su margen, así los vecinos no se mezclan al deslizar. */
 .plan-head { position: relative; margin: 6px 0 0; }
 .plan-head > .icon-btn { position: absolute; top: 0; right: 0; z-index: 1; background: var(--bg); box-shadow: -10px 0 12px 2px var(--bg), 0 0 0 6px var(--bg); } /* al deslizar, el título pasa por debajo de Ajustes */
-.plan-head > .icon-btn:hover { background: var(--sunken); }
+@media (hover: hover) { .plan-head > .icon-btn:hover { background: var(--sunken); } }
 .plan-swipe, .ov-swipe { overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; margin: 0 calc(-1 * var(--gutter)); }
 .plan-swipe .strip-track, .ov-swipe .strip-track { align-items: flex-start; }
 .strip-track > .plan-head-panel, .strip-track > .week-overview { flex: 0 0 100%; min-width: 0; padding: 0 var(--gutter); }
@@ -243,7 +245,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .ring-day b.none::before { background: none; }
 .ring-day.full b { color: var(--acc); font-weight: 700; }
 .ring-day.future { opacity: .45; }
-.ring-day:hover { background: var(--sunken); }
+@media (hover: hover) { .ring-day:hover { background: var(--sunken); } }
 .entry-grid { display: grid; gap: 12px; }
 .entry-grid > .card + .card { margin-top: 0; }
 
@@ -271,7 +273,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .mood { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 2px; border-radius: 14px; border: 1px solid var(--line); font-size: calc(12px * var(--ts)); color: var(--ink-2); transition: background .2s, border-color .2s, color .2s; }
 .mood .face { width: 30px; height: 30px; stroke-width: 1.5; color: var(--mute); transition: transform .2s var(--ease), color .2s; }
-.mood:hover .face { color: var(--ink-2); }
+@media (hover: hover) { .mood:hover .face { color: var(--ink-2); } }
 .mood.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: var(--ink); font-weight: 600; }
 .mood.on .face { color: var(--c); transform: scale(1.12); stroke-width: 1.8; }
 
@@ -279,7 +281,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .tasks { padding: 6px 10px 8px; }
 .group-label { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 4px; }
 .task { display: flex; align-items: flex-start; gap: 10px; padding: 6px 4px 6px 6px; border-radius: 12px; position: relative; transition: background .15s; }
-.task:hover { background: color-mix(in srgb, var(--sunken) 55%, transparent); }
+@media (hover: hover) { .task:hover { background: color-mix(in srgb, var(--sunken) 55%, transparent); } }
 .check { width: 26px; height: 26px; margin-top: 7px; flex: none; border-radius: 50%; border: 1.6px solid var(--line-strong); display: grid; place-items: center; color: transparent; transition: background .2s, border-color .2s, transform .15s var(--ease); }
 .check .icon { width: 15px; height: 15px; stroke-width: 2.4; }
 .check:active { transform: scale(.9); }
@@ -295,7 +297,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .task-meta { display: block; font-size: calc(12px * var(--ts)); color: var(--mute); margin: -6px 0 6px; }
 .task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .task-btn { width: 36px; height: 40px; display: grid; place-items: center; color: var(--mute); flex: none; border-radius: 10px; }
-.task-btn:hover { color: var(--ink); }
+@media (hover: hover) { .task-btn:hover { color: var(--ink); } }
 .task-btn.star.on { color: var(--gold); }
 .task-btn.star.on .icon { fill: currentColor; }
 /* El título «En foco» lleva la misma estrella rellena que marca las tareas en foco. */
@@ -308,7 +310,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .is-dragging .task textarea { pointer-events: none; }
 .add-row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 4px; margin-top: 2px; border-top: 1px dashed var(--line); }
 .add-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--acc); transition: background .15s; }
-.add-btn:hover, .add-btn:active { background: var(--sunken); }
+.add-btn:active { background: var(--sunken); }
+@media (hover: hover) { .add-btn:hover { background: var(--sunken); } }
 .add-row .add-btn .icon { color: inherit; margin: 0; }
 .add-row input { padding: 12px 0; }
 .divider { height: 1px; background: var(--line); margin: 6px 8px; }
@@ -338,7 +341,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 
 /* ===== Agenda ===== */
 .event { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 8px; border-radius: 12px; }
-.event:hover { background: var(--sunken); }
+@media (hover: hover) { .event:hover { background: var(--sunken); } }
 .event time { font-size: calc(13px * var(--ts)); font-weight: 600; color: var(--ink-2); width: 48px; flex: none; font-variant-numeric: tabular-nums; }
 .event .bar { width: 3px; align-self: stretch; border-radius: 3px; background: var(--c); flex: none; }
 .event span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -524,7 +527,7 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* ===== Notas ===== */
 .notes-toolbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 8px; }
 .notes-toolbar button { min-width: 42px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: calc(16px * var(--ts)); color: var(--ink-2); transition: background .15s, color .15s; }
-.notes-toolbar button:hover { background: var(--sunken); }
+@media (hover: hover) { .notes-toolbar button:hover { background: var(--sunken); } }
 .notes-toolbar button[aria-pressed="true"] { background: var(--acc-soft); color: var(--acc); }
 .notes-toolbar button b { font-weight: 750; }
 .notes-toolbar button i { font-style: italic; font-family: var(--serif); font-size: calc(18px * var(--ts)); }
@@ -600,7 +603,7 @@ dialog.sheet.notes-sheet { display: flex; flex-direction: column; overflow: hidd
 .notes-sheet .notes-clear { color: var(--mute); }
 .notes-sheet .notes-done { flex: none; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: calc(14px * var(--ts)); }
 .notes-sheet .notes-done .icon { width: 16px; height: 16px; stroke-width: 2.4; }
-.notes-sheet .notes-clear:hover { color: var(--danger); }
+@media (hover: hover) { .notes-sheet .notes-clear:hover { color: var(--danger); } }
 .notes-sheet .sheet-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 16px; }
 .notes-sheet .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .notes-sheet .notes-toolbar { flex: none; }
@@ -647,7 +650,7 @@ dialog.sheet .sheet-head { touch-action: none; }
 .stepper b { font: 400 26px/1 var(--display); min-width: 28px; text-align: center; }
 .menu { display: grid; gap: 2px; margin: 0 -10px; }
 .menu button { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 10px 12px; border-radius: 14px; text-align: left; font-size: calc(16px * var(--ts)); }
-.menu button:hover { background: var(--sunken); }
+@media (hover: hover) { .menu button:hover { background: var(--sunken); } }
 .menu button .icon { color: var(--ink-2); }
 .menu button.danger, .menu button.danger .icon { color: var(--danger); }
 .menu-text { display: flex; flex-direction: column; gap: 1px; }
@@ -906,7 +909,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 }
 /* Plan: fila de fechas bajo el título, a todo el ancho, con «‹ Esta semana» / «‹ Este mes» en la misma línea. */
 .plan-range { display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; white-space: nowrap; }
-.plan-range b { font-weight: 650; font-size: calc(15px * var(--ts)); color: var(--ink); padding: 0 2px; font-variant-numeric: tabular-nums; }
+.plan-range b { font-weight: 500; font-size: calc(15px * var(--ts)); color: var(--ink); padding: 0 2px; font-variant-numeric: tabular-nums; }
 .plan-range .cap { text-transform: capitalize; }
 /* Plan: selector Semana | Mes y, fuera del presente, «‹ Hoy» a su lado. */
 .plan-controls { display: flex; align-items: center; gap: 8px; }
@@ -996,7 +999,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .when-more .icon { width: 18px; height: 18px; }
 .overdue-row { display: grid; gap: 8px; padding: 10px 0; }
 .overdue-actions { display: flex; gap: 6px; }
-.overdue-actions .btn.small { flex: 1; padding-inline: 8px; white-space: nowrap; }
+.overdue-actions .btn.small { flex: 1; padding-inline: 6px; white-space: normal; line-height: 1.2; text-align: center; font-size: calc(13px * var(--ts)); }
 @media (min-width: 560px) { .overdue-row { grid-template-columns: 1fr auto; align-items: center; } .overdue-actions .btn.small { flex: none; } }
 
 /* ===== Volver deslizando desde el borde (ver back.js) ===== */
@@ -1051,3 +1054,10 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 @keyframes c-ring { to { stroke-dashoffset: 0; } }
 @keyframes c-spark { 0% { opacity: 0; transform: rotate(var(--a)) translateY(-26px) scale(.6); } 30% { opacity: .9; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-44px) scale(1); } }
 @keyframes c-out { 0%, 70% { opacity: 1; transform: scale(1); } 45% { transform: scale(1.06); } 100% { opacity: 0; transform: scale(1.12); } }
+
+/* Flecha para volver (ver drawBackButton en back.js): círculo a la izquierda del título. */
+.title.with-back { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.back-btn { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); color: var(--ink); transition: transform .12s var(--ease), background-color .15s; }
+.back-btn .icon { width: 20px; height: 20px; stroke-width: 2; margin-left: -2px; }
+.back-btn:active { transform: scale(.94); }
+@media (hover: hover) { .back-btn:hover { background: var(--line); } }

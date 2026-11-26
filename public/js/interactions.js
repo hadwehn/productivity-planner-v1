@@ -1,7 +1,7 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
 import { celebrate, celebrates } from './celebrate.js';
-import { clearBack, initBackSwipe, pushBack } from './back.js';
+import { clearBack, goBack, initBackSwipe, pushBack } from './back.js';
 import { U, applyTextSize, setAppearance, storedAppearance, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
@@ -122,6 +122,7 @@ const ACTIONS = {
     render(true);
     restoreScroll(savedScroll(d.k));
   },
+  goback: () => goBack(),
   date: update(d => { U.date = d.k; }),
   // Desde el buscador del Diario, el día se abre en la tarjeta donde está lo buscado (data-f).
   openday: d => {

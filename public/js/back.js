@@ -5,6 +5,8 @@
 // La barra de secciones empieza de cero: tocarla borra el camino de vuelta.
 import { U } from './ui.js';
 import { render } from './render.js';
+import { icon } from './icons.js';
+import { tr } from './i18n.js';
 
 const EDGE = 24, MAX = 10;
 let trail = [];
@@ -27,6 +29,19 @@ export function goBack() {
   render(true);
   scrollTo(0, y);
   return true;
+}
+
+/**
+ * Flecha «‹» en un círculo a la izquierda del título (como en Spotify), solo cuando hay a dónde
+ * volver. Hace lo mismo que el gesto y sirve también con el mouse. Va dentro del título, así la
+ * cabecera no cambia de alto. Se llama en cada render.
+ */
+export function drawBackButton(view) {
+  if (!canGoBack()) return;
+  const title = [...view.querySelectorAll('.sticky-head .title')].find(t => !t.closest('[aria-hidden="true"]'));
+  if (!title || title.querySelector('.back-btn')) return;
+  title.classList.add('with-back');
+  title.insertAdjacentHTML('afterbegin', `<button type="button" class="back-btn" data-a="goback" aria-label="${tr('Volver', 'Back')}" title="${tr('Volver', 'Back')}">${icon('left')}</button>`);
 }
 
 /** Gesto: arrastrar desde el borde izquierdo. La pantalla sigue al dedo; pasada la mitad (o con un

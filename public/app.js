@@ -277,8 +277,8 @@ function startPlanner(store, user, generation, fromCloud) {
     const notices = [];
     if (fromSomeday) notices.push(fromSomeday === 1 ? tr('Una tarea de «Algún día» pasó a hoy.', 'A “Someday” task moved to today.')
       : tr(`${fromSomeday} tareas de «Algún día» pasaron a hoy.`, `${fromSomeday} “Someday” tasks moved to today.`));
-    if (dropped) notices.push(dropped === 1 ? tr('Se soltó una tarea pendiente de hace más de tres semanas; queda en su día.', 'A task left over from over three weeks ago was let go; it stays on its day.')
-      : tr(`Se soltaron ${dropped} tareas pendientes de hace más de tres semanas; quedan en su día.`, `${dropped} tasks left over from over three weeks ago were let go; they stay on their day.`));
+    if (dropped) notices.push(dropped === 1 ? tr('Una tarea pendiente de hace más de tres semanas quedó en su día.', 'A task left over from over three weeks ago stayed on its day.')
+      : tr(`${dropped} tareas pendientes de hace más de tres semanas quedaron en su día.`, `${dropped} tasks left over from over three weeks ago stayed on their day.`));
     if (notices.length) toast(notices.join(' '));
     void updateAccountRole(user.id, generation);
   }, 0);

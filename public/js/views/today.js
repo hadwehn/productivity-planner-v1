@@ -24,7 +24,8 @@ export const greeting = () => {
 export function refreshGreeting() {
   if (U.tab !== 'today' || U.date !== today()) return;
   const title = document.querySelector('#v .page-head .title'), text = greeting();
-  if (title && title.textContent !== text) title.textContent = text;
+  const node = title && [...title.childNodes].reverse().find(n => n.nodeType === Node.TEXT_NODE);
+  if (node && node.textContent !== text) node.textContent = text;
 }
 const preview = (value, max = 90) => { const t = String(value || '').replace(/\s+/g, ' ').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
 

@@ -128,7 +128,9 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   otra pantalla (un día desde Plan, Hábitos o el Diario; «Ver todo»; los avisos que llevan a Plan;
   «Cerrarlo» de ayer) se anota dónde estabas, y arrastrar desde el borde te devuelve ahí, en el mismo
   punto de la página. La pantalla sigue al dedo; pasado el 40 % (o con un movimiento rápido) vuelve.
-  Tocar la barra de secciones borra el camino de vuelta. Solo con el dedo.
+  Tocar la barra de secciones borra el camino de vuelta. Mientras haya a dónde volver, a la
+  izquierda del título aparece una flecha «‹» en un círculo (como en Spotify) que hace lo mismo y
+  sirve también con el mouse (`drawBackButton`); va dentro del título, así la cabecera no crece.
 - Celebraciones sutiles (`celebrate.js`): al completar el foco del día (en bronce, sobre la tarea
   que lo completó), marcar el último hábito que tocaba ese día, cerrar el día y cerrar la semana:
   un anillo que se cierra alrededor del ✓ de lo que se tocó y unos destellos breves (≈1 s). Sin sonido
@@ -236,8 +238,12 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
 - **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
   renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
   tarea ofrece primero «Pasar a hoy»; en una semana pasada, «Pasar a esta semana».
-- Pendientes: Hoy avisa de los últimos 21 días; la hoja ofrece Traer · A la semana · Soltar. Lo
-  pendiente más antiguo se suelta solo al abrir la app (con un aviso) y queda en su día.
+- Pendientes: Hoy avisa de los últimos 21 días; una ventana centrada (como «Reordenar hábitos»)
+  ofrece por tarea «Pasar a hoy» · «Pasar a esta semana» · «Dejar en su día», y «Pasar todo a hoy».
+  Antes decía «Traer · A la semana · Soltar»: «soltar» no decía qué pasaba (nada se suelta, la tarea
+  queda en su día) y se cambió a los mismos verbos del menú de tarea. Lo pendiente más antiguo queda
+  solo en su día al abrir la app (con un aviso). La hoja de cerrar el día («¿La pasas a mañana?»)
+  también va al centro, con «Dejarlas en su día».
 
 **Horizontes: un día o esta semana**
 - Todo responde a «¿cuándo?»: un día o la semana (sin día). «Objetivo» no es un lugar: es una forma

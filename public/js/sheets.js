@@ -334,6 +334,11 @@ export function doToggleFocus(date, key) {
 }
 
 // ——— Pendientes de días anteriores ———
+/** Abre la hoja como ventana centrada (ver «Reordenar hábitos»). */
+function centered(dlg) {
+  dlg.classList.add('center-sheet');
+  dlg.addEventListener('close', () => dlg.classList.remove('center-sheet'), { once: true });
+}
 export function overdueSheet() {
   const T = today(), items = overdue(T);
   if (!items.length) { closeSheet(); render(); return; }
@@ -341,12 +346,13 @@ export function overdueSheet() {
     const pd = parseDate(date);
     // Nombre arriba y las tres acciones debajo: así el nombre no se aprieta en el celular.
     return `<div class="overdue-row"><div class="task-main"><span class="caps" style="overflow-wrap:anywhere">${esc(row.t)}</span><span class="task-meta" style="margin:2px 0 0">${DAYS[weekday(pd)]} ${pd.getDate()}</span></div><div class="overdue-actions">
-      <button class="btn small secondary" data-a="overduebring" data-date="${date}" data-k="${key}">${tr('Traer', 'Bring')}</button>
-      <button class="btn small quiet" data-a="overdueweek" data-date="${date}" data-k="${key}" title="${tr('Va esta semana, sin día', 'It goes this week, no day')}">${tr('A la semana', 'To the week')}</button>
-      <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Soltar', 'Let go')}</button></div></div>`;
+      <button class="btn small secondary" data-a="overduebring" data-date="${date}" data-k="${key}">${tr('Pasar a hoy', 'Move to today')}</button>
+      <button class="btn small quiet" data-a="overdueweek" data-date="${date}" data-k="${key}" title="${tr('Va esta semana, sin día', 'It goes this week, no day')}">${tr('Pasar a esta semana', 'Move to this week')}</button>
+      <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Dejar en su día', 'Leave on its day')}</button></div></div>`;
   }).join('<div class="divider" style="margin:0"></div>');
-  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Trae a hoy lo que sigue importando. Si va esta semana pero no sabes qué día, pásala a la semana. Suelta lo que ya no: queda guardado en su día, sin culpa.', 'Bring to today what still matters. If it’s for this week but you don’t know the day, move it to the week. Let go of what doesn’t: it stays saved on its day, guilt-free.')}</p>${rows}
-    <div class="row-actions"><button class="btn" data-a="overdueall">${tr('Traer todo a hoy', 'Bring all to today')}</button></div>`);
+  // Ventana al centro (como «Reordenar hábitos»): es una decisión puntual, no un menú.
+  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Pasa a hoy lo que sigue importando. Si es para esta semana pero no sabes qué día, pásala a esta semana. Lo que ya no, déjalo en su día: queda guardado ahí, sin culpa.', 'Move to today what still matters. If it’s for this week but you don’t know the day, move it to this week. What doesn’t, leave on its day: it stays saved there, guilt-free.')}</p>${rows}
+    <div class="row-actions"><button class="btn" data-a="overdueall">${tr('Pasar todo a hoy', 'Move all to today')}</button></div>`, centered);
 }
 export function overdueAction(kind, date, key) {
   const T = today();
@@ -644,8 +650,8 @@ export function carryOverSheet(date, undo) {
   openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr(`Te quedó una tarea sin terminar. ¿La pasas a ${past ? 'hoy' : 'mañana'}?`, `One task is left. Move it to ${past ? 'today' : 'tomorrow'}?`) : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas a ${past ? 'hoy' : 'mañana'}?`, `${n} tasks are left. Move them to ${past ? 'today' : 'tomorrow'}?`)}</p>
     <ul class="carry-list">${pending.map(t => `<li>${isFocusKey(t.key) ? icon('star', 'icon star-fill') : '<i class="dot"></i>'}<span class="caps">${esc(t.row.t)}</span></li>`).join('')}</ul>
     <button class="btn" data-a="carryover">${icon('tomorrow')}${past ? tr('Pasar a hoy', 'Move to today') : tr('Pasar a mañana', 'Move to tomorrow')}</button>
-    <button class="btn quiet" data-a="dismiss" style="margin-top:8px">${tr('Dejarlas aquí', 'Leave them here')}</button>
-    <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`);
+    <button class="btn quiet" data-a="dismiss" style="margin-top:8px">${n === 1 ? tr('Dejarla en su día', 'Leave it on its day') : tr('Dejarlas en su día', 'Leave them on their day')}</button>
+    <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`, centered);
   return true;
 }
 export function doCarryOver(date) {
