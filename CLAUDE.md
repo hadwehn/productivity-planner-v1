@@ -275,9 +275,11 @@ dispositivo, en `localStorage`.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Serif para títulos. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   Enter solo salta de línea. Las notas se guardan al escribir.
-- Teclado sin fila de sugerencias ni autocorrector en todos los campos de texto (como Spotify; los
-  fundadores lo prefirieron aunque se advirtió que el corrector ayuda en textos largos). Quedan
-  fuera el correo y los códigos de acceso (`quietKeyboard` en `interactions.js`). La barra ˄ ˅ OK
+- Teclado sin fila de palabras sugeridas (como Spotify) en todos los campos de texto. En el iPhone
+  esa fila va unida al autocorrector, que reemplaza solo la palabra: no se pueden separar desde una
+  página web. Por eso se apaga `autocorrect` y queda el corrector ortográfico (`spellcheck`), que
+  subraya los errores y al tocarlos ofrece cómo corregirlos. Se probó sin corrector y los fundadores
+  lo pidieron de vuelta. Quedan fuera el correo y los códigos de acceso (`quietKeyboard` en `interactions.js`). La barra ˄ ˅ OK
   sobre el teclado la pone Safari y no se puede quitar en la web: quitarla al llegar a la App Store
   (en Capacitor, `Keyboard.setAccessoryBarVisible({ isVisible: false })`).
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.

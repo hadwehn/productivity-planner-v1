@@ -735,8 +735,10 @@ function sheetDrag() {
   document.addEventListener('pointercancel', end);
 }
 
-// Teclado sin fila de sugerencias ni autocorrector (como el de Spotify): decisión de los fundadores.
-// Se marca cada campo de texto apenas aparece, porque el iPhone lee estos atributos al enfocarlo.
+// Teclado sin fila de palabras sugeridas (como el de Spotify): decisión de los fundadores.
+// En el iPhone esa fila va unida al autocorrector (autocorrect), así que se apaga y se deja el
+// corrector ortográfico (spellcheck): subraya los errores y al tocarlos ofrece cómo corregirlos.
+// Se marca cada campo apenas aparece, porque el iPhone lee estos atributos al enfocarlo.
 // Quedan fuera el correo y los códigos de acceso, que usan el autocompletado del sistema.
 const TEXT_FIELDS = 'textarea, [contenteditable="true"], input:not([type]), input[type="text"], input[type="search"]';
 function quietKeyboard(root) {
@@ -745,7 +747,7 @@ function quietKeyboard(root) {
     if (el.autocomplete === 'one-time-code' || el.dataset.quiet) continue;
     el.dataset.quiet = '1';
     el.setAttribute('autocorrect', 'off');
-    el.setAttribute('spellcheck', 'false');
+    el.setAttribute('spellcheck', el.type === 'search' ? 'false' : 'true');
     if (el.matches('input')) el.setAttribute('autocomplete', 'off');
   }
 }
