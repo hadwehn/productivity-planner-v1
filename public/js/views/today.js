@@ -14,10 +14,18 @@ import { eventRow, eventsOn } from '../events.js';
 import { hasContent, isFinished, monthReminder, reviewReminder, ritualState } from '../rituals.js';
 
 const wide = () => typeof matchMedia === 'function' && matchMedia('(min-width: 1200px)').matches;
-const greeting = () => {
+// Saludo según la hora: «Buenos días» hasta el mediodía (12:00), «Buenas tardes» hasta las 20:00.
+// Con la app abierta se actualiza solo cada minuto (ver refreshGreeting).
+export const greeting = () => {
   const h = new Date().getHours();
-  return h < 6 ? tr('Buenas noches', 'Good night') : h < 13 ? tr('Buenos días', 'Good morning') : h < 20 ? tr('Buenas tardes', 'Good afternoon') : tr('Buenas noches', 'Good evening');
+  return h < 6 ? tr('Buenas noches', 'Good night') : h < 12 ? tr('Buenos días', 'Good morning') : h < 20 ? tr('Buenas tardes', 'Good afternoon') : tr('Buenas noches', 'Good evening');
 };
+/** Cambia el saludo en pantalla si pasó la hora (sin volver a dibujar Hoy). */
+export function refreshGreeting() {
+  if (U.tab !== 'today' || U.date !== today()) return;
+  const title = document.querySelector('#v .page-head .title'), text = greeting();
+  if (title && title.textContent !== text) title.textContent = text;
+}
 const preview = (value, max = 90) => { const t = String(value || '').replace(/\s+/g, ' ').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
 
 /**

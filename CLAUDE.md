@@ -226,6 +226,8 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   fundadores lo pidieron de vuelta. En Plan, igual: una tarea semanal hecha no
   se renombra ni se lleva a días (las letras quedan solo para ver cuándo se hizo) y su menú ofrece
   solo «Eliminar».
+- Saludo de Hoy: «Buenos días» hasta las 12:00, «Buenas tardes» hasta las 20:00 y «Buenas noches»
+  después (y antes de las 6:00). Con la app abierta cambia solo al pasar la hora (`refreshGreeting`).
 - Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de
   otro día, «Notas · Martes 24».
 - Frase del día alineada a la izquierda, con «— Autor» debajo y las comillas decorativas arriba a la

@@ -11,6 +11,7 @@ import { welcome } from './js/sheets.js';
 import { relock, setAuth } from './js/lock.js';
 import { setLang, storedLang, tr } from './js/i18n.js';
 import { initNotes } from './js/views/notes.js';
+import { refreshGreeting } from './js/views/today.js';
 import { $, $$, today } from './js/util.js';
 
 let cloud = null, ready = false, client = null, sessionUser = null, polling = false, authGeneration = 0;
@@ -432,7 +433,7 @@ function wire() {
       if (data.user?.id !== sessionUser.id) throw Error(tr('La cuenta no coincide.', 'The account doesn’t match.'));
     },
   });
-  setInterval(() => { if (ready && !document.hidden && !editing() && rollDay()) render(); if (ready) navDots(); poll(); }, 60000);
+  setInterval(() => { if (ready && !document.hidden && !editing() && rollDay()) render(); if (ready) { navDots(); refreshGreeting(); } poll(); }, 60000);
 }
 
 // Las llamadas de Auth se difieren fuera del callback para no bloquear el SDK.
