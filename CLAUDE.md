@@ -176,7 +176,9 @@ dispositivo, en `localStorage`.
 - Tareas hechas bajan al final de su grupo (también las del foco; se probó subirlas y se descartó),
   pero **no al instante** (igual que los hábitos): al marcarla queda donde estaba mientras se mira
   Hoy, y se reordena al volver desde otra sección, al cambiar de día, al volver a la app o si cambia
-  qué tareas hay (añadir, borrar, mover, estrella) (`U.taskSort`, `tasksSection`).
+  qué tareas hay (añadir, borrar, mover, estrella) (`U.taskSort`, `tasksSection`). En Plan › Semana,
+  igual: las hechas se juntan al final de su lista al volver a la sección o cambiar de semana
+  (`U.weekSort`, `settledWeek`); antes no se movían nunca.
 - Menú de tarea: «Pasar a mañana» solo si el destino es mañana; en otro día, «Pasar al día
   siguiente» con la fecha debajo. «Pasar a otro día» (antes «Elegir cuándo», muy abstracto) abre la hoja «¿Cuándo?»: días, «Esta semana (sin día)» y
   «Próxima semana (sin día)» (siempre relativas a hoy). Al final, plegado, el enlace «Otra fecha…» (campo

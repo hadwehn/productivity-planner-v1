@@ -24,8 +24,19 @@ function overview(week, side = false) {
   }).join('')}</div>`;
 }
 
+// Las tareas hechas se juntan al final de su lista, pero no al instante (como en Hoy): al marcarla
+// queda donde estaba mientras se mira Plan, y se reordena al volver desde otra sección, al cambiar de
+// semana, al volver a la app o si cambia qué tareas hay (U.weekSort, por lista).
+function settledWeek(week, list, items) {
+  const sig = items.map(t => t.i).join(',');
+  const sort = U.weekSort?.week === week ? U.weekSort : (U.weekSort = { week, lists: {} });
+  if (sort.lists[list]?.sig !== sig) sort.lists[list] = { sig, done: new Set(items.filter(t => t.row.c).map(t => t.i)) };
+  const done = sort.lists[list].done;
+  return [...items.filter(t => !done.has(t.i)), ...items.filter(t => done.has(t.i))];
+}
+
 function weekList(week, list, title, hint, lettersHint = false) {
-  const T = today(), items = weekTasks(week, list);
+  const T = today(), items = settledWeek(week, list, weekTasks(week, list));
   const rows = items.map(({ i, row, days, done }) => {
     // Un objetivo no se reparte en días: en vez de las letras, una marca que lo distingue.
     const goal = `<div class="day-toggles"><span class="goal-tag">${icon('flag')}${tr('Objetivo', 'Goal')}</span></div>`;

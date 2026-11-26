@@ -21,6 +21,7 @@ export const U = {
   foldsFor: {},
   habitSort: null,       // orden de los hábitos de Hoy, fijo mientras se mira la sección (ver habitsSection)
   taskSort: null,        // qué tareas de Hoy van al final como hechas, fijo mientras se mira (ver tasksSection)
+  weekSort: null,        // lo mismo para las tareas de la semana en Plan (ver weekList en views/week.js)
   review: false,
   weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),
