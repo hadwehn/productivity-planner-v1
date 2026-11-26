@@ -680,6 +680,11 @@ html:has(dialog[open]) #back-now { display: none; }
 .cloud-alert p { font-size: calc(14px * var(--ts)); color: var(--ink-2); }
 .cloud-alert .btn { margin-top: 8px; }
 
+/* Fuente de la marca «FOCUS» (Outfit liviana, licencia OFL en fonts/). Va incluida en la app: la
+   política de seguridad del sitio solo permite fuentes propias. Solo se usa en el nombre «FOCUS». */
+@font-face { font-family: "Outfit"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/outfit-300-latin.woff2") format("woff2"); }
+:root { --brand: "Outfit", var(--sans); }
+
 /* ===== Acceso ===== */
 .access-shell { min-height: 100svh; width: min(100%, 980px); margin: auto; padding: 56px 32px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 72px; align-items: center; }
 .access-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 48px; }
@@ -692,7 +697,7 @@ html:has(dialog[open]) #back-now { display: none; }
 .wordmark-dark { display: none; }
 :root[data-appearance="dark"] .wordmark-light { display: none; }
 :root[data-appearance="dark"] .wordmark-dark { display: block; }
-.access-product-name { font: 500 clamp(38px, 5vw, 48px)/1 var(--serif); letter-spacing: .1em; color: var(--ink); }
+.access-product-name { font: 300 clamp(38px, 5vw, 48px)/1 var(--brand); letter-spacing: .12em; color: var(--ink); }
 .access-eyebrow { font-size: calc(12px * var(--ts)); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); margin: 0 0 14px; }
 .access-intro h1 { font: 400 60px/1.04 var(--serif); letter-spacing: -.02em; margin: 0 0 20px; }
 .access-intro h1 em { color: var(--acc); }
@@ -819,7 +824,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   /* «FOCUS» grande (nombre de la app) y debajo «by estoico.», más chico, con el logo. La imagen del
      logo trae márgenes transparentes: los márgenes negativos la recortan a lo que se ve. */
   .nav-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; order: 0; padding: 0 6px 24px; }
-  .nav-brand strong { font: 500 30px/1 var(--serif); letter-spacing: .1em; color: var(--ink); }
+  .nav-brand strong { font: 300 30px/1 var(--brand); letter-spacing: .12em; color: var(--ink); }
   .nav-by { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--mute); padding-left: 2px; }
   .nav-logo { display: flex; }
   .nav-brand img { width: 84px; height: auto; margin: -6.7px -10.3px -7.8px -9.7px; }

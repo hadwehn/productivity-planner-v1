@@ -305,8 +305,11 @@ dispositivo, en `localStorage`.
   lo pidieron de vuelta. Quedan fuera el correo y los códigos de acceso (`quietKeyboard` en `interactions.js`). La barra ˄ ˅ OK
   sobre el teclado la pone Safari y no se puede quitar en la web: quitarla al llegar a la App Store
   (en Capacitor, `Keyboard.setAccessoryBarVisible({ isVisible: false })`).
-- Marca en la barra lateral del computador y en la pantalla de acceso: «FOCUS» grande en serif (el
-  nombre de la app) y debajo, más chico, «by estoico.» con el logo (antes el logo grande con «FOCUS» chico).
+- Marca en la barra lateral del computador y en la pantalla de acceso: «FOCUS» grande (el nombre de la
+  app) y debajo, más chico, «by estoico.» con el logo (antes el logo grande con «FOCUS» chico). «FOCUS»
+  va en **Outfit liviana** (300), elegida por los fundadores entre unas 20 fuentes: sin serifa, contrasta
+  con el logo serif. Va incluida en la app (`public/fonts/`, licencia OFL) porque la política de
+  seguridad de `vercel.json` solo permite fuentes propias; se usa solo en «FOCUS» (`--brand`).
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
 - Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 
