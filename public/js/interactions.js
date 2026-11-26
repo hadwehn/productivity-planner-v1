@@ -32,7 +32,7 @@ export function drawSettings() {
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = storedAppearance();
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
-  const style = S.cfg.taskStyle === 'pills' ? 'pills' : 'list';
+  const style = S.cfg.taskStyle === 'cards' ? 'cards' : 'list';
   $$('[data-a=taskstyle]').forEach(b => { const on = b.dataset.k === style; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
   $$('[data-a=textsize]').forEach(b => { const on = b.dataset.k === size; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
@@ -351,9 +351,9 @@ const ACTIONS = {
     if (d.k === 'large') S.cfg.textSize = 'large'; else delete S.cfg.textSize;
     save(); applyTextSize(); drawSettings(); render();
   },
-  // Tareas como lista (por defecto) o como píldoras; vale para Hoy y Plan, y se guarda en la cuenta.
+  // Tareas como lista (por defecto) o como tarjetas; vale para Hoy y Plan, y se guarda en la cuenta.
   taskstyle: d => {
-    if (d.k === 'pills') S.cfg.taskStyle = 'pills'; else delete S.cfg.taskStyle;
+    if (d.k === 'cards') S.cfg.taskStyle = 'cards'; else delete S.cfg.taskStyle;
     save(); drawSettings(); render();
   },
   lang: d => { S.cfg.lang = d.k === 'en' ? 'en' : 'es'; save(); setLang(S.cfg.lang); renderNav(); drawSettings(); render(); },

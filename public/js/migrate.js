@@ -80,6 +80,7 @@ function todayPreferences() {
 }
 
 export function migrate() {
+  if (S.cfg?.taskStyle === 'pills') S.cfg.taskStyle = 'cards'; // la opción «Píldoras» se reemplazó por «Tarjetas»
   splitLegacyVisibility();
   unifyClosure();
   mergeGratitude();

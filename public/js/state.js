@@ -10,7 +10,7 @@
 //              c (agenda por horas), k (tareas), priorityCount, otherCount } }
 //       En d.k las claves 0, 501 y 502 son las tres tareas en foco; 1…500 el resto.
 //       v2 agrega: d.mood (1-5), fila.drop (tarea soltada), h.perWeek (veces por semana),
-//       cfg.today (qué se muestra en Hoy), cfg.taskStyle ('pills': tareas como píldoras), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), w.started (intención de la semana definida), evento.to (último día),
+//       cfg.today (qué se muestra en Hoy), cfg.taskStyle ('cards': tareas como tarjetas; 'pills', versión anterior, pasa a 'cards'), d.closed { m, e } (rituales terminados), w.closed (revisión semanal terminada), w.started (intención de la semana definida), evento.to (último día),
 //       fila semanal.moved (parte salió de su semana sin hacerse), fila semanal.goal (objetivo sin días), h.past (frecuencias anteriores). Las versiones anteriores ignoran estos campos.
 //   nd  tareas sin fecha [{ t, from? }] (ver tasks.js)
 //   cfg preferencias
@@ -175,7 +175,7 @@ export function checkedState(raw) {
   for (const v of Object.values(o.cfg.hide)) if (typeof v !== 'boolean') fail('Visibilidad incorrecta.');
   if (o.cfg.lang !== undefined && !['es', 'en'].includes(o.cfg.lang)) fail('Idioma incorrecto.');
   if (o.cfg.textSize !== undefined && o.cfg.textSize !== 'large') fail('Tamaño de texto incorrecto.');
-  if (o.cfg.taskStyle !== undefined && o.cfg.taskStyle !== 'pills') fail('Estilo de tareas incorrecto.');
+  if (o.cfg.taskStyle !== undefined && !['cards', 'pills'].includes(o.cfg.taskStyle)) fail('Estilo de tareas incorrecto.');
   if (o.cfg.nav !== undefined && o.cfg.nav !== 'arrows') fail('Navegación incorrecta.');
   if (o.cfg.planHour !== undefined && (!Number.isInteger(o.cfg.planHour) || o.cfg.planHour < 12 || o.cfg.planHour > 23)) fail('Hora de «organizar mañana» incorrecta.');
   if (o.cfg.journalLock !== undefined && (!plain(o.cfg.journalLock) || !/^[0-9a-f]{64}$/.test(o.cfg.journalLock.hash) || !/^[0-9a-f]{32}$/.test(o.cfg.journalLock.salt))) fail('Código del Diario incorrecto.');

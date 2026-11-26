@@ -348,10 +348,11 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
 **Estilo**
 - Apariencia (Automática / Clara / Oscura): es **de cada dispositivo** (`localStorage`), no de la
   cuenta; por defecto «Automática», que sigue el modo claro u oscuro del celular o computador.
-- Ajustes › Tareas: «Lista» (por defecto: filas dentro de una tarjeta) o «Píldoras» (cada tarea es
-  una cápsula propia, como las fichas de hábitos, con los mismos controles: marcar, estrella, ⋯,
-  deslizar y, en Plan, las letras de los días). Vale para Hoy y Plan y se guarda en la cuenta
-  (`cfg.taskStyle = 'pills'`; `data-tasks` en `<html>`).
+- Ajustes › Tareas: «Lista» (por defecto: filas dentro de una tarjeta) o «Tarjetas» (cada tarea es
+  su propia tarjeta, una sobre otra, con los mismos controles: marcar, estrella, ⋯, deslizar y, en
+  Plan, las letras de los días). Vale para Hoy y Plan y se guarda en la cuenta (`cfg.taskStyle =
+  'cards'`; `data-tasks` en `<html>`). Primero se hizo «Píldoras» (cápsulas como los hábitos) y los
+  fundadores la cambiaron por «Tarjetas»; el valor antiguo `'pills'` se acepta y pasa a `'cards'`.
 - Tareas (del día y de la semana) y hábitos en MAYÚSCULAS del mismo tamaño que las etiquetas
   («TAREAS», 12 px), sin negrita y en color de tinta, para que todo se vea uniforme (decisión de los
   fundadores tras probar versalitas, mayúsculas más grandes y minúsculas). Se guardan tal como se

@@ -141,7 +141,7 @@ export function render(toTop = false) {
   const focusKey = active?.dataset?.p || active?.dataset?.taskText || active?.dataset?.weekText;
   const caret = active?.selectionStart;
   const view = $('#v');
-  document.documentElement.dataset.tasks = S?.cfg?.taskStyle === 'pills' ? 'pills' : 'list'; // ver «Tareas como píldoras» en styles.css
+  document.documentElement.dataset.tasks = S?.cfg?.taskStyle === 'cards' ? 'cards' : 'list'; // ver «Tareas como tarjetas» en styles.css
   view.innerHTML = VIEWS[U.tab]();
   if (!toTop) view.firstElementChild?.classList.remove('view');
   $$('#nav button[data-k]').forEach(b => {
