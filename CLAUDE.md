@@ -104,6 +104,11 @@ dispositivo, en `localStorage`.
   arriba, cerca de la fecha). Se esconde con una hoja abierta. En computador va en la cabecera, a
   la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras. El botón va dentro de la cabecera
   fija y cuelga bajo su línea, así se mueven siempre juntos (también en el rebote del iPhone).
+- En el celular la cabecera va **fija a la pantalla** (`position: fixed`), con un espacio de su alto
+  bajo ella (`--head-h`, `fitHead` en `render.js`): en el rebote del iPhone al tirar hacia abajo
+  desde arriba, la cabecera queda quieta y se estira el espacio entre ella y el contenido, como en
+  Instagram, WhatsApp y Spotify (antes rebotaba toda la página y el vacío quedaba sobre la cabecera).
+  En computador sigue «pegada» (`sticky`).
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
 - Cada sección y cada periodo (cada día en Hoy, cada semana o mes en Plan, cada mes en Diario)
   recuerdan dónde quedaste por 7 minutos: al volver a una sección, o a un día/semana/mes que viste

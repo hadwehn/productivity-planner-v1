@@ -21,6 +21,17 @@ const resizer = typeof ResizeObserver === 'function' ? new ResizeObserver(([entr
   if (width !== lastWidth) { lastWidth = width; $$('#v textarea').forEach(autosize); }
 }) : null;
 
+// En el celular la cabecera va fija a la pantalla y el contenido deja arriba un espacio de su mismo
+// alto (--head-h, ver styles.css). Se vuelve a medir si la cabecera cambia de alto (texto más grande,
+// giro del celular).
+const headSizer = typeof ResizeObserver === 'function' ? new ResizeObserver(() => fitHead($('#v'))) : null;
+function fitHead(view) {
+  const head = view && $('.sticky-head', view);
+  if (!head) { view?.style.removeProperty('--head-h'); return; }
+  view.style.setProperty('--head-h', `${head.offsetHeight}px`);
+  if (headSizer && head.dataset.sized !== '1') { head.dataset.sized = '1'; headSizer.disconnect(); headSizer.observe(head); }
+}
+
 // La cabecera fija muestra una línea suave solo cuando hay contenido pasando por debajo.
 const markScrolled = () => document.documentElement.classList.toggle('scrolled', scrollY > 4);
 addEventListener('scroll', markScrolled, { passive: true });
@@ -137,6 +148,7 @@ export function render(toTop = false) {
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
   navDots();
+  fitHead(view);
   $$('textarea', view).forEach(autosize);
   requestAnimationFrame(() => $$('textarea', view).forEach(autosize));
   drawBackNow();

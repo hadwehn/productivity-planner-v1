@@ -100,6 +100,18 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* Mismo aire bajo la línea de la cabecera en todas las pantallas. */
 .sticky-head + * { margin-top: 20px; }
 .view { animation: view-in .28s var(--ease); }
+/* Celular: la cabecera va fija a la pantalla (no «pegada» a la página). Así, en el rebote del iPhone
+   al tirar hacia abajo desde arriba, la cabecera queda quieta y lo que se estira es el espacio entre
+   ella y el contenido, como en Instagram, WhatsApp o Spotify (antes rebotaba toda la página y el
+   vacío aparecía sobre la cabecera). Bajo ella queda un espacio de su mismo alto (--head-h, medido
+   en render.js). El fundido de entrada se aplica al contenido y no a la cabecera: un movimiento en
+   un contenedor desplazaría lo fijo. En computador sigue «pegada» (sticky). */
+@media (max-width: 999px) {
+  .sticky-head { position: fixed; top: 0; left: 0; right: 0; margin: 0; padding-inline: max(var(--gutter), calc((100vw - 640px) / 2 + var(--gutter))); }
+  #v:has(.sticky-head) { padding-top: var(--head-h, calc(172px + (var(--ts) - 1) * 36px + env(safe-area-inset-top))); }
+  .view { animation: none; }
+  .view > :not(.sticky-head) { animation: view-in .28s var(--ease); }
+}
 @keyframes view-in { from { opacity: 0; transform: translateY(6px); } }
 
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 8px 0 18px; }
