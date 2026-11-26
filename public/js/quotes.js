@@ -89,8 +89,15 @@ export const QUOTES_EN = [
   ['Perform every act in life as though it were your last.', 'Marcus Aurelius'],
 ];
 
+// Frases para una fecha puntual, en lugar de la del día. Solo 2026: es una broma entre los
+// fundadores y el próximo año la app ya la usará más gente.
+const SPECIAL = {
+  '2026-12-13': [['¡Feliz cumpleaños, Nader!', 'Tu socio'], ['Happy birthday, Nader!', 'Your partner']],
+};
+
 /** Una frase fija por fecha, recorriendo toda la lista antes de repetir. */
 export function quoteFor(date) {
+  if (SPECIAL[date]) return SPECIAL[date][isEn() ? 1 : 0];
   const [y, m, d] = date.split('-').map(Number);
   const dayNumber = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
   const list = isEn() ? QUOTES_EN : QUOTES;
