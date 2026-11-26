@@ -75,10 +75,14 @@ dispositivo, en `localStorage`.
   se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
 - Punto de aviso en la barra de secciones (como WhatsApp): un punto verde/amarillo en Hoy de 5:00 a
   12:00 si «Empieza tu día» no está terminado (no aparece si la intención y la gratitud están
-  apagadas en Ajustes; la misma ventana en que se abre solo), y desde las 19:00 si el día sigue sin
-  cerrar; entre medio, nada, para que nunca signifique dos cosas a la vez, y en Plan cuando toca cerrar la semana (`reviewReminder`). No se
-  quita hasta que se completa, aunque estés en esa sección (6 px, separado del ícono); se actualiza
-  cada minuto (`navDots` en `render.js`).
+  apagadas en Ajustes; la misma ventana en que se abre solo) y desde las 19:00 si el día sigue sin
+  cerrar (entre medio, nada, para que nunca signifique dos cosas a la vez); en Plan, cuando toca
+  cerrar la semana (`reviewReminder`). No se quita hasta que se completa, aunque estés en esa
+  sección (6 px, separado del ícono); se actualiza cada minuto (`navDots` en `render.js`,
+  `dueRituals` en `ui.js`). La tarjeta que hay que llenar («Empieza tu día», «Cierra tu día» o
+  «Revisión semanal») lleva el mismo punto sobre su ícono y se quita junto con el de la barra: al
+  terminarla, no al empezar a escribir (si no, la barra seguiría con punto sin saber por qué). Es
+  para guiar, no para presionar: sin rojo, sin números y sin insistir más con las horas.
 - Deslizar una tarea a la izquierda (solo con el dedo) muestra sus acciones rápidas: «Mañana» (u
   «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar»; en Plan, «Próxima» (o
   «Esta semana») y «Eliminar». Una tarea hecha solo muestra «Eliminar». Pasada la mitad queda

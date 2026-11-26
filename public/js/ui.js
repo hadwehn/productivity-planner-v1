@@ -2,6 +2,7 @@
 import { S, get } from './state.js';
 import { tr } from './i18n.js';
 import { $, esc, today, iso, monday, shiftDate } from './util.js';
+import { reviewReminder } from './rituals.js';
 
 export const U = {
   tab: 'today',          // today · week · habits · journal
@@ -146,4 +147,18 @@ export function applyTextSize(pref) {
   }
   if (pref === 'large') document.documentElement.dataset.text = 'large';
   else delete document.documentElement.dataset.text;
+}
+
+// ——— Qué ritual toca ahora (punto en la barra y en su tarjeta, ver navDots en render.js) ———
+// Mañana (5:00–12:00): «Empieza tu día» sin terminar, si la intención o la gratitud están a la vista.
+// Noche (desde las 19:00): el día sin cerrar. Semana: la revisión, cuando toca (reviewReminder).
+const NIGHT_HOUR = 19, MORNING = [5, 12];
+export function dueRituals(now = new Date()) {
+  if (!S) return { morning: false, evening: false, review: null };
+  const h = now.getHours(), closed = S.d?.[today()]?.closed || {};
+  return {
+    morning: h >= MORNING[0] && h < MORNING[1] && closed.m !== true && (showToday('intention') || showToday('gratitude')),
+    evening: h >= NIGHT_HOUR && closed.e !== true,
+    review: reviewReminder(now),
+  };
 }

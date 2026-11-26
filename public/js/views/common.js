@@ -28,8 +28,9 @@ export const segmented = (action, options, current) => `<div class="seg" role="t
 
 /** Bloque plegable con cabecera (rituales, revisión, notas). */
 /** `compact`: una sola línea discreta (ya no se usa en los rituales: terminados se ven como los demás). */
-export const foldable = ({ key, open, iconName, iconCls = '', title, summary, written = false, body, compact = false }) =>
-  `<section class="card ritual${open ? ' open' : ''}${compact && !open ? ' compact' : ''}">
+// `period` (fecha o semana): para el punto de «toca llenarla» sobre el ícono (ver navDots).
+export const foldable = ({ key, open, iconName, iconCls = '', title, summary, written = false, body, compact = false, period = '' }) =>
+  `<section class="card ritual${open ? ' open' : ''}${compact && !open ? ' compact' : ''}"${period ? ` data-ritual="${key}" data-period="${period}"` : ''}>
     <button class="ritual-head" data-a="fold" data-k="${key}" aria-expanded="${open}">
       <span class="ritual-icon ${iconCls}">${icon(iconName)}</span>
       <span class="ritual-text"><strong>${title}</strong><small class="${written ? 'written' : ''}">${summary}</small></span>

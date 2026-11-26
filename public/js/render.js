@@ -1,5 +1,5 @@
 // Dibuja la pestaña activa conservando scroll y foco.
-import { U, showToday } from './ui.js';
+import { U, dueRituals } from './ui.js';
 import { $, $$, iso, monday, today } from './util.js';
 import { icon } from './icons.js';
 import { tr } from './i18n.js';
@@ -9,7 +9,6 @@ import { habitsView } from './views/habits.js';
 import { journalView } from './views/journal.js';
 import { isUnlocked, journalTab } from './lock.js';
 import { S } from './state.js';
-import { reviewReminder } from './rituals.js';
 
 const VIEWS = { today: todayView, week: planView, habits: habitsView, journal: journalView };
 export const TABS = () => [['journal', tr('Diario', 'Journal')], ['habits', tr('Hábitos', 'Habits')], ['week', tr('Plan', 'Plan')], ['today', tr('Hoy', 'Today')]];
@@ -36,16 +35,16 @@ wideScreen?.addEventListener?.('change', () => { if (shownTab) render(); });
 // 12:00 si «Empieza tu día» no está terminado (y la intención o la gratitud están a la vista), y
 // desde las 19:00 si el día sigue sin cerrar; entre medio, nada. En Plan, cuando toca cerrar la semana (domingo desde las 18:00
 // hasta el lunes a mediodía, ver reviewReminder). Se mantiene, aunque estés en esa sección, hasta
-// que se complete (cerrar el día o la semana).
-const NIGHT_HOUR = 19, MORNING = [5, 12];
+// que se complete (cerrar el día o la semana). La tarjeta que hay que llenar lleva el mismo punto
+// sobre su ícono, y se quita junto con el de la barra (al terminarla, no al empezar a escribir).
 export function navDots(now = new Date()) {
-  const T = today(), h = now.getHours(), closed = S?.d?.[T]?.closed || {};
-  const morning = h >= MORNING[0] && h < MORNING[1] && closed.m !== true && !!S && (showToday('intention') || showToday('gratitude'));
-  const pending = {
-    today: morning || (h >= NIGHT_HOUR && closed.e !== true),
-    week: !!(S && reviewReminder(now)),
-  };
+  const T = today(), due = dueRituals(now), { morning } = due;
+  const pending = { today: morning || due.evening, week: !!due.review };
   const labels = { today: morning ? tr('empieza tu día', 'start your day') : tr('cierra tu día', 'close your day'), week: tr('cierra tu semana', 'close your week') };
+  $$('.ritual[data-ritual]').forEach(card => {
+    const { ritual, period } = card.dataset;
+    card.classList.toggle('has-dot', ritual === 'review' ? period === due.review : period === T && !!due[ritual]);
+  });
   $$('#nav button[data-k]').forEach(b => {
     const k = b.dataset.k, dot = !!pending[k];
     b.classList.toggle('has-dot', dot);

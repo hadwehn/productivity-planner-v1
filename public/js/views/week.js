@@ -135,7 +135,7 @@ function weekView() {
     </div><div class="col">
     <section class="section">${sectionHead(tr('Tu semana día a día', 'Your week, day by day'))}<div class="ov-swipe" data-swipe="plan"><div class="strip-track">${[-1, 0, 1].map(o => overview(shiftDate(week, 7 * o), o !== 0)).join('')}</div></div><p class="muted small" style="margin:8px 4px 0">${tr('Toca un día para abrirlo.', 'Tap a day to open it.')}</p></section>
     <div class="section" id="week-review">${foldable({
-      key: 'review', open: U.review, iconName: state === 'done' ? 'check' : 'moon', iconCls: 'evening', title: tr('Revisión semanal', 'Weekly review'), summary, written: state !== 'done' && answered > 0,
+      key: 'review', period: week, open: U.review, iconName: state === 'done' ? 'check' : 'moon', iconCls: 'evening', title: tr('Revisión semanal', 'Weekly review'), summary, written: state !== 'done' && answered > 0,
       body: (state === 'future' ? '' : weekLook(week)) + questions.map((q, i) => {
         if (editable) return `<div class="prompt"><label for="rv${i}">${q}</label>${field(`${W}r.${i}`, '', '', ` id="rv${i}"`)}</div>`;
         const text = String(get(`${W}r.${i}`)).trim();
