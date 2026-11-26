@@ -297,9 +297,10 @@ dispositivo, en `localStorage`.
   escriben (`text-transform`); «Añadir tarea» se ve en texto normal.
 - Paleta «piedra y pino» en claro (verde para la acción, bronce para el foco) y negro con amarillo
   en oscuro. Títulos, el periodo bajo el título y la franja de días de Hoy, nombres de tarjetas, títulos
-  de hojas y cifras en **Outfit** (la fuente de
+  de hojas, cifras y los nombres de la barra de secciones en **Outfit** (la fuente de
   «FOCUS», `--display`); la serif cursiva queda para lo que se lee con calma (frase del día, lo
-  escrito en rituales y Diario, «a la vez.» del acceso). Se probó a pedido de los fundadores y
+  escrito en rituales y Diario, «a la vez.» del acceso). Las etiquetas («TAREAS», «AGENDA»…) siguen en
+  la fuente del sistema, iguales a las tareas y hábitos en mayúsculas. Se probó a pedido de los fundadores y
   **puede que se vuelva a la serif en títulos** (la versión anterior, `--serif`): para volver, cambiar
   `--display` a `var(--serif)` y revisar pesos y tamaños en `styles.css`. Notas con editor propio (bloques, listas con «- »/«1. », título «# »).
   Enter solo salta de línea. Las notas se guardan al escribir.

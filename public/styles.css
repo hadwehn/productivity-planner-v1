@@ -542,6 +542,8 @@ nav.tabbar button.has-dot::after { content: ""; position: absolute; top: 4px; le
 nav.tabbar button.on { color: var(--ink); background: var(--sunken); }
 /* La barra queda siempre igual, con íconos y nombres (se probó achicarla al bajar y se descartó). */
 nav.tabbar button span { display: block; }
+/* Nombres de las secciones en Outfit, como los títulos (el alto de la barra no cambia). */
+nav.tabbar button[data-a="go"] span { font-family: var(--display); font-weight: 500; }
 /* Buscar en el Diario (pestaña «Escritos»). */
 .journal-search { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 0 4px 0 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); }
 .journal-search > .icon { width: 18px; height: 18px; color: var(--mute); flex: none; }
