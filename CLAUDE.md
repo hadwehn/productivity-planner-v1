@@ -56,6 +56,7 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 | `public/js/sheets.js` | Hojas inferiores (menús, mover tarea, pendientes, hábitos, eventos, atajos). |
 | `public/js/views/*.js` | Pantallas: `today.js` (Hoy), `week.js` (Plan: semana y mes), `habits.js`, `journal.js` (Diario), `notes.js` (editor de notas). |
 | `public/js/ui.js` | Estado de la interfaz (no se guarda), avisos, tema. |
+| `public/js/back.js` | Volver deslizando desde el borde izquierdo (camino de vuelta y gesto). |
 | `sql/01-schema.sql` | Base en Supabase: tabla `planner_states` (un JSON por usuario) y RPC `save_planner`. |
 
 ### Datos (`state.js`)
@@ -120,7 +121,15 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   bajo ella (`--head-h`, `fitHead` en `render.js`): en el rebote del iPhone al tirar hacia abajo
   desde arriba, la cabecera queda quieta y se estira el espacio entre ella y el contenido, como en
   Instagram, WhatsApp y Spotify (antes rebotaba toda la página y el vacío quedaba sobre la cabecera).
-  En computador sigue «pegada» (`sticky`).
+  En computador sigue «pegada» (`sticky`). Es translúcida: el contenido se ve desenfocado al pasar
+  por debajo, como en la barra de secciones (`backdrop-filter`).
+- Volver deslizando desde el borde izquierdo (como en el iPhone, `back.js`): al entrar a algo desde
+  otra pantalla (un día desde Plan, Hábitos o el Diario; «Ver todo»; los avisos que llevan a Plan;
+  «Cerrarlo» de ayer) se anota dónde estabas, y arrastrar desde el borde te devuelve ahí, en el mismo
+  punto de la página. La pantalla sigue al dedo; pasado el 40 % (o con un movimiento rápido) vuelve.
+  Tocar la barra de secciones borra el camino de vuelta. Solo con el dedo.
+- Respuesta al tocar: filas y tarjetas que se tocan (cabeceras de rituales, días, resultados del
+  Diario, menús, avisos, hábitos de Hoy) se oscurecen apenas al presionarlas.
 - Atajos de computador: Mayús+↑/↓ (sin dar la vuelta en los extremos), N, ← →, H, Esc, ?. Se quitó 1–4.
 - Cada sección y cada periodo (cada día en Hoy, cada semana o mes en Plan, cada mes en Diario)
   recuerdan dónde quedaste por 7 minutos: al volver a una sección, o a un día/semana/mes que viste

@@ -1,5 +1,6 @@
 // Eventos de la interfaz: acciones por data-a, formularios rápidos, escritura, teclado y arrastre.
 import { S, save, setPath } from './state.js';
+import { clearBack, initBackSwipe, pushBack } from './back.js';
 import { U, applyTextSize, setAppearance, storedAppearance, runUndo, showToday, toast, toastUndo } from './ui.js';
 import {
   addTask, addWeekTask, dayTasks, getTask, renameTask, renameWeekTask, reorderTask, setDone, setWeekDone, toggleWeekDay,
@@ -105,7 +106,9 @@ const ACTIONS = {
   // Tocar «Hoy» estando en Hoy vuelve al día de hoy.
   // Otra sección: vuelve a donde la dejaste (ver rememberScroll). La misma sección: sube al inicio;
   // en Hoy, si ya estás arriba, vuelve al día de hoy.
-  go: d => {
+  go: (d, b) => {
+    // Desde la barra de secciones se empieza de cero; desde el contenido («Ver todo»), se puede volver.
+    if (b?.closest?.('#nav')) clearBack(); else if (d.k !== U.tab) pushBack();
     if (d.k === U.tab) {
       if (scrollY > 4) { scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); return; }
       // En otro día, vuelve a hoy (a donde lo dejaste, si fue hace poco: ver render).
@@ -121,6 +124,7 @@ const ACTIONS = {
   date: update(d => { U.date = d.k; }),
   // Desde el buscador del Diario, el día se abre en la tarjeta donde está lo buscado (data-f).
   openday: d => {
+    if (U.tab !== 'today') pushBack(); // desde Plan, Hábitos o el Diario: se puede volver deslizando
     navigate(() => {
       openDay(d.k);
       U.foldsFor.today = d.k; U.editing = null;
@@ -155,8 +159,8 @@ const ACTIONS = {
   taskdelete: d => { doDeleteTask(U.date, +d.k); },
   overdue: () => overdueSheet(),
   // Avisos de Hoy: llevan a la revisión de la semana o a «Lo mejor del mes», ya abiertos.
-  reviewnow: navigate(d => { U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.foldsFor.week = 'w' + d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
-  monthbest: navigate(d => { U.tab = 'week'; U.weekMode = 'month'; U.month = d.k; revealLater('#month-best', true); }),
+  reviewnow: navigate(d => { pushBack(); U.tab = 'week'; U.weekMode = 'week'; U.week = d.k; U.foldsFor.week = 'w' + d.k; U.review = true; U.weekIntent = false; setTimeout(() => focusRitual('review'), 60); }),
+  monthbest: navigate(d => { pushBack(); U.tab = 'week'; U.weekMode = 'month'; U.month = d.k; revealLater('#month-best', true); }),
   overduebring: d => overdueAction('bring', d.date, +d.k),
   overduedrop: d => overdueAction('drop', d.date, +d.k),
   overdueweek: d => overdueAction('week', d.date, +d.k),
@@ -260,6 +264,7 @@ const ACTIONS = {
   },
   closeyesterday: () => {
     rememberScroll();
+    pushBack();
     U.date = shiftDate(today(), -1); U.tab = 'today'; U.morning = false; U.evening = true;
     render(true);
     focusRitual('evening');
@@ -749,6 +754,7 @@ function quietKeyboard(root) {
 
 export function initInteractions(isReady) {
   canEdit = isReady;
+  initBackSwipe();
   quietKeyboard(document.body);
   new MutationObserver(list => { for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) quietKeyboard(n); })
     .observe(document.body, { childList: true, subtree: true });

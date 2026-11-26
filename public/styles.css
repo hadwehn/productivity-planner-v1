@@ -1000,3 +1000,29 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .overdue-actions { display: flex; gap: 6px; }
 .overdue-actions .btn.small { flex: 1; padding-inline: 8px; white-space: nowrap; }
 @media (min-width: 560px) { .overdue-row { grid-template-columns: 1fr auto; align-items: center; } .overdue-actions .btn.small { flex: none; } }
+
+/* ===== Volver deslizando desde el borde (ver back.js) ===== */
+/* La pantalla sigue al dedo (cabecera y contenido por separado: un movimiento en el contenedor
+   desplazaría la cabecera fija). Al soltar se acomoda; la pantalla anterior entra desde la izquierda. */
+#v.backing .view > * { transform: translateX(var(--back-x, 0)); }
+#v.backing .view > .sticky-head { box-shadow: -10px 0 24px -12px #2b25184d, 0 1px 0 var(--line); }
+#v.back-settle .view > * { transition: transform .2s var(--ease); }
+@keyframes back-in { from { transform: translateX(-24%); opacity: .5; } }
+#v.back-in .view > * { animation: back-in .26s var(--ease); }
+
+/* ===== Respuesta al tocar ===== */
+/* Filas y tarjetas que se tocan se oscurecen apenas al presionarlas (como en las apps del iPhone),
+   para confirmar el toque antes de que pase algo. */
+.ritual-head, .card.entry, .wo-day, .cal-day, .day-pill, .habit-chip, .notice, [data-a="notesopen"], .menu button, .habit-name, .order-row { transition: background-color .15s, filter .15s; }
+.ritual-head:active, .menu button:active, .notice:active, .wo-day:active { background-color: color-mix(in srgb, var(--ink) 6%, transparent); }
+.card.entry:active, [data-a="notesopen"]:active, .habit-chip:active, .cal-day:active, .day-pill:not(.on):active { filter: brightness(.95); }
+:root[data-appearance="dark"] .card.entry:active, :root[data-appearance="dark"] [data-a="notesopen"]:active,
+:root[data-appearance="dark"] .habit-chip:active, :root[data-appearance="dark"] .cal-day:active,
+:root[data-appearance="dark"] .day-pill:not(.on):active { filter: brightness(1.25); }
+.ritual-head { border-radius: var(--r-md); }
+
+/* ===== Cabecera translúcida ===== */
+/* El contenido se ve desenfocado al pasar por debajo, como en la barra de secciones. */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .sticky-head { background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5); }
+}
