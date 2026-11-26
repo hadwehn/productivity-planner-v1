@@ -833,10 +833,11 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
   .today-cols > .col > :first-child { margin-top: 20px; }
   .today-cols .notices + .section { margin-top: 20px; }
   /* Frase del día a todo el ancho, en una franja baja. */
-  .quote-wide { display: flex; align-items: baseline; gap: 18px; padding: 15px 24px; }
+  .quote-wide { display: flex; align-items: baseline; gap: 18px; padding: 15px 76px 15px 24px; }
   .quote-wide blockquote { flex: 1; font-size: 18px; }
   .quote-wide figcaption { margin-top: 0; flex: none; }
-  .quote-wide .quote-mark { display: none; }
+  /* Las mismas comillas del celular, arriba a la derecha; el relleno de la derecha les deja lugar junto al autor. */
+  .quote-wide .quote-mark { top: -14px; right: 18px; font-size: 92px; }
 
   /* «Tu semana día a día» como lista: cada día muestra sus eventos y tareas. */
   .week-overview { grid-template-columns: 1fr; gap: 8px; }

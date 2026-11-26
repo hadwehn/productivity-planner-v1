@@ -178,7 +178,7 @@ dispositivo, en `localStorage`.
 - Fecha de Hoy sin coma: «Martes 24 de noviembre». Notas de hoy se titulan «Notas de hoy»; las de
   otro día, «Notas · Martes 24».
 - Frase del día alineada a la izquierda, con «— Autor» debajo y las comillas decorativas arriba a la
-  derecha (en computador, frase y autor en una línea). Se probó centrada y sin guion, y se descartó.
+  derecha (en computador, frase y autor en una línea, también con las comillas). Se probó centrada y sin guion, y se descartó.
 - Opción «Frase en días futuros» (encendida por defecto).
 - **Sin bloqueos por hora**: los días y semanas pasados se editan igual que los actuales (añadir,
   renombrar, borrar, foco). Los fundadores no quieren «limitantes». En un día pasado, el menú de
