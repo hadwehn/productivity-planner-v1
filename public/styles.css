@@ -1061,3 +1061,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .back-btn .icon { width: 20px; height: 20px; stroke-width: 2; margin-left: -2px; }
 .back-btn:active { transform: scale(.94); }
 @media (hover: hover) { .back-btn:hover { background: var(--line); } }
+
+/* Barra de secciones en el celular: el pulgar puede deslizarse por ella sin mover la página
+   (ver tabSlide en interactions.js). */
+@media (max-width: 999px) { nav.tabbar { touch-action: none; } }

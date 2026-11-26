@@ -124,6 +124,10 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   Instagram, WhatsApp y Spotify (antes rebotaba toda la página y el vacío quedaba sobre la cabecera).
   En computador sigue «pegada» (`sticky`). Es translúcida: el contenido se ve desenfocado al pasar
   por debajo, como en la barra de secciones (`backdrop-filter`, fondo al 68 %: con 86 % no se notaba).
+- Deslizar el pulgar por la barra de secciones (celular, como Instagram o Spotify): al pasar sobre
+  otra sección se abre ahí mismo, sin levantar el dedo. Un toque simple funciona como siempre; al
+  terminar un deslizamiento no se cuenta como toque (si no, la sección activa subiría al inicio)
+  (`tabSlide` en `interactions.js`).
 - Volver deslizando desde el borde izquierdo (como en el iPhone, `back.js`): al entrar a algo desde
   otra pantalla (un día desde Plan, Hábitos o el Diario; «Ver todo»; los avisos que llevan a Plan;
   «Cerrarlo» de ayer) se anota dónde estabas, y arrastrar desde el borde te devuelve ahí, en el mismo

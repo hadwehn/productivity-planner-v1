@@ -775,9 +775,44 @@ function quietKeyboard(root) {
   }
 }
 
+// ——— Deslizar el pulgar por la barra de secciones (celular) ———
+// Como en Instagram o Spotify: con el pulgar apoyado en la barra, al pasar sobre otra sección se
+// abre ahí mismo, sin levantar el dedo. Un toque simple funciona como siempre; al terminar un
+// deslizamiento no se dispara ese toque (si no, tocar la sección activa subiría al inicio).
+function tabSlide() {
+  let slide = null, suppress = false;
+  const tabAt = (x, y) => document.elementFromPoint(x, y)?.closest?.('#nav button[data-a="go"]');
+  document.addEventListener('pointerdown', e => {
+    const tab = e.pointerType === 'touch' && e.target.closest?.('#nav button[data-a="go"]');
+    if (!tab || matchMedia('(min-width: 1000px)').matches) return;
+    slide = { id: e.pointerId, x: e.clientX, current: tab.dataset.k, moved: false };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!slide || e.pointerId !== slide.id) return;
+    if (!slide.moved && Math.abs(e.clientX - slide.x) < 12) return;
+    slide.moved = true;
+    const tab = tabAt(e.clientX, e.clientY);
+    if (!tab || tab.dataset.k === slide.current) return;
+    slide.current = tab.dataset.k;
+    if (tab.dataset.k !== U.tab && canEdit()) ACTIONS.go(tab.dataset, tab);
+  });
+  const end = e => {
+    if (!slide || e.pointerId !== slide.id) return;
+    suppress = slide.moved;
+    slide = null;
+    setTimeout(() => { suppress = false; }, 400);
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  document.addEventListener('click', e => {
+    if (suppress && e.target.closest?.('#nav')) { e.preventDefault(); e.stopImmediatePropagation(); suppress = false; }
+  }, true);
+}
+
 export function initInteractions(isReady) {
   canEdit = isReady;
   initBackSwipe();
+  tabSlide();
   quietKeyboard(document.body);
   new MutationObserver(list => { for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) quietKeyboard(n); })
     .observe(document.body, { childList: true, subtree: true });
