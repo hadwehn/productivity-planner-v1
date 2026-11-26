@@ -116,6 +116,8 @@ export function render(toTop = false) {
     if (seen !== undefined && seen !== key) { for (const k of FOLDS[U.tab]) U[k] = false; U.editing = null; }
     U.foldsFor[U.tab] = key;
   }
+  // Al llegar a otra sección o periodo, los hábitos de Hoy se vuelven a ordenar (hechos al final).
+  if (U.tab !== shownTab || key !== shownKey) U.habitSort = null;
   if (otherPeriod) rememberScroll(shownTab, shownKey);
   shownKey = key;
   const top = toTop || otherPeriod, back = otherPeriod && !toTop ? savedScroll(U.tab) : 0;

@@ -269,6 +269,10 @@ dispositivo, en `localStorage`.
   `habitIdeas.js`). Elegir una rellena nombre, frecuencia y área, que se pueden ajustar antes de
   crear. No se muestran las que ya son hábitos. Al crear en el celular no se abre el teclado solo,
   para que se vean las ideas.
+- Hábitos en Hoy: los marcados se juntan al final (como las tareas hechas; se pensó al principio y
+  se prefirió dejar lo pendiente primero), pero **no al instante**: el orden queda fijo mientras se
+  mira la sección, para que la ficha no se mueva bajo el dedo. Se reordena al volver a Hoy desde otra
+  sección, al cambiar de día o al volver a la app (`U.habitSort`, `habitsSection`).
 - Hábitos: franja de la semana con un anillo de avance por día; tarjetas con ⋯ arriba y la racha
   abajo. El orden se cambia **solo** desde «Reordenar» (bajo la cabecera, con 2+ hábitos; ícono ≡):
   una ventana centrada (como Notas, `center-sheet`) con una fila compacta por hábito (color, nombre,

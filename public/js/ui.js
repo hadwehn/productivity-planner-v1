@@ -20,6 +20,7 @@ export const U = {
   // Periodo al que corresponden las tarjetas abiertas de cada sección: al pasar a otro día o semana,
   // se pliegan y la página se ve como siempre (ver render).
   foldsFor: {},
+  habitSort: null,       // orden de los hábitos de Hoy, fijo mientras se mira la sección (ver habitsSection)
   review: false,
   weekIntent: false,     // «Intención de la semana» plegada por defecto, como los rituales de Hoy
   month: today().slice(0, 7),

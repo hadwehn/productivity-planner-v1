@@ -101,8 +101,18 @@ function agendaSection(date) {
   return `<section class="section">${sectionHead(tr('Agenda', 'Schedule'), add)}<div class="card" style="padding:6px 8px">${events.map(x => eventRow(x, date)).join('')}</div></section>`;
 }
 
+// Los hábitos marcados se juntan al final (como las tareas hechas), pero no al instante: el orden
+// queda fijo mientras se mira la sección, para que la ficha no se mueva bajo el dedo. Se reordena al
+// volver a Hoy desde otra sección, al cambiar de día o al volver a la app (U.habitSort = null).
 function habitsSection(date) {
-  const list = S.h.filter(h => isDue(h, date)), title = tr('Hábitos', 'Habits');
+  const due = S.h.filter(h => isDue(h, date)), title = tr('Hábitos', 'Habits');
+  let sort = U.habitSort;
+  if (sort?.date !== date) {
+    sort = U.habitSort = { date, ids: [...due.filter(h => !isDone(h, date)), ...due.filter(h => isDone(h, date))].map(h => h.id) };
+  }
+  // Un hábito nuevo (o que no estaba) se agrega al final sin reordenar los demás.
+  const rank = id => { const i = sort.ids.indexOf(id); return i < 0 ? sort.ids.length : i; };
+  const list = due.slice().sort((a, b) => rank(a.id) - rank(b.id));
   const manage = `<button class="link" data-a="go" data-k="habits">${tr('Ver todo', 'See all')}</button>`;
   if (!S.h.length) return `<section class="section">${sectionHead(title, '')}<div class="card"><p class="empty-note">${tr('Un hábito pequeño, repetido, cambia mucho.', 'A small habit, repeated, changes a lot.')}</p><button class="btn secondary" data-a="habitnew" style="margin-top:10px">${icon('plus')}${tr('Crear un hábito', 'Create a habit')}</button></div></section>`;
   if (!list.length) return `<section class="section">${sectionHead(title, manage)}<p class="empty-note" style="margin-left:4px">${tr('Hoy es un día libre de hábitos.', 'No habits planned for today.')}</p></section>`;
