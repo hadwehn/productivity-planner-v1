@@ -1065,3 +1065,23 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 /* Barra de secciones en el celular: el pulgar puede deslizarse por ella sin mover la página
    (ver tabSlide en interactions.js). */
 @media (max-width: 999px) { nav.tabbar { touch-action: none; } }
+
+/* ===== Tareas como píldoras (Ajustes › Tareas › Píldoras) ===== */
+/* Cada tarea es una cápsula propia, como las fichas de hábitos, con los mismos controles: círculo,
+   estrella, ⋯, deslizar y, en Plan, las letras de los días. Por defecto se ven como lista. */
+:root[data-tasks="pills"] .card.tasks { background: none; border: 0; box-shadow: none; padding: 0; display: grid; gap: 8px; }
+:root[data-tasks="pills"] .card.tasks .divider { height: 0; margin: 6px 0 0; background: none; }
+:root[data-tasks="pills"] .card.tasks .group-label { padding: 2px 6px 0; }
+:root[data-tasks="pills"] .card.tasks > .task,
+:root[data-tasks="pills"] .card.tasks > .wtask { background: var(--surface); border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 1px 2px #2b25180a; }
+:root[data-tasks="pills"] .card.tasks > .task { padding: 4px 8px 4px 8px; }
+:root[data-tasks="pills"] .card.tasks > .wtask { padding: 4px 8px 10px; }
+:root[data-tasks="pills"] .card.tasks > .wtask + .wtask { border-top: 1px solid var(--line); }
+:root[data-tasks="pills"] .card.tasks > .wtask > .task { padding-left: 0; }
+:root[data-tasks="pills"] .card.tasks > .task.focus,
+:root[data-tasks="pills"] .card.tasks > .wtask:has(> .task.focus) { border-color: color-mix(in srgb, var(--gold) 35%, var(--line)); }
+:root[data-tasks="pills"] .card.tasks > .task.done,
+:root[data-tasks="pills"] .card.tasks > .wtask:has(> .task.done) { background: color-mix(in srgb, var(--surface) 55%, transparent); box-shadow: none; }
+:root[data-tasks="pills"] .card.tasks .swipe-actions { border-radius: 22px; }
+:root[data-tasks="pills"] .card.tasks .add-row { margin: 0; padding: 2px 12px; border: 1px dashed var(--line-strong); border-radius: 26px; }
+:root[data-tasks="pills"] .card.tasks > .empty-note { padding: 4px 8px !important; }

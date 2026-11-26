@@ -68,11 +68,12 @@ test('un respaldo completo conserva todas sus entidades', () => {
 });
 test('se rechazan claves peligrosas, fechas inválidas, índices enormes y valores nuevos inválidos', () => {
   for (const modify of [d => { d.d['2026-02-31'] = {}; }, d => { d.d[DAY].k[999999] = { t: 'x' }; }, d => { d.ev[DAY][0].h = '" onmouseover=alert(1)'; },
-    d => { d.d[DAY].mood = 9; }, d => { d.h[0].perWeek = 0; }, d => { d.cfg.today = { quote: 'sí' }; }]) {
+    d => { d.d[DAY].mood = 9; }, d => { d.h[0].perWeek = 0; }, d => { d.cfg.today = { quote: 'sí' }; }, d => { d.cfg.taskStyle = 'cards'; }]) {
     const data = fixture();
     modify(data);
     throws(() => checkedState(data));
   }
+  { const ok = fixture(); ok.cfg.taskStyle = 'pills'; checkedState(ok); } // tareas como píldoras: se acepta
   throws(() => checkedState(JSON.parse('{"h":[],"__proto__":{"polluted":true}}')));
   load(fixture());
   throws(() => setPath('__proto__.polluted', 1));
