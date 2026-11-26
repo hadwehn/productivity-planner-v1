@@ -305,8 +305,8 @@ dispositivo, en `localStorage`.
   lo pidieron de vuelta. Quedan fuera el correo y los códigos de acceso (`quietKeyboard` en `interactions.js`). La barra ˄ ˅ OK
   sobre el teclado la pone Safari y no se puede quitar en la web: quitarla al llegar a la App Store
   (en Capacitor, `Keyboard.setAccessoryBarVisible({ isVisible: false })`).
-- Marca en la barra lateral del computador: «FOCUS» grande en serif (el nombre de la app) y debajo,
-  más chico, «by estoico.» con el logo (antes el logo grande con «FOCUS» chico a su derecha).
+- Marca en la barra lateral del computador y en la pantalla de acceso: «FOCUS» grande en serif (el
+  nombre de la app) y debajo, más chico, «by estoico.» con el logo (antes el logo grande con «FOCUS» chico).
 - Se probó una foto de fondo en la pantalla de inicio del celular y se descartó.
 - Se probó tapar la app con «Pon el celular en vertical» al girar el celular y se descartó: la app gira.
 

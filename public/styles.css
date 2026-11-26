@@ -682,13 +682,17 @@ html:has(dialog[open]) #back-now { display: none; }
 
 /* ===== Acceso ===== */
 .access-shell { min-height: 100svh; width: min(100%, 980px); margin: auto; padding: 56px 32px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 72px; align-items: center; }
-.access-brand { display: flex; flex-direction: column; gap: 6px; margin-bottom: 48px; }
-.access-wordmark { width: clamp(170px, 26vw, 230px); height: auto; aspect-ratio: 3 / 1; object-fit: contain; object-position: left center; transform: translateX(-9.6%); }
+.access-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 48px; }
+/* «FOCUS» grande (nombre de la app) y debajo «by estoico.», más chico, con el logo (como en la barra
+   lateral). La imagen del logo trae márgenes transparentes: los márgenes negativos la recortan. */
+.access-by { display: flex; align-items: center; gap: 7px; font-size: calc(15px * var(--ts)); color: var(--mute); padding-left: 2px; }
+.access-logo { display: flex; }
+.access-wordmark { width: 118px; height: auto; margin: -9.4px -14.5px -10.9px -13.7px; }
 /* En oscuro, logo con letras claras y «co.» en amarillo (el color secundario de ese modo). */
 .wordmark-dark { display: none; }
 :root[data-appearance="dark"] .wordmark-light { display: none; }
 :root[data-appearance="dark"] .wordmark-dark { display: block; }
-.access-product-name { font-size: calc(11px * var(--ts)); font-weight: 650; letter-spacing: .18em; color: var(--mute); }
+.access-product-name { font: 500 clamp(38px, 5vw, 48px)/1 var(--serif); letter-spacing: .1em; color: var(--ink); }
 .access-eyebrow { font-size: calc(12px * var(--ts)); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); margin: 0 0 14px; }
 .access-intro h1 { font: 400 60px/1.04 var(--serif); letter-spacing: -.02em; margin: 0 0 20px; }
 .access-intro h1 em { color: var(--acc); }
