@@ -86,6 +86,7 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   tamaño**, con íconos y nombres, pegada abajo (sobre la raya de inicio del iPhone: unos 22 px del
   borde) para dejar más pantalla a la vista. Se probó achicarla al bajar (solo íconos, volvía a los 0,4 s) y
   se descartó: ganaba 25 px y generaba movimiento constante y casos raros. En computador, barra lateral.
+  Levemente translúcida (fondo al 74 % con desenfoque), como en Instagram, WhatsApp y Spotify.
 - Punto de aviso en la barra de secciones (como WhatsApp): un punto verde/amarillo en Hoy de 5:00 a
   12:00 si «Empieza tu día» no está terminado (no aparece si la intención y la gratitud están
   apagadas en Ajustes; la misma ventana en que se abre solo) y desde las 19:00 si el día sigue sin
