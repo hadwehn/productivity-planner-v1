@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {CloudStore} from '../public/store.js';
+import {CloudStore, isOffline} from '../public/store.js';
 const mock=()=>{
  let row=null,calls=0,fail=false,lost=false,hold=null;
  const client={rpc:async(_,op)=>{
@@ -53,4 +53,23 @@ test('validation failure blocks write and keeps dirty flag for recovery',async()
  const m=mock(),s=new CloudStore(m.client,'A',()=>{});
  s.schedule(()=>{throw Error('invalid state')});await assert.rejects(s.flush(),/invalid state/);
  assert.equal(m.calls,0);assert.equal(s.unsaved,true);
+});
+test('sin conexión no es un error: queda pendiente y se puede seguir editando',async()=>{
+ const m=mock(),kinds=[],s=new CloudStore(m.client,'A',k=>kinds.push(k));m.fail=true;
+ s.schedule(()=>({n:1}));await assert.rejects(s.flush());
+ assert.equal(s.error,null);assert.equal(s.offline,true);assert.ok(kinds.includes('offline'));
+ assert.equal(s.schedule(()=>({n:2})),true,'se puede seguir editando');
+ m.fail=false;await s.flush();assert.equal(m.row.data.n,2);assert.equal(s.unsaved,false);assert.equal(s.offline,false);
+});
+test('una operación pendiente guardada en el dispositivo se reintenta sin duplicar',async()=>{
+ const m=mock(),a=new CloudStore(m.client,'A',()=>{});m.lost=true;
+ a.schedule(()=>({v:1}));await assert.rejects(a.flush());
+ // La app se cierra con la operación pendiente; al volver a abrir se restaura tal cual.
+ const b=new CloudStore(m.client,'A',()=>{});b.revision=null;b.pending=structuredClone(a.pending);
+ await b.flush();assert.equal(b.revision,m.row.revision);assert.equal(b.unsaved,false);
+});
+test('isOffline distingue la falta de conexión de un rechazo de la nube',()=>{
+ for(const m of ['TypeError: Failed to fetch','Load failed','NetworkError when attempting to fetch resource.','signal timed out'])assert.equal(isOffline({message:m}),true,m);
+ for(const m of ['STATE_CONFLICT','JWT expired','invalid state'])assert.equal(isOffline({message:m}),false,m);
+ assert.equal(isOffline({name:'AbortError',message:''}),true);
 });

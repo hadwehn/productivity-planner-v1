@@ -1,9 +1,16 @@
-// Sin acceso a localStorage: el borrador solo vive en memoria.
+// Guardado en la nube con control de conflictos (revisión). Sin conexión no es un error: lo pendiente
+// se conserva y se reintenta solo (cada 30 s y al volver la conexión, ver app.js). La copia en el
+// dispositivo, para abrir sin conexión, la lleva app.js (readLocal/writeLocal).
+
+/** ¿El error es por falta de conexión (y no un rechazo de la nube)? */
+export const isOffline = error => (typeof navigator !== 'undefined' && navigator.onLine === false)
+  || /failed to fetch|networkerror|load failed|network request failed|timed? ?out|timeout|abort|offline/i.test(`${error?.name || ''} ${error?.message || ''}`);
+
 export class CloudStore {
   constructor(client, uid, changed) {
     this.client=client; this.uid=uid; this.changed=changed;
     this.revision=null; this.dirty=false; this.pending=null;
-    this.busy=null; this.error=null; this.stopped=false;
+    this.busy=null; this.error=null; this.stopped=false; this.offline=false;
   }
   async read(meta=false) {
     const {data,error}=await this.client.from('planner_states')
@@ -41,14 +48,24 @@ export class CloudStore {
         if(this.stopped)return;
         this.revision=data.revision; this.pending=null;
       }
+      this.offline=false;
       this.changed('saved');
     } catch(error) {
       if(this.stopped)return;
+      if(isOffline(error)) {
+        // Sin conexión: lo pendiente queda igual (el reintento usa la misma revisión) y se vuelve a
+        // intentar solo. La pantalla sigue disponible.
+        this.offline=true; this.changed('offline',error);
+        clearTimeout(this.retryTimer);
+        this.retryTimer=setTimeout(()=>this.flush().catch(()=>{}),30000);
+        this.retryTimer?.unref?.();
+        throw error;
+      }
       this.error=error; this.changed(/STATE_CONFLICT/.test(error.message)?'conflict':'error',error);
       throw error;
     }
   }
   async retry() {this.error=null; return this.flush();}
   get unsaved(){return !!(this.dirty||this.pending||this.busy||this.error);}
-  stop(){this.stopped=true;clearTimeout(this.timer);this.pending=null;this.getState=null;}
+  stop(){this.stopped=true;clearTimeout(this.timer);clearTimeout(this.retryTimer);this.pending=null;this.getState=null;}
 }

@@ -46,7 +46,8 @@ HTML + CSS + JavaScript sin framework ni compilación. Módulos ES en `public/js
 | `public/index.html` | Marcado: pantalla de acceso, hoja de Ajustes, contenedores. |
 | `public/styles.css` | Todo el estilo. Tokens de color en `:root` y `:root[data-appearance="dark"]`. Escritorio desde 1000 px (barra lateral) y 1200 px (dos columnas). |
 | `public/app.js` | Entrada: sesión, carga, sincronización, respaldo e importación. |
-| `public/store.js` | Guardado en la nube: JSON único por usuario, se guarda 800 ms después de cada cambio, con control de conflictos (revisión). |
+| `public/store.js` | Guardado en la nube: JSON único por usuario, se guarda 800 ms después de cada cambio, con control de conflictos (revisión). Sin conexión no es error: queda pendiente y se reintenta (`isOffline`). |
+| `public/sw.js` | Service worker: guarda los archivos de la app (y Supabase del CDN) para abrir sin conexión. Primero la red; la copia si no hay red o tarda más de 3 s. Nunca guarda datos ni llamadas a la nube. |
 | `public/js/state.js` | Forma de los datos, validación estricta (`checkedState`) y acceso por rutas. |
 | `public/js/tasks.js` | Reglas de tareas del día y de la semana. Sin DOM (se prueba aislado). |
 | `public/js/rituals.js` | Empieza/Cierra tu día y revisión semanal. |
@@ -65,6 +66,17 @@ Un solo objeto JSON por usuario: `h` hábitos · `hl` registros de hábitos · `
 `closed`) · `w.started`/`w.closed` intención y revisión de la semana terminadas · `nd` antigua lista «Algún día», retirada (se acepta y se pasa a hoy al abrir) · `cfg` preferencias. Cualquier campo nuevo debe validarse en
 `checkedState` y tener prueba. Las preferencias de la cuenta van en `cfg`; lo que es solo del
 dispositivo, en `localStorage`.
+
+**Sin conexión** (`app.js`): el diario también se guarda en el dispositivo (`localStorage`,
+`focus-local:<id>`: estado, revisión, operación pendiente y si hay cambios sin subir; y
+`focus-last-user`). Al abrir se muestra al instante desde esa copia y después se pone al día: si
+aquí hay cambios sin subir, se suben (si también cambió la nube, aparece el aviso de conflicto de
+siempre, sin mezclar); si no, se toma la versión de la nube. Sin conexión se usa con normalidad
+(«Sin conexión · se guardará al volver», punto bronce en Ajustes) y lo pendiente se sube solo al
+volver la conexión. Si recuperar la sesión tarda más de 3 s o no hay red, se abre con la última
+cuenta de este dispositivo. Un dispositivo nuevo necesita conectarse una vez. Cerrar sesión borra
+la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia no está cifrada
+(como la sesión de Supabase en el mismo dispositivo).
 
 ## Decisiones ya tomadas (no deshacer sin conversarlo)
 
@@ -337,6 +349,7 @@ dispositivo, en `localStorage`.
   cierre del día **muestren** lo escrito antes de preguntar (hecho en la revisión semanal; falta el
   cierre del día).
 - Recordatorios a la mañana y a la noche (clave para que la gente vuelva; argumento para App Store).
+- Hecho: la app abre y se usa sin conexión (ver «Sin conexión» en Datos).
 - Datos del usuario (nombre): tabla `profiles` nueva con un `sql/02-…sql` aditivo; no reejecutar
   `01-schema.sql`.
 - Agenda y «Foco/Lo mejor del mes» son candidatos a simplificar si en la prueba nadie los usa.

@@ -131,6 +131,8 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 .sync-dot { position: absolute; right: 7px; top: 8px; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--bg); background: transparent; }
 :root[data-sync=pending] .sync-dot, :root[data-sync=saving] .sync-dot { background: var(--gold); animation: breathe 1.2s ease-in-out infinite; }
 :root[data-sync=error] .sync-dot, :root[data-sync=conflict] .sync-dot, :root[data-sync=warning] .sync-dot { background: var(--danger); }
+/* Sin conexión: punto quieto en bronce (no es un error; se guardará al volver). */
+:root[data-sync=offline] .sync-dot { background: var(--gold); }
 @keyframes breathe { 50% { opacity: .3; } }
 
 /* Acciones pequeñas y separadas (p. ej., «Abrir día» y «+ Evento» en el mes). */

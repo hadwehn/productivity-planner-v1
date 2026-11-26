@@ -4,6 +4,8 @@ const KEY = 'planner-dev-db';
 const OUT = 'planner-dev-signed-out';
 const user = { id: '00000000-0000-4000-8000-000000000001', email: 'prueba@local.test' };
 const load = () => JSON.parse(localStorage.getItem(KEY) || '{}');
+// Sin conexión (p. ej., context.setOffline en Playwright) responde como el cliente real.
+const offline = () => navigator.onLine === false ? { error: Error('TypeError: Failed to fetch') } : null;
 
 export function makeClient() {
   const listeners = [];
@@ -19,6 +21,7 @@ export function makeClient() {
       select: cols => ({
         eq: () => ({
           maybeSingle: async () => {
+            if (offline()) return offline();
             if (table === 'app_roles') return { data: null };
             const row = load().row;
             if (!row) return { data: null };
@@ -28,6 +31,7 @@ export function makeClient() {
       }),
     }),
     rpc: async (name, p) => {
+      if (offline()) return offline();
       if (name !== 'save_planner') return { error: Error('No disponible en local.') };
       const db = load();
       if (db.row?.revision === p.p_revision) return { data: { revision: p.p_revision } };
