@@ -9,7 +9,7 @@ import { quoteFor } from '../quotes.js';
 import { icon } from '../icons.js';
 import { dayMonth, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, MONTHS, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
-import { checkButton, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
+import { checkButton, emptyState, field, foldable, pageHead, sectionHead, settingsButton, stickyHead } from './common.js';
 import { eventRow, eventsOn } from '../events.js';
 import { hasContent, isFinished, monthReminder, reviewReminder, ritualState } from '../rituals.js';
 
@@ -122,7 +122,11 @@ function habitsSection(date) {
   const rank = id => { const i = sort.ids.indexOf(id); return i < 0 ? sort.ids.length : i; };
   const list = due.slice().sort((a, b) => rank(a.id) - rank(b.id));
   const manage = `<button class="link" data-a="go" data-k="habits">${tr('Ver todo', 'See all')}</button>`;
-  if (!S.h.length) return `<section class="section">${sectionHead(title, '')}<div class="card"><p class="empty-note">${tr('Un hábito pequeño, repetido, cambia mucho.', 'A small habit, repeated, changes a lot.')}</p><button class="btn secondary" data-a="habitnew" style="margin-top:10px">${icon('plus')}${tr('Crear un hábito', 'Create a habit')}</button></div></section>`;
+  if (!S.h.length) return `<section class="section">${sectionHead(title, '')}${emptyState({
+    iconName: 'habits', title: tr('Empieza con un hábito', 'Start with one habit'),
+    text: tr('Algo pequeño que quieras repetir. La constancia hace el resto.', 'Something small you want to repeat. Consistency does the rest.'),
+    action: `<button class="btn" data-a="habitnew">${icon('plus')}${tr('Crear un hábito', 'Create a habit')}</button>`,
+  })}</section>`;
   if (!list.length) return `<section class="section">${sectionHead(title, manage)}<p class="empty-note" style="margin-left:4px">${tr('Hoy es un día libre de hábitos.', 'No habits planned for today.')}</p></section>`;
   const chips = list.map(h => {
     const on = isDone(h, date), extra = isWeekly(h) ? `<small>${weekCount(h, date)}/${h.perWeek}</small>` : '';

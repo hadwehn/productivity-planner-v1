@@ -300,6 +300,10 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   `habitIdeas.js`). Elegir una rellena nombre, frecuencia y área, que se pueden ajustar antes de
   crear. No se muestran las que ya son hábitos. Al crear en el celular no se abre el teclado solo,
   para que se vean las ideas.
+- Vacíos del primer uso (sin hábitos, en Hábitos y en la tarjeta de Hoy; Diario sin nada escrito
+  nunca): ícono suave en un círculo, título, invitación y botón (`emptyState` en `common.js`). Los
+  vacíos de todos los días (Agenda, Notas, un mes sin escritos) siguen en una línea: una tarjeta
+  grande que aparece a diario se vuelve ruido.
 - Hábitos en Hoy: los marcados se juntan al final (como las tareas hechas; se pensó al principio y
   se prefirió dejar lo pendiente primero), pero **no al instante**: el orden queda fijo mientras se
   mira la sección, para que la ficha no se mueva bajo el dedo. Se reordena al volver a Hoy desde otra

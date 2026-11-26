@@ -5,7 +5,7 @@ import { MOOD_LEVELS, moodColor, moodName } from '../categories.js';
 import { icon } from '../icons.js';
 import { dayMonth, monthYear, plural, tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, daysInMonth, esc, iso, p2, parseDate, shiftDate, shiftMonth, today, weekday } from '../util.js';
-import { sectionHead, segmented, settingsButton, stickyHead } from './common.js';
+import { emptyState, sectionHead, segmented, settingsButton, stickyHead } from './common.js';
 import { dayTasks } from '../tasks.js';
 import { isDone, isDue } from '../habits.js';
 import { isUnlocked, showUnlock } from '../lock.js';
@@ -75,7 +75,13 @@ export function journalEntries() {
   const days = Object.entries(S.d).filter(([date, d]) => date.startsWith(m) && date <= T && hasEntry(d)).sort(([a], [b]) => b.localeCompare(a));
   return `<section class="section">${sectionHead(tr('Lo que escribiste', 'What you wrote'), days.length ? `<span class="muted small">${days.length} ${plural(days.length, 'día', 'días', 'day', 'days')}</span>` : '')}
       ${days.length ? `<div class="entry-grid">${days.map(([date, d]) => entry(date, d)).join('')}</div>`
-        : `<div class="card"><p class="empty-note">${tr('Aquí se irán guardando tus intenciones, gratitudes y reflexiones. Escribe una línea al cerrar el día; con el tiempo, este será tu mejor registro.', 'Your intentions, gratitude and reflections will collect here. Write a line when you close your day; over time this becomes your best record.')}</p></div>`}
+        : Object.entries(S.d).some(([date, d]) => date <= T && hasEntry(d))
+          // Ya escribió otros meses: este mes vacío es algo común y va en una línea.
+          ? `<div class="card"><p class="empty-note">${tr('Este mes todavía no tienes nada escrito.', 'Nothing written this month yet.')}</p></div>`
+          // Nunca ha escrito: la invitación del primer uso.
+          : emptyState({ iconName: 'journal', tone: 'gold', title: tr('Tu diario empieza hoy', 'Your journal starts today'),
+            text: tr('Lo que escribas al empezar y cerrar tus días se irá guardando aquí. Con el tiempo, será tu mejor registro.', 'What you write when you start and close your days will collect here. Over time, it becomes your best record.'),
+            action: `<button class="btn" data-a="go" data-k="today">${icon('today')}${tr('Ir a Hoy', 'Go to Today')}</button>` })}
     </section>`;
 }
 function searchBox() {

@@ -1026,3 +1026,13 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .sticky-head { background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5); }
 }
+
+/* ===== Vacíos del primer uso (ver emptyState en views/common.js) ===== */
+.empty-state { text-align: center; padding: 26px 22px 22px; }
+.empty-badge { position: relative; width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; background: var(--acc-soft); color: var(--acc); }
+.empty-badge::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px dashed currentColor; opacity: .35; }
+.empty-badge.gold { background: var(--gold-soft); color: var(--gold); }
+.empty-badge .icon { width: 28px; height: 28px; stroke-width: 1.5; }
+.empty-state h3 { font: 400 calc(19px * var(--ts))/1.25 var(--display); margin: 0 0 6px; }
+.empty-state p { color: var(--mute); font-size: calc(14.5px * var(--ts)); line-height: 1.45; margin: 0 auto; max-width: 300px; }
+.empty-state .btn { width: auto; margin-top: 16px; padding-inline: 20px; }

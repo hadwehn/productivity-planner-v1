@@ -6,7 +6,7 @@ import { categoryColor } from '../categories.js';
 import { icon } from '../icons.js';
 import { tr } from '../i18n.js';
 import { DAYS, DAY_SHORT, esc, iso, monday, parseDate, shiftDate, today } from '../util.js';
-import { pageHead, stickyHead } from './common.js';
+import { emptyState, pageHead, stickyHead } from './common.js';
 
 function habitCard(h, week, T) {
   const c = categoryColor(h.color ?? 0), s = streak(h, T), pct = consistency(h, T), name = esc(h.name);
@@ -57,8 +57,12 @@ export function habitsView() {
   // Bajo la cabecera: cuántos hábitos hay y «Reordenar», que abre una lista compacta para cambiar el orden.
   const tools = S.h.length > 1 ? `<div class="habit-tools"><span class="muted small">${S.h.length} ${tr('hábitos', 'habits')}</span><button type="button" class="pill" data-a="habitorder">${icon('bars')}${tr('Reordenar', 'Reorder')}</button></div>` : '';
   return `<div class="view narrow">${stickyHead(pageHead({ title: tr('Hábitos', 'Habits'), subtitle }) + (S.h.length ? weekRings(week, T) : ''))}
-    ${tools}${cards ? `<div class="habit-grid">${cards}</div>` : `<div class="card"><p class="empty-note">${tr('Empieza con uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Start with just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.')}</p></div>`}
-    <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>
+    ${tools}${cards ? `<div class="habit-grid">${cards}</div>
+    <button class="btn secondary" data-a="habitnew" style="margin-top:16px">${icon('plus')}${tr('Nuevo hábito', 'New habit')}</button>` : emptyState({
+      iconName: 'habits', title: tr('Empieza con un hábito', 'Start with one habit'),
+      text: tr('Uno solo, tan pequeño que sea difícil no hacerlo: leer una página, caminar 10 minutos, tomar agua al despertar.', 'Just one, so small it’s hard not to do: read one page, walk 10 minutes, drink water when you wake up.'),
+      action: `<button class="btn" data-a="habitnew">${icon('plus')}${tr('Crear un hábito', 'Create a habit')}</button>`,
+    })}
     ${S.h.length ? `<p class="muted small" style="text-align:center;margin:14px 8px 0">${tr('Si un día no pudiste, no pasa nada: la racha se retoma cuando vuelves. Toca un hábito para ver su historial y ⋯ para editarlo.', 'Missed a day? That’s fine: your streak picks up when you come back. Tap a habit to see its history and ⋯ to edit it.')}</p>` : ''}
   </div>`;
 }

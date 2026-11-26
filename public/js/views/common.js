@@ -38,3 +38,11 @@ export const foldable = ({ key, open, iconName, iconCls = '', title, summary, wr
     </button>
     ${open ? `<div class="ritual-body">${body}</div>` : ''}
   </section>`;
+
+/**
+ * Vacío del primer uso (aún no hay hábitos, o nunca se ha escrito en el Diario): ícono suave en un
+ * círculo, un título corto, una invitación y, si corresponde, el botón para empezar. Solo para
+ * vacíos que se ven los primeros días; los de todos los días (Agenda, Notas) siguen en una línea.
+ */
+export const emptyState = ({ iconName, tone = '', title, text, action = '' }) =>
+  `<div class="card empty-state"><span class="empty-badge${tone ? ` ${tone}` : ''}" aria-hidden="true">${icon(iconName)}</span><h3>${title}</h3><p>${text}</p>${action}</div>`;
