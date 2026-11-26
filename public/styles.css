@@ -91,12 +91,10 @@ main { --gutter: 20px; max-width: 640px; margin: 0 auto; padding: 0 var(--gutter
 /* Plan: el selector Semana/Mes deja la línea a la misma altura que la franja de días en Hoy. */
 .sticky-head > .seg:last-child, .sticky-head > .plan-controls:last-child { margin-bottom: calc(8px + (var(--ts) - 1) * 36px); } /* con «Texto más grande» la franja crece 5px */
 .sticky-head .week-strip { margin-bottom: 0; }
-/* La línea bajo la cabecera fija se ve siempre; al desplazarse se suma una sombra suave. */
-.sticky-head { box-shadow: 0 1px 0 var(--line); }
+/* Sin línea bajo la cabecera: su fondo se difumina hacia abajo (ver «Cabecera translúcida»). */
 /* Todas las cabeceras miden lo mismo que la de Hoy (título, fecha y franja de días), así la línea cae
    a la misma altura en todas las pantallas. Con «Texto más grande» la franja crece 5px. */
 .sticky-head { min-height: calc(172px + (var(--ts) - 1) * 36px + env(safe-area-inset-top)); }
-:root.scrolled .sticky-head { box-shadow: 0 1px 0 var(--line), 0 10px 18px -16px #2b25184d; }
 /* Mismo aire bajo la línea de la cabecera en todas las pantallas. */
 .sticky-head + * { margin-top: 20px; }
 .view { animation: view-in .28s var(--ease); }
@@ -1005,7 +1003,7 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 /* La pantalla sigue al dedo (cabecera y contenido por separado: un movimiento en el contenedor
    desplazaría la cabecera fija). Al soltar se acomoda; la pantalla anterior entra desde la izquierda. */
 #v.backing .view > * { transform: translateX(var(--back-x, 0)); }
-#v.backing .view > .sticky-head { box-shadow: -10px 0 24px -12px #2b25184d, 0 1px 0 var(--line); }
+#v.backing .view > .sticky-head { box-shadow: -10px 0 24px -12px #2b25184d; }
 #v.back-settle .view > * { transition: transform .2s var(--ease); }
 @keyframes back-in { from { transform: translateX(-24%); opacity: .5; } }
 #v.back-in .view > * { animation: back-in .26s var(--ease); }
@@ -1023,8 +1021,14 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 
 /* ===== Cabecera translúcida ===== */
 /* El contenido se ve desenfocado al pasar por debajo, como en la barra de secciones. */
+/* Sin línea que la cierre: el fondo va en una capa propia que baja 24 px más que la cabecera y se
+   desvanece, así el borde se difumina como en Instagram, WhatsApp o Spotify. El texto y la franja de
+   días quedan intactos encima. */
+.sticky-head { background: transparent; }
+.sticky-head::before { content: ""; position: absolute; inset: 0 0 -24px; z-index: -1; pointer-events: none; background: var(--bg);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); }
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .sticky-head { background: color-mix(in srgb, var(--bg) 68%, transparent); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8); }
+  .sticky-head::before { background: color-mix(in srgb, var(--bg) 68%, transparent); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8); }
 }
 
 /* ===== Vacíos del primer uso (ver emptyState en views/common.js) ===== */

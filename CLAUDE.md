@@ -100,8 +100,9 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar»; en Plan, «Próxima» (o
   «Esta semana») y «Eliminar». Una tarea hecha solo muestra «Eliminar». Pasada la mitad queda
   abierta; tocar fuera la cierra. Usa las mismas acciones del menú ⋯ (`swipeRows`).
-- Todas las cabeceras: título grande arriba, el periodo en negrita debajo y **la línea separadora
-  a la misma altura en las cinco pantallas** (`min-height` de `.sticky-head`). Cualquier cambio en
+- Todas las cabeceras: título grande arriba, el periodo en negrita debajo y **el borde inferior
+  a la misma altura en las cinco pantallas** (`min-height` de `.sticky-head`). Sin línea separadora:
+  el fondo translúcido se difumina hacia abajo (como Instagram, WhatsApp, Spotify). Cualquier cambio en
   una cabecera debe mantener esa altura (medir con texto normal y «Texto más grande»).
 - Hoy: franja de días que se desliza; en celular asoman cortados el domingo anterior y el lunes
   siguiente (tocarlos cambia de semana). Al cambiar de semana se abre el lunes (u hoy si es la actual).
