@@ -76,7 +76,8 @@ function taskItem(date, { key, row }, focus, locked = false) {
   // En un día cerrado (más de 7 días) la tarea solo se lee; si quedó pendiente, el ⋯ ofrece sacarla de ahí.
   const text = row.c || locked ? `<span>${esc(row.t)}</span>`
     : `<textarea data-task-text="${key}" rows="1" enterkeyhint="done" autocapitalize="none" aria-label="${tr('Tarea', 'Task')}">${esc(row.t)}</textarea>`;
-  const starBtn = row.c || locked ? (focus ? `<span class="task-btn star on still" title="${tr('Era del foco', 'Was in focus')}">${icon('star')}</span>` : '') : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
+  // Hecha: si era del foco, la estrella se puede tocar para sacarla del foco; si no, no hay estrella.
+  const starBtn = locked || (row.c && !focus) ? (focus ? `<span class="task-btn star on still" title="${tr('Era del foco', 'Was in focus')}">${icon('star')}</span>` : '') : `<button class="task-btn star${focus ? ' on' : ''}" data-a="taskfocus" data-k="${key}" aria-pressed="${focus}" aria-label="${star}" title="${star}">${icon('star')}</button>`;
   return `<div class="task${focus ? ' focus' : ''}${row.c ? ' done' : ''}" data-task="${key}" data-sort data-swipe-row>
     ${locked ? `<span class="check still${row.c ? ' on' : ''}" aria-label="${row.c ? tr('Hecha', 'Done') : tr('Pendiente', 'Pending')}">${icon('check')}</span>` : checkButton(row.c, `data-a="taskdone" data-k="${key}"`, tr('Marcar como hecha', 'Mark as done'))}
     <div class="task-main">${text}${linked}</div>

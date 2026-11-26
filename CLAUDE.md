@@ -225,8 +225,10 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   estrella.
 - Foco vacío: «Marca con ★ hasta tres tareas prioritarias: las que más importa sacar adelante hoy»
   (antes «…que harían de este un buen día»: el foco es prioridad, no bienestar).
-- Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca) ni cambia de
-  foco: si era del foco conserva la estrella, quieta; si no, no tiene estrella. El menú ⋯ ofrece
+- Tarea hecha: queda como registro. No se renombra (para corregirla, se desmarca). Si era del foco
+  conserva la estrella y se puede tocar para **sacarla del foco** (corregir o liberar el lugar para
+  otra prioridad; antes había que desmarcarla primero); si no era del foco, no tiene estrella y no
+  puede entrar al foco ya hecha (sería contar como foco cumplido algo no elegido antes). El menú ⋯ ofrece
   «Repetir mañana» (u «Hoy» si es de un día pasado, o el día siguiente con su fecha) y «Eliminar».
   Repetir crea una copia pendiente y suelta (sin vínculo a la semana); si era del foco entra al foco
   de ese día, y si ya tiene tres, al resto con aviso (`repeatTask`). Se había descartado y los

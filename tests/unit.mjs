@@ -102,6 +102,14 @@ test('añadir: foco hasta tres, luego al resto', () => {
   eq(texts(DAY), { focus: ['A', 'B', 'C'], rest: ['D'] });
   eq(addTask(DAY, '   '), null, 'no agrega vacías');
 });
+test('una tarea hecha puede salir del foco, pero no entrar', () => {
+  load(fixture());
+  const D = '2026-11-20';
+  S.d[D] = { k: { 0: { t: 'Hecha en foco', c: true }, 1: { t: 'Hecha suelta', c: true } } };
+  const out = toggleFocus(D, 0);
+  eq([out.error, dayTasks(D).focus.length, dayTasks(D).rest.map(t => t.row.t)], [undefined, 0, ['Hecha en foco', 'Hecha suelta']], 'sale del foco');
+});
+
 test('poner y quitar del foco respeta el máximo de tres', () => {
   load(fixture());
   S.d[DAY].k = {};

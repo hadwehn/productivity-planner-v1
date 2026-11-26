@@ -338,7 +338,9 @@ export function doDeleteTask(date, key) {
   toastUndo(tr('Tarea eliminada', 'Task deleted'), () => { restore(undo); render(); });
 }
 export function doToggleFocus(date, key) {
-  if (getTask(date, key)?.c) return; // una tarea hecha no cambia de foco
+  // Una tarea hecha puede salir del foco (corregir o liberar el lugar), pero no entrar: sería contar
+  // como foco cumplido algo que no se eligió como prioridad antes de hacerlo.
+  if (getTask(date, key)?.c && !isFocusKey(key)) return;
   const result = toggleFocus(date, key);
   if (result.error) toast(result.error);
   render();
