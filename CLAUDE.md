@@ -118,10 +118,11 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   a hoy» visible (largo; la flecha ya dice «volver»). Ajustes › «Botón para volver a hoy» elige solo
   el lugar y la forma (se guarda en la cuenta, `cfg.backNow`; `data-backnow`; `drawBackNow` en
   `render.js`): **en la fila de la fecha** (por defecto: al final de la fecha en Hoy, junto a las
-  flechas ‹ › en Plan y Diario; en la cabecera fija, no cae sobre ninguna tarjeta), **ícono con el
-  número de hoy** (como Google Calendar, en la misma fila), **burbuja abajo a la derecha**, **burbuja
-  abajo al centro** (las dos sobre la barra de secciones; con ellas la página deja más espacio al
-  final) y **píldora centrada arriba**. El problema original: la burbuja colgaba bajo la cabecera a
+  flechas ‹ › en Plan y Diario; en la cabecera fija, no cae sobre ninguna tarjeta), **burbuja abajo
+  a la derecha** y **burbuja abajo al centro** (las dos sobre la barra de secciones; con ellas la
+  página deja más espacio al final). Se probaron y retiraron un ícono con el número de hoy (como
+  Google Calendar) y una píldora centrada arriba (caía sobre la frase del día); quien los tenía
+  pasa a la fila de la fecha. El problema original: la burbuja colgaba bajo la cabecera a
   la derecha, justo en la esquina de la frase del día, y parecía un «volver a la frase de hoy».
   Se descartó un costado de la pantalla: choca con el gesto de volver desde el borde y con los ⋯.
 - En el celular la cabecera va **fija a la pantalla** (`position: fixed`), con un espacio de su alto

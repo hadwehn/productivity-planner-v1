@@ -81,6 +81,7 @@ function todayPreferences() {
 
 export function migrate() {
   if (S.cfg?.taskStyle === 'pills') S.cfg.taskStyle = 'cards'; // la opción «Píldoras» se reemplazó por «Tarjetas»
+  if (['icon', 'top'].includes(S.cfg?.backNow)) delete S.cfg.backNow; // estilos retirados del botón para volver a hoy
   splitLegacyVisibility();
   unifyClosure();
   mergeGratitude();
