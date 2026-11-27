@@ -219,29 +219,32 @@ export function focusRitual(key) {
 
 /**
  * «Volver al presente»: un solo botón (#back-now) y una sola acción, igual en Hoy, Plan y Diario; aparece
- * solo cuando se mira otro día, semana o mes. Ajustes › «Botón para volver al presente» cambia solo su
- * lugar y su texto (cfg.backNow, `data-backnow` en <html>):
- *  - 'date' (por defecto): «↺ Hoy» en la fila de la fecha (al final de la fecha en Hoy; junto a las
- *    flechas en Plan y Diario), como en los calendarios. Va en la cabecera fija: se ve al bajar y no tapa nada.
- *  - 'bottom': burbuja abajo a la derecha, sobre la barra de secciones («Ir a hoy»).
- *  - 'top': píldora de vidrio centrada bajo la cabecera («Volver a hoy»), como «Nuevas publicaciones».
- * Antes era una burbuja verde arriba a la derecha bajo la cabecera, que parecía parte de la frase del día.
- * La flecha curva se refleja si el presente queda adelante.
+ * solo cuando se mira otro día, semana o mes. Siempre en el color de acción (verde en claro, amarillo en
+ * oscuro) y con «↺ Hoy»: como en los calendarios del iPhone o de Google, «Hoy» vale también para volver a
+ * esta semana o este mes; el nombre completo («Volver a esta semana») queda como etiqueta accesible.
+ * Ajustes › «Botón para volver a hoy» cambia solo su lugar y su forma (cfg.backNow, `data-backnow`):
+ *  - 'date' (por defecto): en la fila de la fecha (al final de la fecha en Hoy; junto a las flechas en
+ *    Plan y Diario). Va en la cabecera fija: se ve al bajar y no cae sobre ninguna tarjeta.
+ *  - 'icon': igual, pero como un cuadradito con el número de hoy (como Google Calendar).
+ *  - 'bottom': burbuja abajo a la derecha, sobre la barra de secciones.
+ *  - 'dock': burbuja abajo al centro, sobre la barra de secciones.
+ *  - 'top': píldora centrada bajo la cabecera.
+ * Antes colgaba bajo la cabecera, a la derecha, justo en la esquina de la frase del día: parecía un
+ * «volver a la frase de hoy». La flecha curva se refleja si el presente queda adelante.
  */
-export const backNowStyle = () => (['bottom', 'top'].includes(S?.cfg?.backNow) ? S.cfg.backNow : 'date');
+const BACK_STYLES = ['icon', 'bottom', 'dock', 'top'];
+export const backNowStyle = () => (BACK_STYLES.includes(S?.cfg?.backNow) ? S.cfg.backNow : 'date');
 function backNow() {
   const T = today(), month = T.slice(0, 7), week = iso(monday(new Date()));
-  // [en la fila de la fecha, abajo, arriba, nombre completo]
-  const thisMonth = [tr('Hoy', 'Today'), tr('Ir a este mes', 'Go to this month'), tr('Volver a este mes', 'Back to this month'), tr('Volver a este mes', 'Back to this month')];
-  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: [tr('Hoy', 'Today'), tr('Ir a hoy', 'Go to today'), tr('Volver a hoy', 'Back to today'), tr('Volver a hoy', 'Back to today')] };
-  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: [tr('Hoy', 'Today'), tr('Ir a esta semana', 'Go to this week'), tr('Volver a esta semana', 'Back to this week'), tr('Volver a esta semana', 'Back to this week')] };
-  if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, label: thisMonth };
-  if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: thisMonth };
+  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, full: tr('Volver a hoy', 'Back to today') };
+  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, full: tr('Volver a esta semana', 'Back to this week') };
+  if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, full: tr('Volver a este mes', 'Back to this month') };
+  if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, full: tr('Volver a este mes', 'Back to this month') };
   return null;
 }
-/** Dónde va el botón según el estilo: en la fila de la fecha, o colgando de la cabecera fija. */
+/** Dónde va el botón: en la fila de la fecha ('date' e 'icon') o colgando de la cabecera fija. */
 function backNowSlot(head, style) {
-  if (style !== 'date') return head;
+  if (style !== 'date' && style !== 'icon') return head;
   const panel = [...head.querySelectorAll('.plan-head-panel')].find(p => p.getAttribute('aria-hidden') !== 'true');
   return (panel || head).querySelector('.range-nav') || head.querySelector('.page-head .subtitle') || head;
 }
@@ -263,10 +266,11 @@ function drawBackNow() {
   btn.classList.toggle('enter', wasHidden);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
-  const text = b.label[style === 'bottom' ? 1 : style === 'top' ? 2 : 0];
-  btn.innerHTML = `${icon('back', `icon${b.later ? '' : ' flip'}`)}<span>${text}</span>`;
-  btn.setAttribute('aria-label', b.label[3]);
-  btn.title = b.label[3];
+  btn.innerHTML = style === 'icon'
+    ? `<span class="bn-cal" aria-hidden="true">${new Date().getDate()}</span>`
+    : `${icon('back', `icon${b.later ? '' : ' flip'}`)}<span>${tr('Hoy', 'Today')}</span>`;
+  btn.setAttribute('aria-label', b.full);
+  btn.title = b.full;
 }
 
 export function focusEnd(el) {

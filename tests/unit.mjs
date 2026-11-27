@@ -75,7 +75,7 @@ test('se rechazan claves peligrosas, fechas inválidas, índices enormes y valor
     modify(data);
     throws(() => checkedState(data));
   }
-  { const ok = fixture(); ok.cfg.backNow = 'bottom'; checkedState(ok); ok.cfg.backNow = 'top'; checkedState(ok); } // estilos del botón para volver al presente
+  { const ok = fixture(); for (const v of ['icon', 'bottom', 'dock', 'top']) { ok.cfg.backNow = v; checkedState(ok); } } // estilos del botón para volver al presente
   { const ok = fixture(); ok.cfg.taskStyle = 'cards'; checkedState(ok); ok.cfg.taskStyle = 'pills'; checkedState(ok); } // tarjetas, y la antigua «píldoras»
   throws(() => checkedState(JSON.parse('{"h":[],"__proto__":{"polluted":true}}')));
   load(fixture());
