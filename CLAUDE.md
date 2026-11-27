@@ -264,6 +264,12 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
   solo en su día al abrir la app (con un aviso). La hoja de cerrar el día («¿La pasas a mañana?»)
   también va al centro, con «Dejarlas en su día».
 
+- Fin de semana → lunes: al cerrar el día un **viernes o sábado** con tareas pendientes, la hoja
+  ofrece primero «Pasar al lunes» y luego «Pasar a mañana». En **sábado y domingo**, Pendientes ofrece
+  por tarea «Pasar al lunes» (en vez de «Pasar a esta semana», que ahí es casi solo el domingo) y
+  abajo «Pasar todo al lunes» (principal) y «Pasar todo a hoy» (`isWeekend`, `nextMonday`,
+  `offerMonday`). Pensado para lo del trabajo que queda del viernes.
+
 **Horizontes: un día o esta semana**
 - Todo responde a «¿cuándo?»: un día o la semana (sin día). «Objetivo» no es un lugar: es una forma
   de tarea dentro de la semana. Una tarea del día pasa a su semana (o a la actual si ya pasó; las

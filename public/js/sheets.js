@@ -4,7 +4,7 @@ import { S, save } from './state.js';
 import { U, storedAppearance, toast, toastUndo } from './ui.js';
 import {
   bringOverdue, dayTasks, dropTask, getTask, isFocusKey, moveTask, movePendingTo, moveWeekTaskToNext, overdue, removeTask,
-  deleteWeekTask, repeatTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
+  deleteWeekTask, isWeekend, nextMonday, offerMonday, repeatTask, restore, setWeekGoal, taskToWeek, weekForDay, weekKey, snapshot, toggleFocus, toggleWeekFocus,
 } from './tasks.js';
 import { consistency, deleteHabit, frequencyLabel, isDone, isWeekly, saveHabit, streak, toggle } from './habits.js';
 import { CATEGORY_ORDER, categoryColor, categoryName } from './categories.js';
@@ -353,19 +353,26 @@ function centered(dlg) {
   dlg.addEventListener('close', () => dlg.classList.remove('center-sheet'), { once: true });
 }
 export function overdueSheet() {
-  const T = today(), items = overdue(T);
+  const T = today(), items = overdue(T), weekend = isWeekend(T);
   if (!items.length) { closeSheet(); render(); return; }
   const rows = items.map(({ date, key, row }) => {
     const pd = parseDate(date);
     // Nombre arriba y las tres acciones debajo: así el nombre no se aprieta en el celular.
     return `<div class="overdue-row"><div class="task-main"><span class="caps" style="overflow-wrap:anywhere">${esc(row.t)}</span><span class="task-meta" style="margin:2px 0 0">${DAYS[weekday(pd)]} ${pd.getDate()}</span></div><div class="overdue-actions">
       <button class="btn small secondary" data-a="overduebring" data-date="${date}" data-k="${key}">${tr('Pasar a hoy', 'Move to today')}</button>
-      <button class="btn small quiet" data-a="overdueweek" data-date="${date}" data-k="${key}" title="${tr('Va esta semana, sin día', 'It goes this week, no day')}">${tr('Pasar a esta semana', 'Move to this week')}</button>
+      ${weekend
+        // En fin de semana, «esta semana» es casi solo el domingo: lo útil es dejarla para el lunes.
+        ? `<button class="btn small quiet" data-a="overduemonday" data-date="${date}" data-k="${key}">${tr('Pasar al lunes', 'Move to Monday')}</button>`
+        : `<button class="btn small quiet" data-a="overdueweek" data-date="${date}" data-k="${key}" title="${tr('Va esta semana, sin día', 'It goes this week, no day')}">${tr('Pasar a esta semana', 'Move to this week')}</button>`}
       <button class="btn small quiet" data-a="overduedrop" data-date="${date}" data-k="${key}" title="${tr('Ya no es pendiente; queda guardada en su día', 'No longer pending; it stays saved on its day')}">${tr('Dejar en su día', 'Leave on its day')}</button></div></div>`;
   }).join('<div class="divider" style="margin:0"></div>');
   // Ventana al centro (como «Reordenar hábitos»): es una decisión puntual, no un menú.
-  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${tr('Pasa a hoy lo que sigue importando. Si es para esta semana pero no sabes qué día, pásala a esta semana. Lo que ya no, déjalo en su día: queda guardado ahí, sin culpa.', 'Move to today what still matters. If it’s for this week but you don’t know the day, move it to this week. What doesn’t, leave on its day: it stays saved there, guilt-free.')}</p>${rows}
-    <div class="row-actions"><button class="btn" data-a="overdueall">${tr('Pasar todo a hoy', 'Move all to today')}</button></div>`, centered);
+  openSheet(tr('Pendientes', 'Left over'), `<p class="muted small" style="margin:0 0 12px">${weekend
+    ? tr('Es fin de semana: lo que es para la semana, como lo del trabajo, pásalo al lunes. Lo que quieras hacer hoy, pásalo a hoy. Lo que ya no, déjalo en su día: queda guardado ahí, sin culpa.', 'It’s the weekend: what belongs to the week, like work, move it to Monday. What you want to do today, move it to today. What no longer matters, leave it on its day: it stays saved there, guilt-free.')
+    : tr('Pasa a hoy lo que sigue importando. Si es para esta semana pero no sabes qué día, pásala a esta semana. Lo que ya no, déjalo en su día: queda guardado ahí, sin culpa.', 'Move to today what still matters. If it’s for this week but you don’t know the day, move it to this week. What doesn’t, leave on its day: it stays saved there, guilt-free.')}</p>${rows}
+    <div class="row-actions">${weekend
+      ? `<button class="btn" data-a="overdueallmonday">${tr('Pasar todo al lunes', 'Move all to Monday')}</button><button class="btn quiet" data-a="overdueall">${tr('Pasar todo a hoy', 'Move all to today')}</button>`
+      : `<button class="btn" data-a="overdueall">${tr('Pasar todo a hoy', 'Move all to today')}</button>`}</div>`, centered);
 }
 export function overdueAction(kind, date, key) {
   const T = today();
@@ -376,6 +383,15 @@ export function overdueAction(kind, date, key) {
     toastUndo(tr(`${count} ${count === 1 ? 'tarea traída' : 'tareas traídas'} a hoy`, `${count} ${plural(count, '', '', 'task', 'tasks')} brought to today`), () => { restore(undo); render(); });
     return;
   }
+  if (kind === 'allmonday') {
+    const { undo, count } = bringOverdue(nextMonday(T), overdue(T));
+    closeSheet();
+    render();
+    toastUndo(count === 1 ? tr('1 tarea pasó al lunes', '1 task moved to Monday') : tr(`${count} tareas pasaron al lunes`, `${count} tasks moved to Monday`), () => { restore(undo); render(); });
+    return;
+  }
+  if (kind === 'monday') moveTask(date, key, nextMonday(T));
+  else
   if (kind === 'week') { const r = taskToWeek(date, key, T); if (r.error) { toast(r.error); return; } }
   else if (kind === 'bring') moveTask(date, key, T); else dropTask(date, key);
   overdueSheet();
@@ -667,7 +683,17 @@ export function carryOverSheet(date, undo) {
   if (!pending.length) return false;
   undoClose = undo;
   const n = pending.length;
-  const past = date < today();
+  const past = date < today(), monday = !past && offerMonday(date);
+  // Viernes o sábado: lo natural es dejar lo pendiente (p. ej., del trabajo) para el lunes.
+  if (monday) {
+    openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr('Te quedó una tarea sin terminar. ¿La pasas al lunes?', 'One task is left. Move it to Monday?') : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas al lunes?`, `${n} tasks are left. Move them to Monday?`)}</p>
+    <ul class="carry-list">${pending.map(t => `<li>${isFocusKey(t.key) ? icon('star', 'icon star-fill') : '<i class="dot"></i>'}<span class="caps">${esc(t.row.t)}</span></li>`).join('')}</ul>
+    <button class="btn" data-a="carryover" data-date="${nextMonday(date)}">${icon('tomorrow')}${tr('Pasar al lunes', 'Move to Monday')}</button>
+    <button class="btn quiet" data-a="carryover" data-date="${shiftDate(date, 1)}" style="margin-top:8px">${tr('Pasar a mañana', 'Move to tomorrow')}</button>
+    <button class="btn quiet" data-a="dismiss" style="margin-top:8px">${n === 1 ? tr('Dejarla en su día', 'Leave it on its day') : tr('Dejarlas en su día', 'Leave them on their day')}</button>
+    <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`, centered);
+    return true;
+  }
   openSheet(tr('Día cerrado. Bien hecho.', 'Day closed. Well done.'), `<p style="margin:0 0 12px;color:var(--ink-2)">${n === 1 ? tr(`Te quedó una tarea sin terminar. ¿La pasas a ${past ? 'hoy' : 'mañana'}?`, `One task is left. Move it to ${past ? 'today' : 'tomorrow'}?`) : tr(`Te quedaron ${n} tareas sin terminar. ¿Las pasas a ${past ? 'hoy' : 'mañana'}?`, `${n} tasks are left. Move them to ${past ? 'today' : 'tomorrow'}?`)}</p>
     <ul class="carry-list">${pending.map(t => `<li>${isFocusKey(t.key) ? icon('star', 'icon star-fill') : '<i class="dot"></i>'}<span class="caps">${esc(t.row.t)}</span></li>`).join('')}</ul>
     <button class="btn" data-a="carryover">${icon('tomorrow')}${past ? tr('Pasar a hoy', 'Move to today') : tr('Pasar a mañana', 'Move to tomorrow')}</button>
@@ -675,14 +701,18 @@ export function carryOverSheet(date, undo) {
     <button type="button" class="link" data-a="closeundo" style="display:block;margin:12px auto 0">${tr('Deshacer el cierre del día', 'Undo closing the day')}</button>`, centered);
   return true;
 }
-export function doCarryOver(date) {
-  const past = date < today();
-  const { count, merged, undo } = movePendingTo(date, past ? today() : shiftDate(date, 1));
+export function doCarryOver(date, dest) {
+  const past = date < today(), target = dest || (past ? today() : shiftDate(date, 1));
+  const { count, merged, undo } = movePendingTo(date, target);
   closeSheet();
   render();
   if (!count) return;
-  const day = past ? tr('hoy', 'today') : tr('mañana', 'tomorrow'), moved = count - merged;
-  const movedText = moved === 1 ? tr(`1 tarea pasó a ${day}`, `1 task moved to ${day}`) : tr(`${moved} tareas pasaron a ${day}`, `${moved} tasks moved to ${day}`);
+  // «a hoy» / «a mañana» / «al lunes» para el destino; «hoy» / «mañana» / «el lunes» para «ya estaba…».
+  const [to, day] = target === today() ? [tr('a hoy', 'to today'), tr('hoy', 'today')]
+    : target === shiftDate(date, 1) ? [tr('a mañana', 'to tomorrow'), tr('mañana', 'tomorrow')]
+      : [tr(`al ${shortDay(target)}`, `to ${shortDay(target)}`), tr(`el ${shortDay(target)}`, shortDay(target))];
+  const moved = count - merged;
+  const movedText = moved === 1 ? tr(`1 tarea pasó ${to}`, `1 task moved ${to}`) : tr(`${moved} tareas pasaron ${to}`, `${moved} tasks moved ${to}`);
   // Las tareas semanales que ese día ya tenía no se duplican: se avisa que ya estaban.
   const mergedText = merged === 1 ? tr(`1 ya estaba ${day}`, `1 was already there`) : tr(`${merged} ya estaban ${day}`, `${merged} were already there`);
   const message = !merged ? movedText : !moved ? (merged === 1 ? tr(`Ya la tenías ${day}: no se duplicó`, `Already there ${day}: not duplicated`) : tr(`Ya las tenías ${day}: no se duplicaron`, `Already there ${day}: not duplicated`)) : `${movedText} · ${mergedText}`;

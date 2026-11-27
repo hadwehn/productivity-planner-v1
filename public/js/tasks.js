@@ -230,13 +230,22 @@ export function overdue(date) {
 /** Trae a `date` todas las pendientes (o una lista concreta). */
 export function bringOverdue(date, items = overdue(date)) {
   const dates = [...new Set([date, ...items.map(x => x.date)])], undo = snapshot(dates);
-  // Se procesan de la más nueva a la más antigua para que las claves sigan siendo válidas.
-  for (const { date: from, row } of items.slice().reverse()) {
+  // En su orden (del día más antiguo al más nuevo, y dentro de cada día como estaban): cada tarea se
+  // ubica por sí misma (keyOf), así que mover una no invalida a las demás.
+  for (const { date: from, row } of items) {
     const key = keyOf(from, row);
     if (Number.isFinite(key)) moveTask(from, key, date);
   }
   return { undo, count: items.length };
 }
+// ——— Fin de semana: lo del trabajo, al lunes ———
+/** ¿`date` es sábado o domingo? */
+export const isWeekend = date => weekday(parseDate(date)) >= 5;
+/** El lunes siguiente a `date` (si `date` es lunes, el de la semana que viene). */
+export const nextMonday = date => shiftDate(weekKey(date), 7);
+/** ¿Al cerrar `date` conviene ofrecer «Pasar al lunes»? Viernes y sábado (el domingo, mañana ya es lunes). */
+export const offerMonday = date => [4, 5].includes(weekday(parseDate(date)));
+
 /** Suelta las pendientes de días anteriores a la ventana de avisos (quedan en su día). Devuelve cuántas. */
 export function dropOldOverdue(date) {
   const limit = shiftDate(date, -LOOKBACK_DAYS);
