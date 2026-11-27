@@ -218,39 +218,55 @@ export function focusRitual(key) {
 }
 
 /**
- * «Volver al presente»: un solo botón, arriba a la derecha bajo la cabecera fija, igual en
- * Hoy, Plan y Diario, que aparece solo cuando se mira otro día, semana o mes. Texto corto («Hoy»,
- * «Esta semana», «Este mes») con una flecha curva de regreso, que se refleja si el presente queda adelante.
+ * «Volver al presente»: un solo botón (#back-now) y una sola acción, igual en Hoy, Plan y Diario; aparece
+ * solo cuando se mira otro día, semana o mes. Ajustes › «Botón para volver al presente» cambia solo su
+ * lugar y su texto (cfg.backNow, `data-backnow` en <html>):
+ *  - 'date' (por defecto): «↺ Hoy» en la fila de la fecha (al final de la fecha en Hoy; junto a las
+ *    flechas en Plan y Diario), como en los calendarios. Va en la cabecera fija: se ve al bajar y no tapa nada.
+ *  - 'bottom': burbuja abajo a la derecha, sobre la barra de secciones («Ir a hoy»).
+ *  - 'top': píldora de vidrio centrada bajo la cabecera («Volver a hoy»), como «Nuevas publicaciones».
+ * Antes era una burbuja verde arriba a la derecha bajo la cabecera, que parecía parte de la frase del día.
+ * La flecha curva se refleja si el presente queda adelante.
  */
+export const backNowStyle = () => (['bottom', 'top'].includes(S?.cfg?.backNow) ? S.cfg.backNow : 'date');
 function backNow() {
   const T = today(), month = T.slice(0, 7), week = iso(monday(new Date()));
-  const thisMonth = [tr('Este mes', 'This month'), tr('Volver a este mes', 'Back to this month')];
-  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: [tr('Hoy', 'Today'), tr('Volver a hoy', 'Back to today')] };
-  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: [tr('Esta semana', 'This week'), tr('Volver a esta semana', 'Back to this week')] };
+  // [en la fila de la fecha, abajo, arriba, nombre completo]
+  const thisMonth = [tr('Hoy', 'Today'), tr('Ir a este mes', 'Go to this month'), tr('Volver a este mes', 'Back to this month'), tr('Volver a este mes', 'Back to this month')];
+  if (U.tab === 'today' && U.date !== T) return { a: 'date', k: T, later: U.date > T, label: [tr('Hoy', 'Today'), tr('Ir a hoy', 'Go to today'), tr('Volver a hoy', 'Back to today'), tr('Volver a hoy', 'Back to today')] };
+  if (U.tab === 'week' && U.weekMode === 'week' && U.week !== week) return { a: 'thisweek', later: U.week > week, label: [tr('Hoy', 'Today'), tr('Ir a esta semana', 'Go to this week'), tr('Volver a esta semana', 'Back to this week'), tr('Volver a esta semana', 'Back to this week')] };
   if (U.tab === 'week' && U.weekMode !== 'week' && U.month !== month) return { a: 'thismonth', later: U.month > month, label: thisMonth };
   if (U.tab === 'journal' && isUnlocked() && U.journalMonth !== month) return { a: 'thisjournal', later: U.journalMonth > month, label: thisMonth };
   return null;
 }
-// El botón vive dentro de la cabecera fija y cuelga bajo su línea: así se mueven siempre juntos
-// (también en el rebote del iPhone al tirar más arriba del inicio). Como la vista se vuelve a dibujar,
-// se guarda aquí y se vuelve a poner en la cabecera nueva cada vez.
+/** Dónde va el botón según el estilo: en la fila de la fecha, o colgando de la cabecera fija. */
+function backNowSlot(head, style) {
+  if (style !== 'date') return head;
+  const panel = [...head.querySelectorAll('.plan-head-panel')].find(p => p.getAttribute('aria-hidden') !== 'true');
+  return (panel || head).querySelector('.range-nav') || head.querySelector('.page-head .subtitle') || head;
+}
+// El botón vive dentro de la cabecera fija: así se mueve siempre con ella (también en el rebote del
+// iPhone). Como la vista se vuelve a dibujar, se guarda aquí y se vuelve a poner en su lugar cada vez.
 let backBtn = null;
 function drawBackNow() {
   backBtn ||= $('#back-now');
-  const btn = backBtn, b = backNow(), head = $('#v .sticky-head');
+  const btn = backBtn, b = backNow(), head = $('#v .sticky-head'), style = backNowStyle();
   if (!btn) return;
+  document.documentElement.dataset.backnow = style;
   const wasHidden = btn.hidden || !btn.isConnected;
   btn.hidden = !b || !head;
+  document.documentElement.classList.toggle('has-back-now', !btn.hidden);
   if (btn.hidden) return;
-  if (btn.parentElement !== head) head.append(btn);
+  const slot = backNowSlot(head, style);
+  if (btn.parentElement !== slot) { if (slot.classList.contains('range-nav')) slot.prepend(btn); else slot.append(btn); }
   // Aparece con una animación solo al mostrarse, no cada vez que se redibuja la pantalla.
   btn.classList.toggle('enter', wasHidden);
   btn.dataset.a = b.a;
   if (b.k) btn.dataset.k = b.k; else delete btn.dataset.k;
-  // Texto corto («Esta semana») con flecha curva de regreso; el nombre completo, para lectores de pantalla.
-  btn.innerHTML = `${icon('back', `icon${b.later ? '' : ' flip'}`)}<span>${b.label[0]}</span>`;
-  btn.setAttribute('aria-label', b.label[1]);
-  btn.title = b.label[1];
+  const text = b.label[style === 'bottom' ? 1 : style === 'top' ? 2 : 0];
+  btn.innerHTML = `${icon('back', `icon${b.later ? '' : ' flip'}`)}<span>${text}</span>`;
+  btn.setAttribute('aria-label', b.label[3]);
+  btn.title = b.label[3];
 }
 
 export function focusEnd(el) {

@@ -110,15 +110,19 @@ la copia; «Cargar la versión de la nube» (en un conflicto) también. La copia
 - Plan y Diario: flechas con recuadro fijas a la derecha de la fila de fechas; también se deslizan.
   Títulos relativos («Esta semana», «Semana pasada», «Hace 2 semanas», «Mes pasado»…). La semana se
   escribe con el mes completo («30 de noviembre al 6 de diciembre»).
-- Volver al presente: un solo botón chico con texto corto («Hoy», «Esta semana», «Este mes») y una
-  flecha curva de regreso (reflejada si el presente queda adelante); el nombre completo («Volver a
-  esta semana») va como etiqueta accesible. Igual en Hoy, Plan y Diario, y solo cuando se mira otro
-  periodo. Relleno con el color de acción (verde en claro, amarillo en oscuro) para que se note.
-  En celular flota arriba a la derecha, justo bajo la línea de la cabecera fija (en la cabecera no
-  cabía el texto; se probó abajo, sobre la barra de pestañas, y los fundadores lo prefirieron
-  arriba, cerca de la fecha). Se esconde con una hoja abierta. En computador va en la cabecera, a
-  la izquierda de Ajustes. Ya no hay «‹ Hoy» en las cabeceras. El botón va dentro de la cabecera
-  fija y cuelga bajo su línea, así se mueven siempre juntos (también en el rebote del iPhone).
+- Volver al presente: un solo botón (`#back-now`) y una sola acción en Hoy, Plan y Diario, solo
+  cuando se mira otro periodo; flecha curva de regreso (reflejada si el presente queda adelante) y el
+  nombre completo («Volver a esta semana») como etiqueta accesible. Ajustes › «Botón para volver a
+  hoy» elige dónde va (se guarda en la cuenta, `cfg.backNow`; `data-backnow` en `<html>`; `drawBackNow`
+  en `render.js`):
+  - **En la fila de la fecha** (por defecto): «↺ Hoy» chico, como las flechas, al final de la fecha en
+    Hoy y junto a las flechas ‹ › en Plan y Diario (en celular angosto, ahí solo la flecha curva).
+    Como en los calendarios; va en la cabecera fija, se ve al bajar y no tapa contenido.
+  - **Burbuja abajo** («Ir a hoy»): a la derecha, sobre la barra de secciones; con ella visible, la
+    página deja más espacio al final para no tapar la última tarea.
+  - **Píldora centrada** («Volver a hoy»): de vidrio, bajo la cabecera, como «Nuevas publicaciones».
+  Antes era una burbuja verde arriba a la derecha bajo la cabecera: parecía parte de la frase del
+  día. Se descartó ponerla en un costado: choca con el gesto de volver desde el borde y con los ⋯.
 - En el celular la cabecera va **fija a la pantalla** (`position: fixed`), con un espacio de su alto
   bajo ella (`--head-h`, `fitHead` en `render.js`): en el rebote del iPhone al tirar hacia abajo
   desde arriba, la cabecera queda quieta y se estira el espacio entre ella y el contenido, como en

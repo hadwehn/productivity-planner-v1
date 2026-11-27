@@ -32,6 +32,8 @@ export function drawSettings() {
     `<label class="toggle-row"><span>${label}</span><span class="switch"><input type="checkbox" data-a="todaypref" data-k="${k}"${showToday(k) ? ' checked' : ''}><i></i></span></label>`).join('');
   const pref = storedAppearance();
   $$('[data-a=appearance]').forEach(b => { const on = b.dataset.k === pref; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+  const bn = ['bottom', 'top'].includes(S.cfg.backNow) ? S.cfg.backNow : 'date';
+  $$('[data-a=backnowstyle]').forEach(b => { const on = b.dataset.k === bn; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
   const style = S.cfg.taskStyle === 'cards' ? 'cards' : 'list';
   $$('[data-a=taskstyle]').forEach(b => { const on = b.dataset.k === style; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   const size = S.cfg.textSize === 'large' ? 'large' : 'normal';
@@ -350,6 +352,11 @@ const ACTIONS = {
   textsize: d => {
     if (d.k === 'large') S.cfg.textSize = 'large'; else delete S.cfg.textSize;
     save(); applyTextSize(); drawSettings(); render();
+  },
+  // Dónde va el botón para volver al presente (ver drawBackNow en render.js); se guarda en la cuenta.
+  backnowstyle: d => {
+    if (d.k === 'bottom' || d.k === 'top') S.cfg.backNow = d.k; else delete S.cfg.backNow;
+    save(); drawSettings(); render();
   },
   // Tareas como lista (por defecto) o como tarjetas; vale para Hoy y Plan, y se guarda en la cuenta.
   taskstyle: d => {

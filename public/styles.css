@@ -1093,3 +1093,52 @@ kbd { display: inline-block; font: 600 12px/1 var(--sans); padding: 4px 7px; bor
 .check.still { cursor: default; }
 .habit-chip.still, .event.still { cursor: default; }
 .habit-chip.still:not(.on) { opacity: .7; }
+
+/* ===== Botón para volver al presente: tres estilos (ver drawBackNow en render.js) ===== */
+/* B · En la fila de la fecha (por defecto): botón chico como las flechas ‹ ›, parte de la navegación. */
+:root[data-backnow="date"] #back-now { position: static; flex: none; min-height: 30px; height: 30px; padding: 0 10px 0 8px; gap: 4px; border-radius: 10px; background: var(--sunken); color: var(--ink); box-shadow: none; font-size: calc(13px * var(--ts)); }
+:root[data-backnow="date"] #back-now .icon { width: 15px; height: 15px; }
+:root[data-backnow="date"] .page-head > div:has(#back-now) { flex: 1; }
+:root[data-backnow="date"] .page-head .subtitle:has(#back-now) { display: flex; align-items: center; gap: 10px; }
+:root[data-backnow="date"] .page-head .subtitle:has(#back-now) .period { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+:root[data-backnow="date"] .page-head .subtitle #back-now { margin-left: auto; }
+:root[data-backnow="date"] #back-now.enter { animation: back-now-fade .2s var(--ease); }
+@keyframes back-now-fade { from { opacity: 0; } }
+@media (hover: hover) { :root[data-backnow="date"] #back-now:hover { background: var(--line); } }
+/* En pantallas angostas, junto a las flechas de Plan y Diario solo va la flecha curva (la fecha no cabe). */
+@media (max-width: 420px) { :root[data-backnow="date"] .range-nav #back-now { padding: 0; width: 30px; justify-content: center; } :root[data-backnow="date"] .range-nav #back-now span { display: none; } }
+
+/* A · Burbuja abajo a la derecha, sobre la barra de secciones. */
+:root[data-backnow="bottom"] #back-now { position: fixed; top: auto; right: max(16px, calc((100vw - 640px) / 2 + 16px)); bottom: calc(max(10px, calc(env(safe-area-inset-bottom) - 12px)) + 84px); z-index: 9; min-height: 40px; padding: 0 15px 0 12px; font-size: calc(14px * var(--ts)); }
+:root[data-backnow="bottom"].has-back-now #v { padding-bottom: calc(160px + env(safe-area-inset-bottom)); } /* al final, la burbuja no tapa la última tarea */
+@keyframes back-now-up { from { opacity: 0; translate: 0 8px; } }
+:root[data-backnow="bottom"] #back-now.enter { animation: back-now-up .25s var(--ease); }
+
+/* C · Píldora de vidrio centrada bajo la cabecera: flota sobre todo, sin parecer parte de una tarjeta. */
+:root[data-backnow="top"] #back-now { left: 50%; right: auto; transform: translateX(-50%); top: calc(100% + 8px); background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-up); }
+:root[data-backnow="top"] #back-now .icon { color: var(--acc); }
+:root[data-backnow="top"] #back-now:active { transform: translateX(-50%) scale(.97); }
+
+@media (min-width: 1000px) {
+  :root[data-backnow="bottom"] #back-now { right: 32px; bottom: 28px; }
+  :root[data-backnow="top"] #back-now { top: calc(100% + 10px); }
+}
+
+/* Ajustes: las tres opciones, con una vista previa esquemática de cada una. */
+.field-hint { margin: -2px 2px 10px; font-size: calc(13px * var(--ts)); color: var(--mute); }
+.backnow-options { display: grid; gap: 8px; }
+.backnow-opt { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: var(--r-md); background: var(--sunken); border: 1.5px solid transparent; text-align: left; }
+.backnow-opt.on { border-color: var(--acc); background: var(--acc-soft); }
+.bn-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bn-text strong { font-weight: 600; font-size: calc(14px * var(--ts)); color: var(--ink); }
+.bn-text small { font-size: calc(12.5px * var(--ts)); color: var(--mute); line-height: 1.35; }
+.bn-prev { position: relative; flex: none; width: 46px; height: 74px; border-radius: 9px; background: var(--bg); border: 1px solid var(--line-strong); overflow: hidden; }
+.bn-prev i { position: absolute; left: 4px; right: 4px; display: block; border-radius: 3px; }
+.bn-prev .bn-head { top: 4px; height: 16px; background: var(--surface); }
+.bn-prev .bn-body { top: 24px; height: 32px; background: repeating-linear-gradient(var(--line-strong) 0 3px, transparent 3px 8px); opacity: .55; }
+.bn-prev .bn-bar { bottom: 4px; height: 8px; background: var(--surface); border-radius: 4px; }
+.bn-prev u, .bn-prev .bn-head u { position: absolute; display: block; background: var(--acc); border-radius: 99px; }
+.bn-date .bn-head b { position: absolute; left: 3px; top: 9px; width: 18px; height: 3px; background: var(--line-strong); border-radius: 2px; }
+.bn-date .bn-head u { right: 3px; top: 8px; width: 9px; height: 5px; border-radius: 2px; }
+.bn-bottom u { right: 5px; bottom: 15px; width: 16px; height: 6px; }
+.bn-top u { left: 50%; top: 23px; width: 18px; height: 6px; transform: translateX(-50%); background: var(--surface); box-shadow: 0 0 0 1px var(--line-strong); }
