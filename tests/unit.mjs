@@ -1,10 +1,12 @@
 // Pruebas de lógica (sin backend). Corren en Node (`npm test`) o en el navegador (tests/run.html).
 import { S, checkedState, onSave, setState, summary, setPath } from '../public/js/state.js';
 import { migrate } from '../public/js/migrate.js';
+import { readdirSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import {
   addTask, addWeekTask, bringOverdue, dayTasks, dropTask, moveTask, overdue, removeTask, removeWeekTask, deleteWeekTask, renameTask, moveWeekTaskToNext, snapshot,
   renameWeekTask, reorderTask, restore, scheduledDays, setDone, setWeekDone, toggleFocus, toggleWeekDay, toggleWeekFocus, weekTasks,
-  movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay, repeatTask,
+  movePendingTo, dropOldOverdue, setWeekGoal, taskToWeek, undatedToDay, weekForDay, repeatTask, isWeekend, nextMonday, offerMonday,
 } from '../public/js/tasks.js';
 import { consistency, isDue, saveHabit, streak, toggle, weekCount, weekHabitRate } from '../public/js/habits.js';
 import { monthReminder, reviewReminder, finishMonth, hasMonthText, monthDone, reopenMonth, isLockedDay, isLockedWeek } from '../public/js/rituals.js';
@@ -545,6 +547,29 @@ test('«¿Cuándo?»: esta semana o la próxima, sin día', () => {
   addTask(T, 'Ordenar bodega');
   eq(taskToWeek(T, 1, T, next).week, next);
   eq([weekTasks(next, 'b').map(x => x.row.t), weekTasks(thisWeek, 'b').length, dayTasks(T).rest.length], [['Ordenar bodega'], 0, 0]);
+});
+
+test('fin de semana: lo pendiente del viernes se lleva al lunes', () => {
+  // 2026-11-27 es viernes; 28 sábado; 29 domingo; 30 lunes.
+  eq([isWeekend('2026-11-27'), isWeekend('2026-11-28'), isWeekend('2026-11-29')], [false, true, true]);
+  eq([nextMonday('2026-11-27'), nextMonday('2026-11-28'), nextMonday('2026-11-29'), nextMonday('2026-11-30')], ['2026-11-30', '2026-11-30', '2026-11-30', '2026-12-07']);
+  eq(['2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'].map(offerMonday), [false, true, true, false], 'al cerrar viernes o sábado');
+  load(fixture());
+  S.d = {}; S.w = {};
+  addTask('2026-11-27', 'Informe para el jefe');
+  addTask('2026-11-27', 'Llamar a proveedor');
+  const items = overdue('2026-11-28');
+  const r = bringOverdue(nextMonday('2026-11-28'), items);
+  eq([r.count, dayTasks('2026-11-30').rest.map(x => x.row.t), dayTasks('2026-11-27').rest.length], [2, ['Informe para el jefe', 'Llamar a proveedor'], 0]);
+});
+
+test('todos los archivos de la app se pueden leer (sin errores de sintaxis)', () => {
+  // Las pruebas no cargan todos los módulos (algunos necesitan el navegador): un error de sintaxis
+  // en ellos impediría abrir la app entera sin que ninguna otra prueba lo note.
+  const files = ['public/app.js', 'public/store.js', ...readdirSync('public/js').filter(f => f.endsWith('.js')).map(f => 'public/js/' + f),
+    ...readdirSync('public/js/views').filter(f => f.endsWith('.js')).map(f => 'public/js/views/' + f)];
+  const bad = files.filter(f => spawnSync(process.execPath, ['--input-type=module', '--check'], { input: readFileSync(f, 'utf8') }).status !== 0);
+  eq(bad, [], 'archivos con errores');
 });
 
 // ——— Hábitos ———

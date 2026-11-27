@@ -180,6 +180,8 @@ const ACTIONS = {
   overduedrop: d => overdueAction('drop', d.date, +d.k),
   overdueweek: d => overdueAction('week', d.date, +d.k),
   overdueall: () => overdueAction('all'),
+  overdueallmonday: () => overdueAction('allmonday'),
+  overduemonday: d => overdueAction('monday', d.date, +d.k),
 
   // Ánimo
   mood: update(d => { if (!canEditRitual(U.date, 'e') && U.editing !== `e:${U.date}`) return; const day = S.d[U.date] = S.d[U.date] || {}; const n = +d.k; if (day.mood === n) delete day.mood; else day.mood = n; save(); }),
@@ -293,7 +295,7 @@ const ACTIONS = {
     render(true);
     focusRitual('evening');
   },
-  carryover: () => doCarryOver(U.date),
+  carryover: d => doCarryOver(U.date, d.date),
   closeundo: () => undoDayClose(),
 
   // Eventos
